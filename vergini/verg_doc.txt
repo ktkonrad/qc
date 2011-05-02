@@ -1,0 +1,138 @@
+SOME NOTES ABOUT COMPILING VERGINI: (Alex Barnett, Aug 2006)
+
+The Makefile expects an environment variable OS to tell it which set of
+compile options to use. Therefore do for instance
+
+export OS=linux
+
+or `setenv OS linux' if you use tcsh rather than bash. Then do make
+
+You will need the following libraries:
+* GSL (GNU Scientific Library) which you can get via gsl and gsl-devel RPMs
+* LAPACK/BLAS which you can get via atlas and atlas-devel RPMs
+
+You'll probably need to go into the Makefile to adjust the
+library locations for your system, eg the following...
+
+MATHLIBS_linux    to point to your libraries: blas, lapack, GSL
+
+CXXFLAGS_linux    for compile options, eg, to choose static executable.
+
+CXX_linux      to choose your C++ compiler
+
+You may need help from someone who's used to compiling on UNIX/linux systems.
+
+
+
+
+
+Now follows the help info for calling the command verg:
+
+-------------------------------------------------------------------------
+
+Solve Laplacian eigenproblem via scaling method.
+Usage:
+        verg [options] task
+Options:
+        -v      verbose
+        -q      quiet (no stdout), except for arguments earlier on cmd line
+        -b <B>  set boundary collocation to B per wavelength
+        -k <K>  set wavenumber to K
+        -l <type:a:b:...:z>     define billiard shape (required; see below)
+        -s <type:a:b:...:z>     define basis set (required; see below)
+        -g <dx:mask>    output 2d grids, spacing dx
+                mask = 0: no clip
+                mask = 1: crude clip
+                mask > 1: gen weight-mask (output with -m), clip to it
+        -f <dx:mask>    fast output 2d grids (at same k)
+        -x <xl:xh:yl:yh>        define 2d output grid box
+        -p <Mo> output bdry funcs, Mo samples (or Mo=0: use B)
+        -o <head>       header name for output files
+        -m      dump geometry files
+        -h      show help
+        -e <s>  encode grid output with colloc points
+                s = 0: don't rescale with k
+                s = 1: do rescale
+        -4 <C4> set 4th-order vergini coeff (default 4.0)
+        -u      remove spurious states
+        -2      for mass-chop use old 2nd-deriv overlap formula
+        -d      don't output coeffs vectors
+        -z <eps>        define epsilon for matrix GEP truncation
+        -n      neumann boundary conditions (experimental)
+
+Tasks (choose one):
+        -V <max_delta> or <delta_lo:delta_hi>   single vergini
+        -R <delta_lo:delta_hi:delta_ref>        reference, 1 verg per state
+        -T <j_lo:j_hi>  test output range j of basis funcs
+        -N <seed>       test random wavefunction area 2-norm
+        -E <wei:j_lo:j_hi>      evecs of operator (don't use with -g)
+                        weight: wei=0 gives w=1, wei=1 gives w=1/rn
+                        negative wei uses vergini bdry operator
+        -I <f:kD>       solve inhomogeneous BVP with single src
+        -C <delta_lo:delta_hi:y_c:f_c   single vergini with mass-chop
+                if bdry out (-p) use closest to same B for Mc as Mo
+
+Example:
+        ./verg -v -l qugrs:1:0.2:0.4 -b 10 -s oyooo:3:3:1 -k 50 -e 1 -p 10 -V 0.2
+
+
+Possible BILLIARDS, with param input formats.
+    Stadium
+              st alpha trans_x trans_y
+    1/4 Stadium (for C4 sym basis)
+            qust alpha
+    1/4 Stadium (all-perim)
+           qusta alpha trans_x trans_y
+    Desym pi/4 Sinai (for C4 sym basis)
+           desin radius
+    Desym pi/4 Sinai (all-perim)
+          desina radius trans_x trans_y
+    Gen Rect Sinai
+             grs a theta1 theta2 trans_x trans_y
+    Gen Asym Rect Sinai
+             gas a theta1 theta2 theta3 theta4 trans_x trans_y
+    1/4 Gen Rect Sinai (for C4 sym basis)
+           qugrs a theta1 theta2
+    General Segmented from file
+             seg seg_file
+    Radial Func
+              rf type ecc_a ecc_b trans_x trans_y
+    Quarter Radial Func
+            qurf type ecc_a ecc_b
+    Line
+            line x0 y0 x1 y1
+    L billiard
+             ell 
+    Desym Half Mushroom
+          hamush a_stem b_stem
+    Triangle
+             tri x_corner y_corner trans_x trans_y
+
+
+
+Possible BASIS SETS, with param input formats.
+    Real plane waves
+              pw eta
+    Real plane waves, odd-odd symm
+            pwoo eta
+    Real plane waves, oven-even symm
+            pwee eta
+    Real PWs + simple evanescent PWs, o-o
+          sepwoo eta_rpw N_epw alpha
+    qust Piston1: Real PWs + EPWs along qust straight edge, o-o
+          pepwoo eta_rpw N_epw A B
+    Vergini 1/4 stadium ideal R+EPWs, o-o
+          vepwoo eta_rpw N_epw beta
+    Outer BIM (Y_0 sources)
+             oyo eta kD corner_pack
+    Outer BIM (Y_0 sources), o-o
+           oyooo eta kD corner_pack
+    Outer BIM (Y_0 sources), e-e
+           oyoee eta kD corner_pack
+    Real plane waves, reflected 2p/pi corner
+            pwre eta p
+    Fourier-Bessel reentrant right-angle
+              fb eta start_ang_pi end_ang_pi
+
+
+--------------------------------------------------------------------------
