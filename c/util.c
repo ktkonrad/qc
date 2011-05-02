@@ -9,10 +9,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+//#include "../vergini/billiard.h"
 
 /*
   read a sta_bin file into grid
-  currently only reads single eigenfunction files
+  only reads last eigenfunction in file
   Adapted from Alex Barnett's viewer.c
 
   input:
@@ -26,7 +27,7 @@
 	  m            - number of rows in grid
 	  n            - number of columns in grid
 */
-double **readSta(char *file, int *m, int *n) {
+double **readOneSta(char *file, int *m, int *n) {
   FILE *fp = fopen(file, "r");
   if (fp == NULL) {
     fprintf(stderr, "readSta: failed to open %s\n", file);
@@ -204,6 +205,8 @@ malloc an ny x nx array of chars
 input:
        ny   - y dimension of array
        nx   - x dimension of array
+output:
+       returns - uninitialized 2d array
 */
 char **createMask(int ny, int nx) {
 
@@ -214,6 +217,34 @@ char **createMask(int ny, int nx) {
 
   return mask;
 }
+
+/*
+create a mask for a billiard
+input:
+       b    - billiard to create mask for
+       dx   - grid spacing
+output:
+       returns - boolean mask array
+       ny      - rows in array
+       nx      - columns in array
+*/
+char **createMaskFromBilliard(Billiard b, double dx, int *ny, int *nx) {
+  *ny = (b.yh - b.yl) / dx; // might need to be +1
+  *nx = (b.xh - b.xl) / dx; // "
+  char **mask = createMask(*ny, *nx);
+
+  int i, j;
+  for (int i = 0 ; i < *ny ; i++)
+    for (int j = 0 ; j < *nx ; j++)
+      mask[i][j] = inside_billiard(j * dx, i * dx, &b); // x and y might need offsets 
+
+  return mask;
+}
+
+
+/*
+create a mask by calling insideBilliard from verg/billiard.c
+char **createBilliardMask(Billiard B
 
 
 /*
@@ -285,6 +316,29 @@ void intArray2file(int **array, int m, int n, char *file) {
       if (j != 0)
 	fprintf(out, "\t");
       fprintf(out, "%d", array[i][j]);
+    }
+    fprintf(out, "\n");
+  }
+  fclose(out);
+}
+
+/*
+  write an array of chars to a file, tab separator
+
+  input:
+         array - array to write
+         m     - rows in array
+	 n     - columns in array
+	 file  - name of file to write to
+*/
+void charArray2file(char **array, int m, int n, char *file) {
+  int i, j;
+  FILE *out = fopen(file, "w");
+  for (i = 0 ; i < m ; i++) {
+    for (j = 0 ; j < n ; j++) {
+      if (j != 0)
+	fprintf(out, "\t");
+      fprintf(out, "%d", (int)array[i][j]);
     }
     fprintf(out, "\n");
   }

@@ -16,6 +16,7 @@ Kyle Konrad
 #include <string.h>
 
 // vergini code dependencies
+#include "../vergini/billiard.h"
 int verb;
 
 // options specified by command line arguments
@@ -27,13 +28,15 @@ int outputGrid = 0; // flag: output grid(s) to file(s): grid_[n].dat
 char *file; // use grid from this file
 int mode = -1; // 0 - generate random_percolation grid; 1 - read grid from sta_bin file
 int maskFlag = 0; // flag: use a mask file
-char *maskFile; //use mask from this file
+char *maskFile; // use mask from this file
+Billiard bil;
+double dx = -1;
 
 /*
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile]} [-t] [-o]\n");
+  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx}]} [-t] [-o]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
 }
@@ -70,6 +73,17 @@ void processArgs(int argc, char **argv) {
       strcpy(maskFile, argv[i]);
       maskFlag = 1;
     }      
+    else if (strcmp(argv[i], "-l") == 0) {
+      if (parse_billiard(argv[++i], &bil) == -1) {
+	fprintf(stderr, "Error: failed to parse billiard args\n");
+	usage();
+	exit(5);
+      }
+      mode = 2;
+    }
+    else if(strcmp(argv[i], "-d") == 0) {
+      dx = (double)atof(argv[++i]);
+    }
     else
       fprintf(stderr, "WARNING: unknown argument: %s\n", argv[i]);
   }
@@ -146,7 +160,7 @@ int main(int argc, char **argv) {
     int count;
     int masky, maskx;
     char **mask = NULL;
-    grid = readSta(file, &ny, &nx);
+    grid = readOneSta(file, &ny, &nx);
     
     if (grid == NULL) {
       fprintf(stderr, "main: FATAL ERROR: failed to read grid\n");
@@ -171,5 +185,35 @@ int main(int argc, char **argv) {
 
     printf("counted %d nodal domains\n", count);
   }
+
+  if (mode == 2) {
+    int count;
+    int k_base = 20; // to be passed to build_billiard
+    int masky, maskx;
+    char **mask = NULL;
+
+    if (dx <= 0) {
+      fprintf(stderr, "Error: dx not specified or invalid\n");
+      exit(6);
+    }
+
+    grid = readOneSta(file, &ny, &nx);
+    
+    if (grid == NULL) {
+      fprintf(stderr, "main: ERROR: failed to read grid\n");
+      exit(3);
+    }
+    
+    if (build_billiard(&bil, k_base) != 0) {
+      fprintf(stderr, "main: ERROR: failed to build billiard\n");
+    }
+
+    mask = createMaskFromBilliard(bil, dx, &masky, &maskx);
+    charArray2file(mask, masky, maskx, "mask.dat");
+    printf("%d, %d\n",masky, maskx);
+  
+  }
+
+
   return 0;
 }

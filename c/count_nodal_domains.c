@@ -4,8 +4,6 @@ functions to count nodal domains
 Kyle Konrad
 3/29/2011
 
-TODO: add mask (short **)
-
 */
 
 #include "count_nodal_domains.h"
