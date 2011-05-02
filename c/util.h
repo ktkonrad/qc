@@ -5,6 +5,8 @@
 
 double **readOneSta(char *file, int *m, int *n);
 
+double **readSta(char *file, int *m, int *n, double *k);
+
 char **readMask(char *file, int *m, int *n);
 
 double **createGrid(int ny, int nx);
@@ -12,6 +14,8 @@ double **createGrid(int ny, int nx);
 char **createMask(int ny, int nx);
 
 char **createMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx);
+
+char **createScaledMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx, double scale);
 
 void destroyGrid(double **grid, int nx);
 

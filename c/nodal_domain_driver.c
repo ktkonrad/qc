@@ -29,14 +29,16 @@ char *file; // use grid from this file
 int mode = -1; // 0 - generate random_percolation grid; 1 - read grid from sta_bin file
 int maskFlag = 0; // flag: use a mask file
 char *maskFile; // use mask from this file
+
 Billiard bil;
 double dx = -1;
+double k_0 = -1;
 
 /*
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx}]} [-t] [-o]\n");
+  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx [-k k_0]}]} [-t] [-o]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
 }
@@ -81,9 +83,10 @@ void processArgs(int argc, char **argv) {
       }
       mode = 2;
     }
-    else if(strcmp(argv[i], "-d") == 0) {
+    else if(strcmp(argv[i], "-d") == 0)
       dx = (double)atof(argv[++i]);
-    }
+    else if(strcmp(argv[i], "-k") == 0)
+      k_0 = (double)atof(argv[++i]);
     else
       fprintf(stderr, "WARNING: unknown argument: %s\n", argv[i]);
   }
@@ -169,7 +172,7 @@ int main(int argc, char **argv) {
 
     if (maskFlag) {
       mask = readMask(maskFile, &masky, &maskx);
-      
+     
       if (maskx != nx || masky != ny) {
 	fprintf(stderr, "main: FATAL ERROR: mask dimensions do not match grid dimensions\n");
 	exit(2);
@@ -191,14 +194,15 @@ int main(int argc, char **argv) {
     int k_base = 20; // to be passed to build_billiard
     int masky, maskx;
     char **mask = NULL;
+    double k;
 
     if (dx <= 0) {
       fprintf(stderr, "Error: dx not specified or invalid\n");
       exit(6);
     }
 
-    grid = readOneSta(file, &ny, &nx);
-    
+    grid = readSta(file, &ny, &nx, &k);
+
     if (grid == NULL) {
       fprintf(stderr, "main: ERROR: failed to read grid\n");
       exit(3);
@@ -208,9 +212,23 @@ int main(int argc, char **argv) {
       fprintf(stderr, "main: ERROR: failed to build billiard\n");
     }
 
-    mask = createMaskFromBilliard(bil, dx, &masky, &maskx);
-    charArray2file(mask, masky, maskx, "mask.dat");
-    printf("%d, %d\n",masky, maskx);
+    mask = createScaledMaskFromBilliard(bil, dx, &masky, &maskx, k/k_0);
+
+    if (maskx != nx || masky != ny) {
+      fprintf(stderr, "main: FATAL ERROR: mask dimensions do not match grid dimensions\n");
+      fprintf(stderr, "ny\tnx\tmasky\tmaskx\n");
+      fprintf(stderr, "%d\t%d\t%d\t%d\n",ny,nx,masky,maskx);
+      exit(2);
+    }
+
+    count = runTest(grid, mask, ny, nx);
+
+    destroyGrid(grid, ny);
+    free(file);
+    if (maskFlag)
+      free(maskFile);
+
+    printf("counted %d nodal domains\n", count);
   
   }
 

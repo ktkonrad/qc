@@ -30,6 +30,98 @@
 double **readOneSta(char *file, int *m, int *n) {
   FILE *fp = fopen(file, "r");
   if (fp == NULL) {
+    fprintf(stderr, "readOneSta: failed to open %s\n", file);
+    return NULL;
+  }
+
+  char c;
+  int n_e, nx, ny;
+  double temp_double;
+  float temp_float;
+
+  fscanf(fp,"%c",&c);
+  if (c == 'b') {
+    fseek(fp, 3, SEEK_CUR);
+  }
+  else {
+    fclose(fp);
+    fprintf(stderr, "readOneSta: incorrect file format in %s\n", file);
+    return NULL;
+  }
+
+  if (fread(&n_e, (size_t)4,1,fp) != 1) {
+    fprintf(stderr, "readOneSta: failed to read n_e in %s\n", file);
+    return NULL;
+  }
+
+  if (fread(&nx, (size_t)4,1,fp) != 1) {
+    fprintf(stderr, "readOneSta: failed to read nx in %s\n", file);
+    return NULL;
+  }
+
+  if (fread(&ny, (size_t)4,1,fp) != 1) {
+    fprintf(stderr, "readOneSta: failed to read ny in %s\n", file);
+    return NULL;
+  } 
+
+  if (n_e < 1) {
+    fprintf(stderr, "readOneSta: no eigenfunctions in %s\n", file);
+    return NULL;
+  }
+
+  double **grid = createGrid(ny, nx);
+  *m = ny;
+  *n = nx;
+
+  int i;
+
+  for (i = 0 ; i < n_e ; i++) {
+    if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
+      fprintf(stderr, "readOneSta: failed to read E_1 in %s\n", file);
+      return NULL;
+    }
+  }
+
+  int j;
+
+  for (i = 0 ; i < nx * ny ; i++) {
+    for (j = 0 ; j < n_e ; j++) {
+      if (fread(&temp_float, 4, 1, fp) != 1) {
+	fprintf(stderr, "readOneSta: failed to read data in %s\n", file);
+	return NULL;
+      }
+      
+      if (j == n_e - 1) { //only read 1 eigenfunction
+	grid[i/nx][i%nx] = (double)temp_float;
+      }
+    }
+  }
+
+  fclose(fp);
+  return grid;
+}
+
+/*
+  read a sta_bin file into grid
+  currently only reads last eigenfunction in file
+  Adapted from Alex Barnett's viewer.c
+
+  input:
+         grid - array to read data into
+         file - name of file to read
+	 m - where to put number of rows in grid
+	 n - where to put number of columns in grid
+	 k - where to put k of data read
+
+  output:
+          return value - grid (NULL if something failed)
+	  m            - number of rows in grid
+	  n            - number of columns in grid
+	  k            - wavenumber of eigenfunction
+*/
+double **readSta(char *file, int *m, int *n, double *k) {
+  FILE *fp = fopen(file, "r");
+  if (fp == NULL) {
     fprintf(stderr, "readSta: failed to open %s\n", file);
     return NULL;
   }
@@ -41,9 +133,7 @@ double **readOneSta(char *file, int *m, int *n) {
 
   fscanf(fp,"%c",&c);
   if (c == 'b') {
-    fscanf(fp,"%c",&c);
-    fscanf(fp,"%c",&c);
-    fscanf(fp,"%c",&c);
+    fseek(fp, 3, SEEK_CUR);
   }
   else {
     fclose(fp);
@@ -79,9 +169,11 @@ double **readOneSta(char *file, int *m, int *n) {
 
   for (i = 0 ; i < n_e ; i++) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
-      fprintf(stderr, "readSta: failed to read E_1 in %s\n", file);
+      fprintf(stderr, "readSta: failed to read k_%d in %s\n", i, file);
       return NULL;
     }
+    if (i == 0)
+      *k = temp_double;
   }
 
   int j;
@@ -93,7 +185,7 @@ double **readOneSta(char *file, int *m, int *n) {
 	return NULL;
       }
       
-      if (j == n_e - 1) { //only read 1 eigenfunction
+      if (j == 0) { //only read 1 eigenfunction
 	grid[i/nx][i%nx] = (double)temp_float;
       }
     }
@@ -102,6 +194,7 @@ double **readOneSta(char *file, int *m, int *n) {
   fclose(fp);
   return grid;
 }
+
 
 /*
   read a mask from sta_bin file
@@ -229,23 +322,41 @@ output:
        nx      - columns in array
 */
 char **createMaskFromBilliard(Billiard b, double dx, int *ny, int *nx) {
-  *ny = (b.yh - b.yl) / dx; // might need to be +1
-  *nx = (b.xh - b.xl) / dx; // "
+  *ny = ceil((b.yh - b.yl) / dx) + 1;
+  *nx = ceil((b.xh - b.xl) / dx) + 1;
   char **mask = createMask(*ny, *nx);
 
   int i, j;
   for (int i = 0 ; i < *ny ; i++)
     for (int j = 0 ; j < *nx ; j++)
-      mask[i][j] = inside_billiard(j * dx, i * dx, &b); // x and y might need offsets 
+      mask[i][j] = inside_billiard(j * dx, i * dx, &b);
 
   return mask;
 }
 
-
 /*
-create a mask by calling insideBilliard from verg/billiard.c
-char **createBilliardMask(Billiard B
+create a mask for a billiard, scale it
+input:
+       b     - billiard to create mask for
+       dx    - grid spacing
+       scale - factor that grid is scaled by (k/k_0)
+output:
+       returns - boolean mask array
+       ny      - rows in array
+       nx      - columns in array
+*/
+char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, double scale) {
+  *ny = ceil((b.yh - b.yl) / dx) + 1;
+  *nx = ceil((b.xh - b.xl) / dx) + 1;
+  char **mask = createMask(*ny, *nx);
 
+  int i, j;
+  for (int i = 0 ; i < *ny ; i++)
+    for (int j = 0 ; j < *nx ; j++)
+      mask[i][j] = inside_billiard(j * dx / scale, i * dx / scale, &b);
+
+  return mask;
+}
 
 /*
   free memory used by a grid
