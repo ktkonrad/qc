@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "useful.h"
 #include "nrutil.h"
@@ -197,10 +198,14 @@ int save_grid(Grid *g, double *ks, char *head)
   float *v;                                // float vectors for output
   char name[LEN];
 
-  sprintf(name, "%s.sta_bin", head);
-  if ((fp = fopen(name, "w")) == NULL) {
-    fprintf(stderr, "file: %s, write error...\n", name);
-    return 1;
+  if (strcmp(head, "stdout") == 0)
+    fp = stdout;
+  else {
+    sprintf(name, "%s.sta_bin", head);
+    if ((fp = fopen(name, "w")) == NULL) {
+      fprintf(stderr, "file: %s, write error...\n", name);
+      return 1;
+    }
   }
 
   v = vector(0, g->ne-1);
@@ -220,7 +225,10 @@ int save_grid(Grid *g, double *ks, char *head)
 	v[n-1] = (float)g->g[i][j][n];
       fwrite(v, 4, g->ne, fp);
     }
-  fclose(fp);
+
+  if (fp != stdout)
+    fclose(fp);
+  
   if (verb)
     fprintf(stderr, "done.\n");
 

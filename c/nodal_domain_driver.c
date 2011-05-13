@@ -29,6 +29,7 @@ char *file; // use grid from this file
 int mode = -1; // 0 - generate random_percolation grid; 1 - read grid from sta_bin file
 int maskFlag = 0; // flag: use a mask file
 char *maskFile; // use mask from this file
+int oneFlag = 0; // flag: only count one eigenfunction
 
 Billiard bil;
 double dx = -1;
@@ -38,9 +39,10 @@ double k_0 = -1;
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx [-k k_0]}]} [-t] [-o]\n");
+  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx [-k k_0]}]} [-t] [-o] [-1]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
+  fprintf(stderr, "-1: only count first eigenfunction\n");
 }
 
 /*
@@ -87,6 +89,8 @@ void processArgs(int argc, char **argv) {
       dx = (double)atof(argv[++i]);
     else if(strcmp(argv[i], "-k") == 0)
       k_0 = (double)atof(argv[++i]);
+    else if(strcmp(argv[i++], "-1") == 0)
+      oneFlag = 1;
     else
       fprintf(stderr, "WARNING: unknown argument: %s\n", argv[i]);
   }
@@ -181,6 +185,8 @@ int main(int argc, char **argv) {
 
     count = runTest(grid, mask, ny, nx);
 
+    destroyMask(mask, ny);
+
     destroyGrid(grid, ny);
     free(file);
     if (maskFlag)
@@ -194,42 +200,57 @@ int main(int argc, char **argv) {
     int k_base = 20; // to be passed to build_billiard
     int masky, maskx;
     char **mask = NULL;
-    double k;
+    double k, wtm;
+    int ne;
 
     if (dx <= 0) {
       fprintf(stderr, "Error: dx not specified or invalid\n");
       exit(6);
     }
 
-    grid = readSta(file, &ny, &nx, &k);
-
-    if (grid == NULL) {
-      fprintf(stderr, "main: ERROR: failed to read grid\n");
-      exit(3);
+    if (k_0 <= 0) {
+      fprintf(stderr, "Error: k_0 not specified or invalid\n");
+      exit(7);
     }
-    
+
     if (build_billiard(&bil, k_base) != 0) {
       fprintf(stderr, "main: ERROR: failed to build billiard\n");
     }
+    
 
-    mask = createScaledMaskFromBilliard(bil, dx, &masky, &maskx, k/k_0);
+    int i = 0;
+    do {
+      grid = readSta(file, &ne, &ny, &nx, &k, i);
 
-    if (maskx != nx || masky != ny) {
-      fprintf(stderr, "main: FATAL ERROR: mask dimensions do not match grid dimensions\n");
-      fprintf(stderr, "ny\tnx\tmasky\tmaskx\n");
-      fprintf(stderr, "%d\t%d\t%d\t%d\n",ny,nx,masky,maskx);
-      exit(2);
-    }
+      if (grid == NULL) {
+	fprintf(stderr, "main: ERROR: failed to read grid\n");
+	exit(3);
+      }
+    
+      mask = createScaledMaskFromBilliard(bil, dx, &masky, &maskx, k/k_0);
 
-    count = runTest(grid, mask, ny, nx);
+      if (maskx != nx || masky != ny) {
+	fprintf(stderr, "main: FATAL ERROR: mask dimensions do not match grid dimensions\n");
+	fprintf(stderr, "ny\tnx\tmasky\tmaskx\n");
+	fprintf(stderr, "%d\t%d\t%d\t%d\n",ny,nx,masky,maskx);
+	exit(2);
+      }
 
-    destroyGrid(grid, ny);
-    free(file);
-    if (maskFlag)
-      free(maskFile);
+      count = runTest(grid, mask, ny, nx);
 
-    printf("counted %d nodal domains\n", count);
-  
+      wtm = wingTipMass(grid, mask, ny, nx);
+
+      destroyMask(mask, ny);
+      destroyGrid(grid, ny);
+
+      printf("%d\t%f\t%f\n", count, k, wtm);
+
+      if (oneFlag)
+	break;
+
+    } while (++i < ne);  
+
+      free(file);
   }
 
 

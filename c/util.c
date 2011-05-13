@@ -9,11 +9,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include "../vergini/billiard.h"
+#include <string.h>
 
 /*
   read a sta_bin file into grid
-  only reads last eigenfunction in file
+  only reads middle eigenfunction in file
   Adapted from Alex Barnett's viewer.c
 
   input:
@@ -28,10 +28,16 @@
 	  n            - number of columns in grid
 */
 double **readOneSta(char *file, int *m, int *n) {
-  FILE *fp = fopen(file, "r");
-  if (fp == NULL) {
-    fprintf(stderr, "readOneSta: failed to open %s\n", file);
-    return NULL;
+  FILE *fp;
+
+  if (strcmp(file, "stdin") == 0)
+    fp = stdin;
+  else {
+    fp = fopen(file, "r");
+    if (fp == NULL) {
+      fprintf(stderr, "readOneSta: failed to open %s\n", file);
+      return NULL;
+    }
   }
 
   char c;
@@ -44,27 +50,36 @@ double **readOneSta(char *file, int *m, int *n) {
     fseek(fp, 3, SEEK_CUR);
   }
   else {
-    fclose(fp);
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readOneSta: incorrect file format in %s\n", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readOneSta: failed to read n_e in %s\n", file);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readOneSta: failed to read nx in %s\n", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readOneSta: failed to read ny in %s\n", file);
     return NULL;
   } 
 
   if (n_e < 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readOneSta: no eigenfunctions in %s\n", file);
     return NULL;
   }
@@ -77,6 +92,8 @@ double **readOneSta(char *file, int *m, int *n) {
 
   for (i = 0 ; i < n_e ; i++) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
+      if (fp != stdin)
+	fclose(fp);
       fprintf(stderr, "readOneSta: failed to read E_1 in %s\n", file);
       return NULL;
     }
@@ -87,31 +104,35 @@ double **readOneSta(char *file, int *m, int *n) {
   for (i = 0 ; i < nx * ny ; i++) {
     for (j = 0 ; j < n_e ; j++) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
+	if (fp != stdin)
+	  fclose(fp);
 	fprintf(stderr, "readOneSta: failed to read data in %s\n", file);
 	return NULL;
       }
       
-      if (j == n_e - 1) { //only read 1 eigenfunction
+      if (j == n_e / 2) { //only read 1 eigenfunction
 	grid[i/nx][i%nx] = (double)temp_float;
       }
     }
   }
 
-  fclose(fp);
+  if (fp != stdin)
+    fclose(fp);
   return grid;
 }
 
 /*
   read a sta_bin file into grid
-  currently only reads last eigenfunction in file
   Adapted from Alex Barnett's viewer.c
 
   input:
          grid - array to read data into
          file - name of file to read
-	 m - where to put number of rows in grid
-	 n - where to put number of columns in grid
-	 k - where to put k of data read
+	 ne   - where to put number of eigenfunctions in file
+	 m    - where to put number of rows in grid
+	 n    - where to put number of columns in grid
+	 k    - where to put k of data read
+	 l    - read the lth eigenfunction (first is l=0)
 
   output:
           return value - grid (NULL if something failed)
@@ -119,11 +140,17 @@ double **readOneSta(char *file, int *m, int *n) {
 	  n            - number of columns in grid
 	  k            - wavenumber of eigenfunction
 */
-double **readSta(char *file, int *m, int *n, double *k) {
-  FILE *fp = fopen(file, "r");
-  if (fp == NULL) {
-    fprintf(stderr, "readSta: failed to open %s\n", file);
-    return NULL;
+double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
+  FILE *fp;
+
+  if (strcmp(file, "stdin") == 0)
+    fp = stdin;
+  else {
+    fp = fopen(file, "r");
+    if (fp == NULL) {
+      fprintf(stderr, "readSta: failed to open %s\n", file);
+      return NULL;
+    }
   }
 
   char c;
@@ -136,43 +163,62 @@ double **readSta(char *file, int *m, int *n, double *k) {
     fseek(fp, 3, SEEK_CUR);
   }
   else {
-    fclose(fp);
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readSta: incorrect file format in %s\n", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readSta: failed to read n_e in %s\n", file);
     return NULL;
   }
 
+  if (l < 0 || l >= n_e) {
+    if (fp != stdin)
+      fclose(fp);
+    fprintf(stderr, "readSta: invalid eigenfunction number: %d\n", l);
+    return NULL;
+  }
+
   if (fread(&nx, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readSta: failed to read nx in %s\n", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readSta: failed to read ny in %s\n", file);
     return NULL;
   } 
 
   if (n_e < 1) {
+    if (fp != stdin)
+      fclose(fp);
     fprintf(stderr, "readSta: no eigenfunctions in %s\n", file);
     return NULL;
   }
 
   double **grid = createGrid(ny, nx);
+  *ne = n_e;
   *m = ny;
   *n = nx;
 
   int i;
 
   for (i = 0 ; i < n_e ; i++) {
-    if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
+    if (fread(&temp_double,sizeof(double),1,fp) != 1) {
+      if (fp != stdin)
+	fclose(fp); 
       fprintf(stderr, "readSta: failed to read k_%d in %s\n", i, file);
       return NULL;
     }
-    if (i == 0)
+    if (i == l)
       *k = temp_double;
   }
 
@@ -181,17 +227,20 @@ double **readSta(char *file, int *m, int *n, double *k) {
   for (i = 0 ; i < nx * ny ; i++) {
     for (j = 0 ; j < n_e ; j++) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
+	if (fp != stdin)
+	  fclose(fp);
 	fprintf(stderr, "readSta: failed to read data in %s\n", file);
 	return NULL;
       }
       
-      if (j == 0) { //only read 1 eigenfunction
+      if (j == l) { //only read lth eigenfunction
 	grid[i/nx][i%nx] = (double)temp_float;
       }
     }
   }
 
-  fclose(fp);
+  if (fp != stdin)
+    fclose(fp);
   return grid;
 }
 
@@ -351,8 +400,8 @@ char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, dou
   char **mask = createMask(*ny, *nx);
 
   int i, j;
-  for (int i = 0 ; i < *ny ; i++)
-    for (int j = 0 ; j < *nx ; j++)
+  for (i = 0 ; i < *ny ; i++)
+    for (j = 0 ; j < *nx ; j++)
       mask[i][j] = inside_billiard(j * dx / scale, i * dx / scale, &b);
 
   return mask;
@@ -472,6 +521,31 @@ void applyMask(double **grid, int **counted, char **mask, int ny, int nx) {
     for (j = 0 ; j < nx ; j++)
       if (!mask[i][j]) {
 	grid[i][j] = INFINITY;
-	counted[i][j] = -1;
+	counted[i][j] = 0;
       }
+}
+
+/*
+  calculate wing tip mass of a stadium eigenfunction
+
+  precondition: grid is a quarter stadium with width 2 (qust:2 in verg)
+
+  inputs:
+          grid - ny x nx array
+	  mask - ny x nx array
+	  ny   - number of rows in arrays
+	  nx   - number of columns in arrays
+
+ */
+double wingTipMass(double **grid, char **mask, int ny, int nx) {
+  double wtm = 0.0;
+  double dx = 2.0 / nx;
+
+  int i, j;
+  for (i = 0 ; i < ny ; i++)
+    for (j = 0 ; j < nx ; j++)
+      if (j*dx >= 1.1 && mask[i][j])
+	wtm += dx*dx * grid[i][j]*grid[i][j];
+
+  return wtm;
 }

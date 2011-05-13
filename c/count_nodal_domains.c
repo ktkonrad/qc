@@ -37,13 +37,8 @@ int countNodalDomains(double **grid, char **mask, int ny, int nx) {
     }
   }
 
-  if (mask != NULL) {
+  if (mask != NULL)
     applyMask(grid, counted, mask, ny, nx);
-
-    for (i = 0 ; i < ny ; i++)
-      free(mask[i]);
-    free(mask);
-  }
 
   int nd = 0; // count of nodal domains
  
