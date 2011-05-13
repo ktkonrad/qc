@@ -186,8 +186,8 @@ int main(int argc, char **argv) {
     count = runTest(grid, mask, ny, nx);
 
     destroyMask(mask, ny);
-
     destroyGrid(grid, ny);
+
     free(file);
     if (maskFlag)
       free(maskFile);
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
       count = runTest(grid, mask, ny, nx);
 
       wtm = wingTipMass(grid, mask, ny, nx);
-
+      
       destroyMask(mask, ny);
       destroyGrid(grid, ny);
 

@@ -521,7 +521,7 @@ void applyMask(double **grid, int **counted, char **mask, int ny, int nx) {
     for (j = 0 ; j < nx ; j++)
       if (!mask[i][j]) {
 	grid[i][j] = INFINITY;
-	counted[i][j] = 0;
+	counted[i][j] = -1;
       }
 }
 
