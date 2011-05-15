@@ -4,3 +4,4 @@
 t.*
 *.sta_bin
 *.dat
+extern/*

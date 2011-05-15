@@ -31,7 +31,9 @@ OS=linux
 # sudo ln -s libcblas.so.3 /usr/lib/atlas/libcblas.so
 # sudo ln -s libf77blas.so.3 /usr/lib/atlas/libf77blas.so
 # sudo ln -s liblapack.so.3 /usr/lib/atlas/liblapack.so
-MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -latlas -lm
+#MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -latlas -lm
+MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -lgfortran -lg2c -latlas -lm
+
 #
 # non-GSL working lib choice:
 # ATLAS libs (faster dgemm, same or slower dsyev)...
@@ -40,7 +42,8 @@ MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -latlas -lm
 #
 # add for debugging / profiling...     -ggdb -pg
 # CXXFLAGS_linux = -ggdb -pg -v -Wall -pedantic
-CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
+#CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
+CXXFLAGS_linux = -O2 -funroll-loops -fstrict-aliasing -I ../extern/include -L ../extern/lib
 CXX_linux = g++
 
 # i386/linux with Intel compiler (on fricka)
