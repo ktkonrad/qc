@@ -1,7 +1,7 @@
-*.o
-*~
-*#*
+**.o
+**~
+**#*
 t.*
-*.sta_bin
-*.dat
+**.sta_bin
+**.dat
 extern/*
