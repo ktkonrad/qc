@@ -1,5 +1,5 @@
 ks = 200:50:400;
-dxs = [.1,.08,.05,.02];%,.01,.008,.005,.002,.001,.0005,.0002,.0001];
+dxs = [.1,.08,.05,.02,.01,.008,.005,.002,.001,.0005,.0002,.0001];
 counts = zeros(length(ks), length(dxs));
 times = zeros(length(ks), length(dxs));
 
@@ -32,14 +32,16 @@ for i = 1:length(ks);
     end
 end
 
+save('test_spacing.mat');
+
 figure;
-plot(log10(dxs'*ks), counts');
+plot(log10(dxs'*ks), counts', '.-');
 xlabel('log_{10}(k*dx)');
 ylabel('nodal domain count');
 legend('k = 200','k = 250','k = 300','k = 350','k = 400');
 
 figure;
-plot(log10(dxs), times');
+plot(log10(dxs), times', '.-');
 xlabel('log_{10}(dx)');
 ylabel('runtime ratio: verg / count');
 legend('k = 200','k = 250','k = 300','k = 350','k = 400');
