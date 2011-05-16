@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -g
+CFLAGS = -Wall -O2
 OFLAGS = -lm
 
 objects = nodal_domain_driver.o count_nodal_domains.o random_percolation.o stack2.o util.o
