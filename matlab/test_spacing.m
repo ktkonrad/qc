@@ -32,6 +32,8 @@ for i = 1:length(ks);
     end
 end
 
+save('test_spacing.mat');
+
 figure;
 plot(log10(dxs'*ks), counts');
 xlabel('log_{10}(k*dx)');
