@@ -44,12 +44,10 @@ if ~isfield(opts, 'b')
 end
 b = opts.b;
 
-if ~isfield(opts, 'dx')
-  opts.dx = 0.01;  % default
+if ~isfield(opts, 'kdx')
+  opts.kdx = exp(-.5);  % default
 end
-dx = opts.dx;
-
-outopts = sprintf('-g %g:0', dx);
+kdx = opts.kdx;
 
 
 ks = []; counts = []; wtms = [];
@@ -60,7 +58,11 @@ tic; % start timer
 %.................................main loop over k...................
 for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
-    cmd = sprintf('verg %s -o %s -b %g -k %g -V %g:%g %s', ...
+    dx = kdx / k;
+    
+    outopts = sprintf('-f %g:0', dx);
+    
+    cmd = sprintf('verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
                   sys, head, b, k, delta_lo, delta_hi, outopts);
     if opts.v>=0
       disp(cmd);
@@ -81,6 +83,11 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
     % only works for quarter stadium currently
     cmd = sprintf('../c/count -f %s.sta_bin -l qust:2 -k %g -d %g', head, k, dx);
+
+    if opts.v>=0
+      disp(cmd);
+    end
+    
     [s o] = system(cmd);
 
     out = regexp(o, '(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)', 'tokens');
