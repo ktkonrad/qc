@@ -4,10 +4,8 @@
 % Generate set of Dirchlet levels and eigenfunctions with fixed basis params
 %
 % opts.b changes collocation pt density from default 15
-% opts.Mo changes bdry output and norming density from default 6
-% opts.dx changes dx from default 0.01
+% opts.kdx changes k*dx from default exp(0.5)
 % opts.head changes default file head 't'
-% opts.sweep_dE uses sweep (of step size dE) rather than vergini
 % opts.v = -2: silent, -1: quiet, 0: default, 1: verbose, 2: verg verbose.
 %
 % only outputs bdry values if asked for in output args
@@ -60,7 +58,7 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
     dx = kdx / k;
     
-    outopts = sprintf('-f %g:0', dx);
+    outopts = sprintf('-f %g:0 %s', dx);
     
     cmd = sprintf('verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
                   sys, head, b, k, delta_lo, delta_hi, outopts);
