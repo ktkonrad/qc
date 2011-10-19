@@ -48,7 +48,7 @@ end
 kdx = opts.kdx;
 
 
-ks = []; counts = []; wtms = [];
+ks = []; counts = []; trouble_counts = []; wtms = [];
 ne = 0;
 
 tic; % start timer
@@ -98,7 +98,8 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
     counts = [counts cellfun(@(x) str2double(x(1)), out)];
     ks = [ks cellfun(@(x) str2double(x(2)), out)];
-    wtms = [wtms cellfun(@(x) str2double(x(3)), out)];
+    trouble_counts = [trouble_counts cellfun(@(x) str2double(x(3)), out)];
+    wtms = [wtms cellfun(@(x) str2double(x(4)), out)];
 
 
 end % ..................................................
@@ -107,5 +108,5 @@ prop.toc = toc;
 if opts.v>=-1
   disp(sprintf('total time = %f minutes', toc/60));
 end
-
+save;
 % end
