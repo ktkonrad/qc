@@ -444,10 +444,15 @@ void destroyMask(char **mask, int ny) {
          m     - rows in array
 	 n     - columns in array
 	 file  - name of file to write to
+  output: status code
 */
-void array2file(double **array, int m, int n, char *file) {
+int array2file(double **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
+  if (out == NULL) {
+    fprintf(stderr, "array2file: failed to open %s\n", file);
+    return 1;
+  }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {
       if (j != 0)
@@ -457,6 +462,7 @@ void array2file(double **array, int m, int n, char *file) {
     fprintf(out, "\n");
   }
   fclose(out);
+  return 0;
 }
 
 /*
@@ -467,10 +473,16 @@ void array2file(double **array, int m, int n, char *file) {
          m     - rows in array
 	 n     - columns in array
 	 file  - name of file to write to
+
+  output: status code
 */
-void intArray2file(int **array, int m, int n, char *file) {
+int intArray2file(int **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
+  if (out == NULL) {
+    fprintf(stderr, "intArray2file: failed to open %s\n", file);
+    return 1;
+  }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {
       if (j != 0)
@@ -480,6 +492,7 @@ void intArray2file(int **array, int m, int n, char *file) {
     fprintf(out, "\n");
   }
   fclose(out);
+  return 0;
 }
 
 /*
@@ -490,10 +503,16 @@ void intArray2file(int **array, int m, int n, char *file) {
          m     - rows in array
 	 n     - columns in array
 	 file  - name of file to write to
+
+  output: status code
 */
-void charArray2file(char **array, int m, int n, char *file) {
+int charArray2file(char **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
+  if (out == NULL) {
+    fprintf(stderr, "charArray2file: failed to open %s\n", file);
+    return 1;
+  }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {
       if (j != 0)
@@ -503,6 +522,7 @@ void charArray2file(char **array, int m, int n, char *file) {
     fprintf(out, "\n");
   }
   fclose(out);
+  return 0;
 }
 
 /*

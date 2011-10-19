@@ -12,9 +12,9 @@ char **createMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx);
 char **createScaledMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx, double scale);
 void destroyGrid(double **grid, int nx);
 void destroyMask(char **mask, int nx);
-void array2file(double **array, int m, int n, char *file);
-void intArray2file(int **array, int m, int n, char *file);
-void charArray2file(char **array, int m, int n, char *file);
+int array2file(double **array, int m, int n, char *file);
+int intArray2file(int **array, int m, int n, char *file);
+int charArray2file(char **array, int m, int n, char *file);
 void applyMask(double **grid, int **counted, char **mask, int ny, int nx);
 double wingTipMass(double **grid, char **mask, int ny, int nx);
 
