@@ -11,6 +11,7 @@ Kyle Konrad
 #include "util.h"
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 #define SIGN(x) ((x) == 0 ? 0 : ((x) > 0 ? 1 : -1))
 
@@ -152,26 +153,70 @@ void findDomain(double **grid, int **counted, int i, int j, int nd, int ny, int 
   
   int x, y;
   int currentSign;
+
+  int trouble;
+
   while (pop(s, &x, &y)) {
     
     currentSign = SIGN(grid[i][j]);
     counted[y][x] = currentSign == 1 ? nd : -nd;
+    
+    trouble = 0;
 
     // left
-    if (x >= 1 && !counted[y][x-1] && SIGN(grid[y][x-1]) == currentSign && !isinf(grid[y][x-1]))
-      push(s, x - 1, y);
+    if (x >= 1 && !isinf(grid[y][x-1])) {
+      if (SIGN(grid[y][x-1]) == currentSign) {
+	if(!counted[y][x-1]) {
+	  push(s, x - 1, y);
+	}
+      }
+    }
 
     // above
-    if (y >= 1 && !counted[y-1][x] && SIGN(grid[y-1][x]) == currentSign && !isinf(grid[y-1][x]))
-      push(s, x, y - 1);
+    if (y >= 1 && !isinf(grid[y-1][x])) {
+      if (SIGN(grid[y-1][x]) == currentSign) {
+	if(!counted[y-1][x]) {
+	  push(s, x, y - 1);
+	}
+      }
+    }
 
     // right
-    if (x < nx-1 && !counted[y][x+1] && SIGN(grid[y][x+1]) == currentSign && !isinf(grid[y][x+1]))
-      push(s, x + 1, y);
+    if (x < nx-1 && !isinf(grid[y][x+1])) {
+      if (SIGN(grid[y][x+1]) == currentSign) {
+	if(!counted[y][x+1]) {
+	  push(s, x + 1, y);
+	}
+      } else {
+	trouble = 1;
+      }
+    }
 
     // below
-    if (y < ny-1 && !counted[y+1][x] && SIGN(grid[y+1][x]) == currentSign && !isinf(grid[y+1][x]))
-      push(s, x, y + 1);
+    if (y < ny-1 && !isinf(grid[y+1][x])) {
+      if (SIGN(grid[y+1][x]) == currentSign) {
+	trouble = 0;
+	if(!counted[y+1][x]) {
+	  push(s, x, y + 1);
+	}
+      } else {
+	trouble &= 1;
+      }
+    } else {
+      trouble = 0;
+    }
+
+    // check below & right if we may have a trouble spot
+    if (trouble && x < nx-1 && y < ny-1 && !isinf(grid[y+1][x+1]) && SIGN(grid[y+1][x+1]) == currentSign) {
+      // we have at trouble spot
+      printf("trouble at (%d, %d)\n", x, y);
+      // TODO: interpolate and put results in trouble array      
+    }
+
+
+
+
+
   }
   destroyStack(s);
 }
