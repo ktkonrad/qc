@@ -15,6 +15,9 @@ Kyle Konrad
 
 #define SIGN(x) ((x) == 0 ? 0 : ((x) > 0 ? 1 : -1))
 
+// this is just a quick hack and will be removed from final code
+int trouble_count; // global to hold number of trouble regions
+
 /*
 count the number of nodal domains in grid
 precondition: grid must be ny x nx
@@ -24,11 +27,14 @@ inputs:
 	mask - array that defines boundaries of grid (no boundaries if NULL)
         nx   - number of samples in x-direction for grid
         ny   - number of samples in y-direction for grid
+	trouble_count - TEMPORARY. where to put number of trouble spots
 
 output: return value - count of nodal domains
 */
-int countNodalDomains(double **grid, char **mask, int ny, int nx) {
+int countNodalDomains(double **grid, char **mask, int ny, int nx, int *trouble_cnt) {
   int i, j;
+
+  trouble_count = 0;
 
   int **counted = (int **)malloc(ny * sizeof(int *)); // keep track of whether a point has been counted in a nodal domain
   for (i = 0 ; i < ny ; i++) {
@@ -56,6 +62,13 @@ int countNodalDomains(double **grid, char **mask, int ny, int nx) {
     free(counted[i]);
   free(counted);
   
+
+  // TEMP
+  if (trouble_cnt) {
+    *trouble_cnt = trouble_count;
+  }
+  // END TEMP
+
   return nd;
 }
 
@@ -154,7 +167,7 @@ void findDomain(double **grid, int **counted, int i, int j, int nd, int ny, int 
   int x, y;
   int currentSign;
 
-  int trouble;
+  int trouble; // flag to track whether we have found a trouble spot
 
   while (pop(s, &x, &y)) {
     
@@ -209,7 +222,8 @@ void findDomain(double **grid, int **counted, int i, int j, int nd, int ny, int 
     // check below & right if we may have a trouble spot
     if (trouble && x < nx-1 && y < ny-1 && !isinf(grid[y+1][x+1]) && SIGN(grid[y+1][x+1]) == currentSign) {
       // we have at trouble spot
-      printf("trouble at (%d, %d)\n", x, y);
+      trouble_count++;
+      //printf("trouble at (%d, %d)\n", x, y);
       // TODO: interpolate and put results in trouble array      
     }
 

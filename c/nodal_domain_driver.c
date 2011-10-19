@@ -103,14 +103,15 @@ void processArgs(int argc, char **argv) {
 
 
 /*
-generate a random ny x nx grid and count its nodal domains
+
+note: trouble_count is TEMPORARY
 
 output:
         return value: number of nodal domains
 */
-int runTest(double **grid, char **mask, int ny, int nx) {   
+int runTest(double **grid, char **mask, int ny, int nx, int *trouble_count) {   
   clock_t start = clock();
-  int nd = countNodalDomains(grid, mask, ny, nx);
+  int nd = countNodalDomains(grid, mask, ny, nx, trouble_count);
   clock_t end = clock();
 
   if (showTime)
@@ -144,7 +145,7 @@ int main(int argc, char **argv) {
 	array2file(grid, ny, nx, outfile);
       }
 
-      counts[i] = runTest(grid, NULL, ny, nx);
+      counts[i] = runTest(grid, NULL, ny, nx, NULL); // last NULL is TEMPORARY
       destroyGrid(grid, ny);
       mean += counts[i];
     }
@@ -183,7 +184,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    count = runTest(grid, mask, ny, nx);
+    count = runTest(grid, mask, ny, nx, NULL); // last NULL is TEMPORARY
 
     destroyMask(mask, ny);
     destroyGrid(grid, ny);
@@ -236,14 +237,15 @@ int main(int argc, char **argv) {
 	exit(2);
       }
 
-      count = runTest(grid, mask, ny, nx);
+      int trouble_count;
+      count = runTest(grid, mask, ny, nx, &trouble_count);
 
       wtm = wingTipMass(grid, mask, ny, nx);
       
       destroyMask(mask, ny);
       destroyGrid(grid, ny);
 
-      printf("%d\t%f\t%f\n", count, k, wtm);
+      printf("%d\t%f\t%d\t%f\n", count, k, trouble_count, wtm);
 
       if (oneFlag)
 	break;
