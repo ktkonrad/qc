@@ -106,5 +106,5 @@ prop.toc = toc;
 if opts.v>=-1
   disp(sprintf('total time = %f minutes', toc/60));
 end
-save;
+
 % end
