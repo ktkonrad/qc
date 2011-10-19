@@ -4,7 +4,7 @@
 % Generate set of Dirchlet levels and eigenfunctions with fixed basis params
 %
 % opts.b changes collocation pt density from default 15
-% opts.kdx changes k*dx from default exp(0.5)
+% opts.dx changes dx from default .005
 % opts.head changes default file head 't'
 % opts.v = -2: silent, -1: quiet, 0: default, 1: verbose, 2: verg verbose.
 %
@@ -17,7 +17,7 @@
 %
 % Kyle Konrad 5/12/2011
 
-function [counts, ks, wtms] = ...
+function [counts, ks, trouble_counts, wtms] = ...
     count_range(k_lo, k_hi, delta_lo, delta_hi, sys, opts)
 
 verb = '';
@@ -42,13 +42,13 @@ if ~isfield(opts, 'b')
 end
 b = opts.b;
 
-if ~isfield(opts, 'kdx')
-  opts.kdx = exp(-.5);  % default
+if ~isfield(opts, 'dx')
+  opts.dx = .005;  % default
 end
-kdx = opts.kdx;
+dx = opts.dx;
 
 
-ks = []; counts = []; wtms = [];
+ks = []; counts = []; trouble_counts = []; wtms = [];
 ne = 0;
 
 tic; % start timer
@@ -56,11 +56,9 @@ tic; % start timer
 %.................................main loop over k...................
 for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
-    dx = kdx / k;
-    
     outopts = sprintf('-f %g:0 %s', dx);
     
-    cmd = sprintf('verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
+    cmd = sprintf('../vergini/verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
                   sys, head, b, k, delta_lo, delta_hi, outopts);
     if opts.v>=0
       disp(cmd);
@@ -88,7 +86,7 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
     
     [s o] = system(cmd);
 
-    out = regexp(o, '(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)', 'tokens');
+    out = regexp(o, '(\d+)\s+(\d+\.\d+)\s+(\d)+\s+(\d+\.\d+)', 'tokens');
 
     if (s ~= 0)
         disp('count crashed!');
@@ -98,7 +96,8 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
 
     counts = [counts cellfun(@(x) str2double(x(1)), out)];
     ks = [ks cellfun(@(x) str2double(x(2)), out)];
-    wtms = [wtms cellfun(@(x) str2double(x(3)), out)];
+    trouble_counts = [trouble_counts cellfun(@(x) str2double(x(3)), out)];
+    wtms = [wtms cellfun(@(x) str2double(x(4)), out)];
 
 
 end % ..................................................
@@ -107,5 +106,5 @@ prop.toc = toc;
 if opts.v>=-1
   disp(sprintf('total time = %f minutes', toc/60));
 end
-
+save;
 % end
