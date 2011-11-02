@@ -47,6 +47,9 @@ int countNodalDomains(double **grid, char **mask, int ny, int nx, int *trouble_c
   if (mask != NULL)
     applyMask(grid, counted, mask, ny, nx);
 
+  array2file(grid, ny, nx, "../data/masked.dat");
+
+
   int nd = 0; // count of nodal domains
  
   i = 0;

@@ -18,7 +18,7 @@
 % Kyle Konrad 5/12/2011
 
 function [counts, ks, trouble_counts, wtms] = ...
-    count_range(k_lo, k_hi, delta_lo, delta_hi, sys, opts)
+    count_range2(k_lo, k_hi, delta_lo, delta_hi, sys, opts)
 
 verb = '';
 if isfield(opts, 'v')
