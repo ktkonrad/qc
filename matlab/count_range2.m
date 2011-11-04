@@ -78,7 +78,7 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
     ne = ne + numel(j);
 
     % only works for quarter stadium currently
-    cmd = sprintf('../c/count -f %s.sta_bin -l qust:2 -k %g -d %g', head, k, dx);
+    cmd = sprintf('../c/count -f %s.sta_bin -l qust:2 -k %g -d %g | tee -a out.txt', head, k, dx);
 
     if opts.v>=0
       disp(cmd);
