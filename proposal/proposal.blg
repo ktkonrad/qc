@@ -1,0 +1,47 @@
+This is BibTeX, Version 0.99c (TeX Live 2009/Debian)
+The top-level auxiliary file: proposal.aux
+The style file: plain.bst
+Database file #1: proposal.bib
+Warning--there's a number but no volume in vergini
+You've used 5 entries,
+            2118 wiz_defined-function locations,
+            529 strings with 4603 characters,
+and the built_in function-call counts, 1456 in all, are:
+= -- 150
+> -- 47
+< -- 0
++ -- 19
+- -- 14
+* -- 99
+:= -- 253
+add.period$ -- 16
+call.type$ -- 5
+change.case$ -- 21
+chr.to.int$ -- 0
+cite$ -- 6
+duplicate$ -- 55
+empty$ -- 125
+format.name$ -- 14
+if$ -- 298
+int.to.chr$ -- 0
+int.to.str$ -- 5
+missing$ -- 6
+newline$ -- 28
+num.names$ -- 10
+pop$ -- 17
+preamble$ -- 1
+purify$ -- 17
+quote$ -- 0
+skip$ -- 35
+stack$ -- 0
+substring$ -- 112
+swap$ -- 5
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 18
+warning$ -- 1
+while$ -- 16
+width$ -- 6
+write$ -- 57
+(There was 1 warning)

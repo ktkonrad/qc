@@ -1,0 +1,30 @@
+\begin{thebibliography}{1}
+
+\bibitem{barnett}
+A.~Barnett.
+\newblock Asymptotic rate of quantum ergodicity in chaotic euclidean billiards.
+\newblock {\em Communications in Pure and Applied Mathematics},
+  59(10):1457--1488, 2006.
+
+\bibitem{bogolmony}
+E.~Bogolmony and C.~Schmit.
+\newblock Percolation model for nodal domains of chaotic wavefunctions.
+\newblock {\em Physical Review Letters}, 88(11), 2002.
+
+\bibitem{chernov}
+N.~Chernov and R.~Markarian.
+\newblock {\em Chaotic billiards}.
+\newblock Mathematical surveys and monographs. American Mathematical Society,
+  2006.
+
+\bibitem{nonnenmacher}
+St\'{e}phane Nonnemacher.
+\newblock Anatomy of quantum chaotic eigenstates.
+\newblock {\em S\'{e}minare Poincar\'{e}}, XIV:177--220, 2010.
+
+\bibitem{vergini}
+E.~Vergini.
+\newblock Calculation by scaling of highly excited states of billiards.
+\newblock {\em Physical Review E}, (3):2204--2207, 1995.
+
+\end{thebibliography}
