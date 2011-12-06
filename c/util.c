@@ -10,6 +10,46 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <unistd.h> // for fork and exec
+
+/*
+  create a matrix to do interpolation based on bessel functions
+  
+  input:
+         k        - wavenumber of eigenfunction being interpolated
+         dx       - sampled resoultion of eigenfunction
+         M        - highest order bessel function to do
+	 upsample - factor to upsample by
+         m        - matrix to put values in
+
+  output:
+          return value - status (0 for success)
+	  m            - interpolation matrix
+
+  PRECONDITON: m is (upsample+1)^2 x 24
+
+int fillInterpMatrix(int k, double dx, int M, int upsample, gsl_matrix *m) {
+  int pid = vfork();
+  char *tempfile = "interp_matrix.dat";
+  char *executable = "create_interp_matrix.sh";
+  char *args[6];
+  
+  if (pid == 0) { // child
+    args[0] = executable;
+    sprintf(args[1], "%d", k);
+    sprintf(args[2], "%f", dx);
+    sprintf(args[3], "%d", M); 
+    sprintf(args[5], "%d", upsample);
+    args[5] = NULL;
+    execv(executable, args);
+    printf("execv failed\n");
+    return -1;
+  }
+  // parent
+  FILE *interp_matrix_file = fopen(tempfile, "r");
+  return gsl_matrix_fscanf(interp_matrix_file, m);
+}
+*/
 
 /*
   read a sta_bin file into grid

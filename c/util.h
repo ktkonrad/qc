@@ -1,7 +1,8 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#include "../vergini/billiard.h"
+#include "../vergini/billiard.h" // for Billiard
+#include <gsl/gsl_matrix.h> // for gsl_matrix
 
 double **readOneSta(char *file, int *m, int *n);
 double **readSta(char *file, int *ne, int *m, int *n, double *k, int l);
@@ -17,5 +18,6 @@ int intArray2file(int **array, int m, int n, char *file);
 int charArray2file(char **array, int m, int n, char *file);
 void applyMask(double **grid, int **counted, char **mask, int ny, int nx);
 double wingTipMass(double **grid, char **mask, int ny, int nx);
+int fillInterpMatrix(int k, double dx, int M, int upsample, gsl_matrix *m);
 
 #endif
