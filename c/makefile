@@ -1,12 +1,11 @@
 CC = g++
-CFLAGS = -Wall -g
-OFLAGS = -lm
+CFLAGS = -Wall -g -I ../extern/include/ -L ../extern/lib/ -lgsl -lcblas -latlas -llapack -lblas -lF77 -lI77 -lc -lm
 
 objects = nodal_domain_driver.o count_nodal_domains.o random_percolation.o stack2.o util.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o
 
 count: $(objects)
-	$(CC) $(OFLAGS) -o count $(objects) $(dependencies)
+	$(CC) $(CFLAGS) -o count $(objects) $(dependencies)
 
 nodal_domain_driver.o: nodal_domain_driver.c
 	$(CC) $(CFLAGS) -c nodal_domain_driver.c

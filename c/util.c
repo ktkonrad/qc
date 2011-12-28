@@ -27,29 +27,31 @@
 	  m            - interpolation matrix
 
   PRECONDITON: m is (upsample+1)^2 x 24
-
+*/
 int fillInterpMatrix(int k, double dx, int M, int upsample, gsl_matrix *m) {
-  int pid = vfork();
   char *tempfile = "interp_matrix.dat";
   char *executable = "create_interp_matrix.sh";
-  char *args[6];
+  char *args[7];
+  int pid = vfork();
+  int rc;
   
   if (pid == 0) { // child
     args[0] = executable;
     sprintf(args[1], "%d", k);
     sprintf(args[2], "%f", dx);
     sprintf(args[3], "%d", M); 
-    sprintf(args[5], "%d", upsample);
-    args[5] = NULL;
+    sprintf(args[4], "%d", upsample);
+    args[5] = tempfile;
+    args[6] = NULL;
     execv(executable, args);
     printf("execv failed\n");
     return -1;
   }
   // parent
+  wait(&rc);
   FILE *interp_matrix_file = fopen(tempfile, "r");
   return gsl_matrix_fscanf(interp_matrix_file, m);
 }
-*/
 
 /*
   read a sta_bin file into grid

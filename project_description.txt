@@ -1,7 +1,0 @@
-Title: Asymptotic Statistics of Nodal Domain in Quantum Chaotic Billiards
-
-Abstract: Vibrational modes of a membrane over a nonintegrable two-dimensional domain exhibit highly irregular structure at high energies. Vibrational modes correspond to eigenfunctions of the Schrödinger equation and nonintegrable domains correspond to billiard shapes exhibit chaos (positive Lyapunov exponent) in a classical setting -- thus the name "Quantum Chaos".
-
-There have been recent, largely untested, conjectures regarding properties of nodal domains (maximal connected regions of constant sign) in high energy eigenfunctions in quantum chaotic systems: Bogolmony-Schmit has conjectured that certain statistics (e.g., mean and variance of number and boundary length) of these nodal domains agree with those of a random wave model constructed from random superpositions of plane waves.
-
-This thesis will be a numerical investigation of these and related predictions. Vergini has devised a fast method for computing high energy eigenfunctions which has been implemented by Barnett in code made available to myself. However the cost of computing these eigenfunctions scales with resolution
