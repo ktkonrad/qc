@@ -1,2 +1,2 @@
 ../vergini/verg -l qust:2 -b 10 -s vepwoo:1.2:40:1.5 -k 200.01 -V 0.005 -f 0.001 -m
-./count -f t.sta_bin -m t.mask.sta_bin -l qust:2 -d .001 -k 200.01
+./count -f t.sta_bin -m t.mask.sta_bin -l qust:2 -d .001 -k 200.01 -M 8 -u 20

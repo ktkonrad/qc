@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -g -I ../extern/include/ -L ../extern/lib/ -lgsl -lcblas -latlas -llapack -lblas -lF77 -lI77 -lc -lm
+CFLAGS = -g -lgsl -lgslcblas -lm
 
 objects = nodal_domain_driver.o count_nodal_domains.o random_percolation.o stack2.o util.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o
@@ -24,4 +24,4 @@ util.o: util.c util.h
 
 .PHONY : clean
 clean:
-	-rm count $(objects) *~
+	-rm count $(objects) interp_matrix_k=*.dat *~

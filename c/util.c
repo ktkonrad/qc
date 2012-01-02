@@ -6,11 +6,13 @@
 */
 
 #include "util.h"
+#include <gsl/gsl_matrix.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <unistd.h> // for fork and exec
+#include <wait.h>
 
 /*
   create a matrix to do interpolation based on bessel functions
@@ -28,29 +30,49 @@
 
   PRECONDITON: m is (upsample+1)^2 x 24
 */
-int fillInterpMatrix(int k, double dx, int M, int upsample, gsl_matrix *m) {
-  char *tempfile = "interp_matrix.dat";
+
+int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m) {
+  char interpfile[100];
   char *executable = "create_interp_matrix.sh";
   char *args[7];
-  int pid = vfork();
+  int pid;
   int rc;
+  int i;
+
+  sprintf(interpfile, "interp_matrix_k=%0.4f_dx=%0.4f_M=%d.dat", k, dx, M);
   
-  if (pid == 0) { // child
-    args[0] = executable;
-    sprintf(args[1], "%d", k);
-    sprintf(args[2], "%f", dx);
-    sprintf(args[3], "%d", M); 
-    sprintf(args[4], "%d", upsample);
-    args[5] = tempfile;
-    args[6] = NULL;
-    execv(executable, args);
-    printf("execv failed\n");
-    return -1;
+  if (access(interpfile, R_OK) == -1) { // only create the matrix if we don't already have it
+    pid = vfork();
+    if (pid == 0) { // child
+      for (i = 1 ; i < 5 ; i++) {
+	args[i] = (char *)malloc(100*sizeof(char));
+      }
+      args[0] = executable;
+      sprintf(args[1], "%f", k);
+      sprintf(args[2], "%f", dx);
+      sprintf(args[3], "%d", M); 
+      sprintf(args[4], "%d", upsample);
+      args[5] = interpfile;
+      args[6] = NULL;
+      execv(executable, args);
+      ERROR("execv failed");
+      for (i = 1 ; i < 5 ; i++) {
+	free(args[i]);
+      }    
+      return -1;
+    }
+    // parent
+    wait(&rc);
+    if (rc != 0) {
+      ERROR("failed to create interpolation matrix");
+      return rc;
+    }
   }
-  // parent
-  wait(&rc);
-  FILE *interp_matrix_file = fopen(tempfile, "r");
-  return gsl_matrix_fscanf(interp_matrix_file, m);
+
+  FILE *interp_matrix_file = fopen(interpfile, "r");
+  rc = gsl_matrix_fscanf(interp_matrix_file, m);
+  fclose(interp_matrix_file);
+  return rc;
 }
 
 /*
@@ -77,7 +99,7 @@ double **readOneSta(char *file, int *m, int *n) {
   else {
     fp = fopen(file, "r");
     if (fp == NULL) {
-      fprintf(stderr, "readOneSta: failed to open %s\n", file);
+      ERROR("readOneSta: failed to open %s\n", file);
       return NULL;
     }
   }
@@ -94,35 +116,35 @@ double **readOneSta(char *file, int *m, int *n) {
   else {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readOneSta: incorrect file format in %s\n", file);
+    ERROR("readOneSta: incorrect file format in %s\n", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readOneSta: failed to read n_e in %s\n", file);
+    ERROR("readOneSta: failed to read n_e in %s\n", file);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readOneSta: failed to read nx in %s\n", file);
+    ERROR("readOneSta: failed to read nx in %s\n", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readOneSta: failed to read ny in %s\n", file);
+    ERROR("readOneSta: failed to read ny in %s\n", file);
     return NULL;
   } 
 
   if (n_e < 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readOneSta: no eigenfunctions in %s\n", file);
+    ERROR("readOneSta: no eigenfunctions in %s\n", file);
     return NULL;
   }
 
@@ -136,7 +158,7 @@ double **readOneSta(char *file, int *m, int *n) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
       if (fp != stdin)
 	fclose(fp);
-      fprintf(stderr, "readOneSta: failed to read E_1 in %s\n", file);
+      ERROR("readOneSta: failed to read E_1 in %s\n", file);
       return NULL;
     }
   }
@@ -148,7 +170,7 @@ double **readOneSta(char *file, int *m, int *n) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
 	if (fp != stdin)
 	  fclose(fp);
-	fprintf(stderr, "readOneSta: failed to read data in %s\n", file);
+	ERROR("readOneSta: failed to read data in %s\n", file);
 	return NULL;
       }
       
@@ -190,7 +212,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   else {
     fp = fopen(file, "r");
     if (fp == NULL) {
-      fprintf(stderr, "readSta: failed to open %s\n", file);
+      ERROR("readSta: failed to open %s\n", file);
       return NULL;
     }
   }
@@ -207,42 +229,42 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   else {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: incorrect file format in %s\n", file);
+    ERROR("readSta: incorrect file format in %s\n", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: failed to read n_e in %s\n", file);
+    ERROR("readSta: failed to read n_e in %s\n", file);
     return NULL;
   }
 
   if (l < 0 || l >= n_e) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: invalid eigenfunction number: %d\n", l);
+    ERROR("readSta: invalid eigenfunction number: %d\n", l);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: failed to read nx in %s\n", file);
+    ERROR("readSta: failed to read nx in %s\n", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: failed to read ny in %s\n", file);
+    ERROR("readSta: failed to read ny in %s\n", file);
     return NULL;
   } 
 
   if (n_e < 1) {
     if (fp != stdin)
       fclose(fp);
-    fprintf(stderr, "readSta: no eigenfunctions in %s\n", file);
+    ERROR("readSta: no eigenfunctions in %s\n", file);
     return NULL;
   }
 
@@ -252,12 +274,12 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   *n = nx;
 
   int i;
-
+  // TODO: minor efficiency improvement: use fseek instead of reading everything
   for (i = 0 ; i < n_e ; i++) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) {
       if (fp != stdin)
 	fclose(fp); 
-      fprintf(stderr, "readSta: failed to read k_%d in %s\n", i, file);
+      ERROR("failed to read k_%d in %s\n", i, file);
       return NULL;
     }
     if (i == l)
@@ -265,13 +287,13 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   }
 
   int j;
-
+  // TODO: minor efficiency improvement: use fseek instead of reading everything
   for (i = 0 ; i < nx * ny ; i++) {
     for (j = 0 ; j < n_e ; j++) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
 	if (fp != stdin)
 	  fclose(fp);
-	fprintf(stderr, "readSta: failed to read data in %s\n", file);
+	ERROR("readSta: failed to read data in %s\n", file);
 	return NULL;
       }
       
@@ -305,7 +327,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
 char **readMask(char *file, int *m, int *n) {
   FILE *fp = fopen(file, "r");
   if (fp == NULL) {
-    fprintf(stderr, "readSta: failed to open %s\n", file);
+    ERROR("readSta: failed to open %s\n", file);
     return NULL;
   }
 
@@ -322,27 +344,27 @@ char **readMask(char *file, int *m, int *n) {
   }
   else {
     fclose(fp);
-    fprintf(stderr, "readMask: incorrect file format in %s\n", file);
+    ERROR("readMask: incorrect file format in %s\n", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
-    fprintf(stderr, "readMask: failed to read n_e in %s\n", file);
+    ERROR("readMask: failed to read n_e in %s\n", file);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
-    fprintf(stderr, "readMask: failed to read nx in %s\n", file);
+    ERROR("readMask: failed to read nx in %s\n", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
-    fprintf(stderr, "readMask: failed to read ny in %s\n", file);
+    ERROR("readMask: failed to read ny in %s\n", file);
     return NULL;
   } 
 
   if (n_e != 1) {
-    fprintf(stderr, "readMask: more than one eigenfunction in %s\n", file);
+    ERROR("readMask: more than one eigenfunction in %s\n", file);
     return NULL;
   }
 
@@ -351,14 +373,14 @@ char **readMask(char *file, int *m, int *n) {
   *n = nx;
 
   if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
-    fprintf(stderr, "readMask: failed to read E_1 in %s\n", file);
+    ERROR("readMask: failed to read E_1 in %s\n", file);
     return NULL;
   }
 
   int i;
   for (i = 0 ; i < nx * ny ; i++) {
     if (fread(&temp_float,4,n_e,fp) != (unsigned int)n_e) {
-      fprintf(stderr, "readMask: failed to read data in %s\n", file);
+      ERROR("readMask: failed to read data in %s\n", file);
       return NULL;
     }
     mask[i/nx][i%nx] = (char)temp_float;
@@ -492,7 +514,7 @@ int array2file(double **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    fprintf(stderr, "array2file: failed to open %s\n", file);
+    ERROR("array2file: failed to open %s\n", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -522,7 +544,7 @@ int intArray2file(int **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    fprintf(stderr, "intArray2file: failed to open %s\n", file);
+    ERROR("intArray2file: failed to open %s\n", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -552,7 +574,7 @@ int charArray2file(char **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    fprintf(stderr, "charArray2file: failed to open %s\n", file);
+    ERROR("charArray2file: failed to open %s\n", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -610,4 +632,30 @@ double wingTipMass(double **grid, char **mask, int ny, int nx) {
 	wtm += dx*dx * grid[i][j]*grid[i][j];
 
   return wtm;
+}
+
+/*
+  allocate a rows x cols matrix of ints
+  matrix is initialized to 0
+  code adapted from numerical recipes utilites
+
+  inputs:
+        rows - number of rows
+	cols - number of cols
+*/
+int **imatrix(int rows, int cols) {
+  int **m;
+  int i;
+  m = (int **)calloc(rows, sizeof(int *));
+  if (!m) ERROR("failed to allocate matrix");
+  m[0] = (int *)calloc(rows*cols, sizeof(int));
+  if (!m[0]) ERROR("failed to allocate matrix");
+  for(i = 1 ; i < rows ; i++) {
+    m[i] = m[i-1] + cols;
+  }
+}
+
+void free_imatrix(int **m) {
+  free(m[0]);
+  free(m);
 }
