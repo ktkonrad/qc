@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include <unistd.h> // for fork and exec
+#include <unistd.h>
 #include <wait.h>
 
 /*

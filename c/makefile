@@ -33,4 +33,4 @@ util_verg.o: util_verg.c util_verg.h util.o
 
 .PHONY : clean
 clean:
-	-rm count $(objects) interp_matrix_k=*.dat *~
+	-rm count perc $(objects) interp_matrix_k=*.dat *~
