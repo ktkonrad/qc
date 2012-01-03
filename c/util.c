@@ -403,12 +403,21 @@ input:
        nx   - x dimension of array
 */
 double **createGrid(int ny, int nx) {
-
-  double **grid = (double **)malloc(ny * sizeof(double *));
+  double **grid;
   int i;
-  for (i = 0 ; i < ny ; i++)
-    grid[i] = (double *)malloc(nx * sizeof(double));
-
+  grid = (double **)calloc(ny, sizeof(double *));
+  if (!grid) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
+  grid[0] = (double *)calloc(ny*nx, sizeof(double));
+  if (!grid[0]) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
+  for(i = 1 ; i < ny ; i++) {
+    grid[i] = grid[i-1] + nx;
+  }
   return grid;
 }
 
@@ -421,59 +430,21 @@ output:
        returns - uninitialized 2d array
 */
 char **createMask(int ny, int nx) {
-
-  char **mask = (char **)malloc(ny * sizeof(char *));
+  char **mask;
   int i;
-  for (i = 0 ; i < ny ; i++)
-    mask[i] = (char *)malloc(nx * sizeof(char));
-
-  return mask;
-}
-
-/*
-create a mask for a billiard
-input:
-       b    - billiard to create mask for
-       dx   - grid spacing
-output:
-       returns - boolean mask array
-       ny      - rows in array
-       nx      - columns in array
-*/
-char **createMaskFromBilliard(Billiard b, double dx, int *ny, int *nx) {
-  *ny = ceil((b.yh - b.yl) / dx) + 1;
-  *nx = ceil((b.xh - b.xl) / dx) + 1;
-  char **mask = createMask(*ny, *nx);
-
-  int i, j;
-  for (int i = 0 ; i < *ny ; i++)
-    for (int j = 0 ; j < *nx ; j++)
-      mask[i][j] = inside_billiard(j * dx, i * dx, &b);
-
-  return mask;
-}
-
-/*
-create a mask for a billiard, scale it
-input:
-       b     - billiard to create mask for
-       dx    - grid spacing
-       scale - factor that grid is scaled by (k/k_0)
-output:
-       returns - boolean mask array
-       ny      - rows in array
-       nx      - columns in array
-*/
-char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, double scale) {
-  *ny = ceil((b.yh - b.yl) / dx) + 1;
-  *nx = ceil((b.xh - b.xl) / dx) + 1;
-  char **mask = createMask(*ny, *nx);
-
-  int i, j;
-  for (i = 0 ; i < *ny ; i++)
-    for (j = 0 ; j < *nx ; j++)
-      mask[i][j] = inside_billiard(j * dx / scale, i * dx / scale, &b);
-
+  mask = (char **)calloc(ny, sizeof(char *));
+  if (!mask) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
+  mask[0] = (char *)calloc(ny*nx, sizeof(char));
+  if (!mask[0]) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
+  for(i = 1 ; i < ny ; i++) {
+    mask[i] = mask[i-1] + nx;
+  }
   return mask;
 }
 
@@ -484,11 +455,9 @@ char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, dou
          grid - array to be freed
          ny - y dimension of grid
 */
-void destroyGrid(double **grid, int ny) {
-  int i;
-  for (i = 0 ; i < ny ; i++)
-    free(grid[i]);
+void destroyGrid(double **grid) {
   free(grid);
+  free(grid[0]);
 }
 
 /*
@@ -498,11 +467,9 @@ void destroyGrid(double **grid, int ny) {
          mask - array to be freed
          ny - y dimension of mask
 */
-void destroyMask(char **mask, int ny) {
-  int i;
-  for (i = 0 ; i < ny ; i++)
-    free(mask[i]);
+void destroyMask(char **mask) {
   free(mask);
+  free(mask[0]);
 }
 
 
@@ -521,7 +488,7 @@ int array2file(double **array, int m, int n, char *file) {
   FILE *out = fopen(file, "w");
   if (out == NULL) {
     ERROR("failed to open %s", file);
-    return 1;
+    return IO_ERR;
   }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {
@@ -551,7 +518,7 @@ int intArray2file(int **array, int m, int n, char *file) {
   FILE *out = fopen(file, "w");
   if (out == NULL) {
     ERROR("failed to open %s", file);
-    return 1;
+    return IO_ERR;
   }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {
@@ -581,7 +548,7 @@ int charArray2file(char **array, int m, int n, char *file) {
   FILE *out = fopen(file, "w");
   if (out == NULL) {
     ERROR("failed to open %s", file);
-    return 1;
+    return IO_ERR;
   }
   for (i = 0 ; i < m ; i++) {
     for (j = 0 ; j < n ; j++) {

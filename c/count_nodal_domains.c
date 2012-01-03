@@ -73,39 +73,6 @@ Kyle Konrad
 
 #define UNCOUNTED(c) (c == 0 || c >= BL_DISCONNECTED)
 
-/*
-  wrapper around countNodalDomains that creates an interpolation matrix
-
-  precondition: grid must be ny x nx
-
-  inputs:
-        grid     - function values sampled at grid points
-	mask     - array that defines boundaries of grid (no boundaries if NULL)
-        nx       - number of samples in x-direction for grid
-        ny       - number of samples in y-direction for grid
-        k        - wavenumber of eigenfunction being interpolated
-        dx       - sampled resoultion of eigenfunction
-        M        - highest order bessel function to do
-	upsample - factor to upsample by
-
-  output: return value - count of nodal domains
-*/
-int countNodalDomains(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample) {
-  int rc;
-  int count;
-  gsl_matrix *interp = gsl_matrix_alloc((upsample+1)*(upsample+1), 24);
-  if (interp == NULL) {
-    printf("failed to allocate interpolation matrix\n");
-    return -1;
-  }
-  rc = fillInterpMatrix(k, dx, M, upsample, interp);
-  if (rc) {
-    exit(rc);
-  }
-  count = countNodalDomainsInterp(grid, mask, ny, nx, upsample, interp);
-  gsl_matrix_free(interp);
-  return count;
-}
 
 /*
 count the number of nodal domains in grid
@@ -116,27 +83,34 @@ inputs:
 	mask   - array that defines boundaries of grid (no boundaries if NULL)
         nx     - number of samples in x-direction for grid
         ny     - number of samples in y-direction for grid
+        k        - wavenumber of eigenfunction being interpolated
+        dx       - sampled resoultion of eigenfunction
+        M        - highest order bessel function to do
 	upsample - upsampling ratio for interpolation
-	interp - (upsample+1)^2 x 24 matrix to do interpolation using bessel funcitons where upsample is the upsampling ratio
-
 output: return value - count of nodal domains
 */
-int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, int upsample, gsl_matrix *interp) {
+int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample) {
   int i, j;
+  int rc;
 
-  int **counted = (int **)malloc(ny * sizeof(int *)); // keep track of whether a point has been counted in a nodal domain
-  for (i = 0 ; i < ny ; i++) {
-    counted[i] = (int *)malloc(nx * sizeof(int));
-    for (j = 0 ; j < nx ; j++) {
-      counted[i][j] = 0; // initialize everything to 0 for uncounted
-    }
+  gsl_matrix *interp = gsl_matrix_alloc((upsample+1)*(upsample+1), 24);
+  if (interp == NULL) {
+    printf("failed to allocate interpolation matrix\n");
+    return -1;
+  }
+  rc = fillInterpMatrix(k, dx, M, upsample, interp); // TODO: could do this lazily in case it's not needed...
+  if (rc) {
+    gsl_matrix_free(interp);
+    exit(rc);
   }
 
-  if (mask != NULL)
+  int **counted = imatrix(ny, nx);
+
+  if (mask != NULL) {
     applyMask(grid, counted, mask, ny, nx);
+  }
 
   array2file(grid, ny, nx, "../data/masked.dat");
-
 
   int nd = 0; // count of nodal domains
  
@@ -144,15 +118,14 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, int upsa
   j = -1;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
-    findDomain(grid, counted, i, j, nd, ny, nx, upsample, interp);
+    findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp);
   }
-
+				 
   intArray2file(counted, ny, nx, "../data/counted.dat");
+			       
+  free_imatrix(counted);
 
-  for (i = 0 ; i < ny ; i++)
-    free(counted[i]);
-  free(counted);
-  
+  gsl_matrix_free(interp);
   return nd;
 }
 
@@ -207,7 +180,7 @@ precondition: grid and counted are ny x nx
 outputs:
          none
 */
-void findDomain(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp) {
+void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp) {
   stack *s = newStack();
   push(s, j, i);
   

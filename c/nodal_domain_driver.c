@@ -9,6 +9,7 @@ Kyle Konrad
 #include "count_nodal_domains.h"
 #include "random_percolation.h"
 #include "util.h"
+#include "util_verg.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,9 +23,6 @@ int verb;
 
 // options specified by command line arguments
 int showTime = 0; // flag: print time it takes for countNodalDomains to run
-int gridSize = -1; // size of grid in x and y dimensions
-int trials = 1; // number of grids to generate and count
-int trial = 1; // current trial number
 int outputGrid = 0; // flag: output grid(s) to file(s): grid_[n].dat
 char *file; // use grid from this file
 int mode = -1; // 0 - generate random_percolation grid; 1 - read grid from sta_bin file
@@ -43,7 +41,7 @@ int upsample = -1; // upsampling ratio to use for interpolation
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count {-n gridSize [-N trials] | -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}]} [-t] [-o] [-1]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
@@ -62,15 +60,8 @@ void processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "n:N:f:m:l:d:k:M:u:to1")) != -1) {
+  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1")) != -1) {
     switch (c) {
-    case 'n':
-      gridSize = atoi(optarg);
-      mode = 0;
-      break;
-    case 'N':
-      trials = atoi(optarg);
-      break;
     case 'f':
       file = (char *)malloc(strlen(optarg)*sizeof(char));
       strcpy(file, optarg);
@@ -112,8 +103,6 @@ void processArgs(int argc, char **argv) {
       break;
     case '?':
       switch (optopt) {
-      case 'n':
-      case 'N':
       case 'f':
       case 'm':
       case 'l':
@@ -131,8 +120,8 @@ void processArgs(int argc, char **argv) {
     }
   }
 
-  if (gridSize < 0 && strcmp(file, "") == 0) {
-    usage();
+  if (strcmp(file, "") == 0) {
+    ERROR("no sta_bin file was given");
     exit(CMD_LINE_ARG_ERR);
   }
 
@@ -168,7 +157,7 @@ output:
 */
 int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample) {   
   clock_t start = clock();
-  int nd = countNodalDomains(grid, mask, ny, nx, k, dx, besselOrder, upsample);
+  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample);
   clock_t end = clock();
 
   if (showTime)
@@ -182,44 +171,6 @@ int main(int argc, char **argv) {
   processArgs(argc, argv);
   int ny, nx;
   double **grid;
-
-  if (mode == 0) {
-    nx = gridSize;
-    ny = gridSize;
-    int counts[trials];
-
-    double mean = 0.0, variance = 0.0;
-
-    int i;
-    // run the trials and calculate mean count
-    for (i = 0 ; i < trials ; i++) {
-      grid = createGrid(ny, nx);
-      randomPercolation(grid, ny, nx);
-
-      if (outputGrid) {
-	char outfile[50];
-	sprintf(outfile, "../data/grid_%d.dat", trial++);
-	array2file(grid, ny, nx, outfile);
-      }
-
-      counts[i] = runTest(grid, NULL, ny, nx, 1, 1, 1, 1); // 1's are dummy values since we won't be upsampling in this case
-      destroyGrid(grid, ny);
-      mean += counts[i];
-    }
-    mean /= trials;
-
-    // calculate variance of counts
-    for (i = 0 ; i < trials ; i++) {
-      variance += (counts[i] - mean) * (counts[i] - mean);
-    }
-    variance /= trials;
-  
-    // printf("mean: %f\n", mean);
-    // printf("variance: %f\n", variance);
-    printf("scaled mean: %f\n", mean / (ny * nx / 4) * 2 / M_PI);
-    printf("scaled variance: %f\n", variance / (ny * nx / 4) * 2 / M_PI);
-
-  }
 
   if (mode == 1) {
     int count;
@@ -243,8 +194,8 @@ int main(int argc, char **argv) {
 
     count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample);
 
-    destroyMask(mask, ny);
-    destroyGrid(grid, ny);
+    destroyMask(mask);
+    destroyGrid(grid);
 
     free(file);
     if (maskFlag)
@@ -290,8 +241,8 @@ int main(int argc, char **argv) {
       count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample);
       wtm = wingTipMass(grid, mask, ny, nx);
       
-      destroyMask(mask, ny);
-      destroyGrid(grid, ny);
+      destroyMask(mask);
+      destroyGrid(grid);
 
       printf("%d\t%f\t%f\n", count, k, wtm);
 
