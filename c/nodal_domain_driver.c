@@ -59,7 +59,7 @@ void processArgs(int argc, char **argv) {
 
   if (argc <= 1) {
     usage();
-    exit(-1);
+    exit(CMD_LINE_ARG_ERR);
   }
 
   while ((c = getopt(argc, argv, "n:N:f:m:l:d:k:M:u:to1")) != -1) {
@@ -85,7 +85,7 @@ void processArgs(int argc, char **argv) {
       if (parse_billiard(optarg, &bil) == -1) {
 	fprintf(stderr, "Error: failed to parse billiard args\n");
 	usage();
-	exit(5);
+	exit(CMD_LINE_ARG_ERR);
       }
       mode = 2;
       break;
@@ -133,25 +133,29 @@ void processArgs(int argc, char **argv) {
 
   if (gridSize < 0 && strcmp(file, "") == 0) {
     usage();
-    exit(1);
+    exit(CMD_LINE_ARG_ERR);
   }
 
   if (mode == 2) {
     if (dx <= 0) {
-      ERROR("Error: dx not specified or invalid");
-      exit(6); // TODO: meaningful exit codes
+      ERROR("dx not specified or invalid");
+      usage();
+      exit(CMD_LINE_ARG_ERR);
     }
     if (k_0 <= 0) {
-      ERROR("Error: k_0 not specified or invalid");
-      exit(7); // TODO: meaningful exit codes
+      ERROR("k_0 not specified or invalid");
+      usage();
+      exit(CMD_LINE_ARG_ERR);
     }
     if (besselOrder <= 0) {
-      ERROR("Error: besselOrder not specified or invalid");
-      exit(7); // TODO: meaningful exit codes
+      ERROR("besselOrder not specified or invalid");
+      usage();
+      exit(CMD_LINE_ARG_ERR);
     }
     if (upsample <= 0) {
-      ERROR("Error: upsample not specified or invalid");
-      exit(7); // TODO: meaningful exit codes
+      ERROR("upsample not specified or invalid");
+      usage();
+      exit(CMD_LINE_ARG_ERR);
     }
   }
 }
@@ -225,15 +229,15 @@ int main(int argc, char **argv) {
     
     if (grid == NULL) {
       ERROR("failed to read grid");
-      exit(3);
+      exit(UTIL_ERR);
     }
 
     if (maskFlag) {
       mask = readMask(maskFile, &masky, &maskx);
      
       if (maskx != nx || masky != ny) {
-	ERROR(" mask dimensions do not match grid dimensions");
-	exit(2);
+	ERROR("mask dimensions do not match grid dimensions");
+	exit(DIMENSION_ERR);
       }
     }
 
@@ -260,8 +264,8 @@ int main(int argc, char **argv) {
 
     rc = build_billiard(&bil, k_base);
     if (rc != 0) {
-      ERROR("error: failed to build billiard");
-      exit(3); // TODO: consisten exit codes
+      ERROR("failed to build billiard");
+      exit(VERGINI_ERR);
     }
 
     int i = 0;
@@ -270,16 +274,17 @@ int main(int argc, char **argv) {
 
       if (grid == NULL) {
 	ERROR("failed to read grid");
-	exit(3);
+	exit(IO_ERR);
       }
     
       mask = createScaledMaskFromBilliard(bil, dx, &masky, &maskx, k/k_0);
 
       if (maskx != nx || masky != ny) {
-	ERROR("mask dimensions do not match grid dimensions");
-	ERROR("ny\tnx\tmasky\tmaskx");
-	ERROR("%d\t%d\t%d\t%d",ny,nx,masky,maskx);
-	exit(2);
+	ERROR("mask dimensions do not match grid dimensions\n \
+	       ny\tnx\tmasky\tmaskx\n \
+	       %d\t%d\t%d\t%d",
+	      ny,nx,masky,maskx);
+	exit(DIMENSION_ERR);
       }
 
       count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample);

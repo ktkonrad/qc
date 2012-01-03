@@ -59,20 +59,25 @@ int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m) {
       for (i = 1 ; i < 5 ; i++) {
 	free(args[i]);
       }    
-      return -1;
+      return INTERP_INIT_ERR;
     }
     // parent
     wait(&rc);
     if (rc != 0) {
-      ERROR("failed to create interpolation matrix");
-      return rc;
+      ERROR("failed to create interpolation matrix. child process returned %d", rc);
+      return INTERP_INIT_ERR;
     }
   }
 
   FILE *interp_matrix_file = fopen(interpfile, "r");
   rc = gsl_matrix_fscanf(interp_matrix_file, m);
   fclose(interp_matrix_file);
-  return rc;
+  if (rc) {
+    ERROR("gsl_matrix_fscanf failed. return code was %d", rc);
+    return IO_ERR;
+  }
+  
+  return 0;
 }
 
 /*
@@ -99,7 +104,7 @@ double **readOneSta(char *file, int *m, int *n) {
   else {
     fp = fopen(file, "r");
     if (fp == NULL) {
-      ERROR("readOneSta: failed to open %s\n", file);
+      ERROR("failed to open %s", file);
       return NULL;
     }
   }
@@ -116,35 +121,35 @@ double **readOneSta(char *file, int *m, int *n) {
   else {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readOneSta: incorrect file format in %s\n", file);
+    ERROR("incorrect file format in %s", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readOneSta: failed to read n_e in %s\n", file);
+    ERROR("failed to read n_e in %s", file);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readOneSta: failed to read nx in %s\n", file);
+    ERROR("failed to read nx in %s", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readOneSta: failed to read ny in %s\n", file);
+    ERROR("failed to read ny in %s", file);
     return NULL;
   } 
 
   if (n_e < 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readOneSta: no eigenfunctions in %s\n", file);
+    ERROR("no eigenfunctions in %s", file);
     return NULL;
   }
 
@@ -158,7 +163,7 @@ double **readOneSta(char *file, int *m, int *n) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
       if (fp != stdin)
 	fclose(fp);
-      ERROR("readOneSta: failed to read E_1 in %s\n", file);
+      ERROR("failed to read E_1 in %s", file);
       return NULL;
     }
   }
@@ -168,9 +173,10 @@ double **readOneSta(char *file, int *m, int *n) {
   for (i = 0 ; i < nx * ny ; i++) {
     for (j = 0 ; j < n_e ; j++) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
-	if (fp != stdin)
+	if (fp != stdin) {
 	  fclose(fp);
-	ERROR("readOneSta: failed to read data in %s\n", file);
+	}
+	ERROR("failed to read data in %s", file);
 	return NULL;
       }
       
@@ -212,7 +218,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   else {
     fp = fopen(file, "r");
     if (fp == NULL) {
-      ERROR("readSta: failed to open %s\n", file);
+      ERROR("failed to open %s", file);
       return NULL;
     }
   }
@@ -229,42 +235,42 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
   else {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: incorrect file format in %s\n", file);
+    ERROR("incorrect file format in %s", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: failed to read n_e in %s\n", file);
+    ERROR("failed to read n_e in %s", file);
     return NULL;
   }
 
   if (l < 0 || l >= n_e) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: invalid eigenfunction number: %d\n", l);
+    ERROR("invalid eigenfunction number: %d", l);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: failed to read nx in %s\n", file);
+    ERROR("failed to read nx in %s", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: failed to read ny in %s\n", file);
+    ERROR("failed to read ny in %s", file);
     return NULL;
   } 
 
   if (n_e < 1) {
     if (fp != stdin)
       fclose(fp);
-    ERROR("readSta: no eigenfunctions in %s\n", file);
+    ERROR("no eigenfunctions in %s", file);
     return NULL;
   }
 
@@ -279,7 +285,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
     if (fread(&temp_double,sizeof(double),1,fp) != 1) {
       if (fp != stdin)
 	fclose(fp); 
-      ERROR("failed to read k_%d in %s\n", i, file);
+      ERROR("failed to read k_%d in %s", i, file);
       return NULL;
     }
     if (i == l)
@@ -293,7 +299,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
       if (fread(&temp_float, 4, 1, fp) != 1) {
 	if (fp != stdin)
 	  fclose(fp);
-	ERROR("readSta: failed to read data in %s\n", file);
+	ERROR("failed to read data in %s", file);
 	return NULL;
       }
       
@@ -327,7 +333,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
 char **readMask(char *file, int *m, int *n) {
   FILE *fp = fopen(file, "r");
   if (fp == NULL) {
-    ERROR("readSta: failed to open %s\n", file);
+    ERROR("failed to open %s", file);
     return NULL;
   }
 
@@ -344,27 +350,27 @@ char **readMask(char *file, int *m, int *n) {
   }
   else {
     fclose(fp);
-    ERROR("readMask: incorrect file format in %s\n", file);
+    ERROR("incorrect file format in %s", file);
     return NULL;
   }
 
   if (fread(&n_e, (size_t)4,1,fp) != 1) {
-    ERROR("readMask: failed to read n_e in %s\n", file);
+    ERROR("failed to read n_e in %s", file);
     return NULL;
   }
 
   if (fread(&nx, (size_t)4,1,fp) != 1) {
-    ERROR("readMask: failed to read nx in %s\n", file);
+    ERROR("failed to read nx in %s", file);
     return NULL;
   }
 
   if (fread(&ny, (size_t)4,1,fp) != 1) {
-    ERROR("readMask: failed to read ny in %s\n", file);
+    ERROR("failed to read ny in %s", file);
     return NULL;
   } 
 
   if (n_e != 1) {
-    ERROR("readMask: more than one eigenfunction in %s\n", file);
+    ERROR("more than one eigenfunction in %s", file);
     return NULL;
   }
 
@@ -373,14 +379,14 @@ char **readMask(char *file, int *m, int *n) {
   *n = nx;
 
   if (fread(&temp_double,sizeof(double),1,fp) != 1) { // this is the energy - we don't care about it here
-    ERROR("readMask: failed to read E_1 in %s\n", file);
+    ERROR("failed to read E_1 in %s", file);
     return NULL;
   }
 
   int i;
   for (i = 0 ; i < nx * ny ; i++) {
     if (fread(&temp_float,4,n_e,fp) != (unsigned int)n_e) {
-      ERROR("readMask: failed to read data in %s\n", file);
+      ERROR("failed to read data in %s", file);
       return NULL;
     }
     mask[i/nx][i%nx] = (char)temp_float;
@@ -514,7 +520,7 @@ int array2file(double **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    ERROR("array2file: failed to open %s\n", file);
+    ERROR("failed to open %s", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -544,7 +550,7 @@ int intArray2file(int **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    ERROR("intArray2file: failed to open %s\n", file);
+    ERROR("failed to open %s", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -574,7 +580,7 @@ int charArray2file(char **array, int m, int n, char *file) {
   int i, j;
   FILE *out = fopen(file, "w");
   if (out == NULL) {
-    ERROR("charArray2file: failed to open %s\n", file);
+    ERROR("failed to open %s", file);
     return 1;
   }
   for (i = 0 ; i < m ; i++) {
@@ -647,12 +653,19 @@ int **imatrix(int rows, int cols) {
   int **m;
   int i;
   m = (int **)calloc(rows, sizeof(int *));
-  if (!m) ERROR("failed to allocate matrix");
+  if (!m) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
   m[0] = (int *)calloc(rows*cols, sizeof(int));
-  if (!m[0]) ERROR("failed to allocate matrix");
+  if (!m[0]) {
+    ERROR("failed to allocate matrix");
+    return NULL;
+  }
   for(i = 1 ; i < rows ; i++) {
     m[i] = m[i-1] + cols;
   }
+  return m;
 }
 
 void free_imatrix(int **m) {

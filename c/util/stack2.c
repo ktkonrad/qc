@@ -6,6 +6,7 @@ Kyle Konrad
 3/30/2011
 */
 
+#include "../exit_codes.h"
 #include "stack2.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,14 +36,14 @@ push a point with x-coordinate x and y-coordinate y onto s
 */
 void push(stack *s, int x, int y) {
 
-  // double size of array if it is more full than the loadfactor LF (defined in stack2.h
+  // double size of array if it is more full than the loadfactor LF_HIGH
   if (s->top >= (s->size) * LF_HIGH) {
     s->x = (int *)realloc(s->x, (size_t)(s->size * 2 * sizeof(int)));
     s->y = (int *)realloc(s->y, (size_t)(s->size * 2 * sizeof(int)));
     s->size *= 2;
     if (s->x == NULL || s->y == NULL) {
       fprintf(stderr, "stack2: FATAL ERROR:failed to allocate memory\n");
-      exit(1);
+      exit(OUT_OF_MEMORY_ERR);
     }
   }
 

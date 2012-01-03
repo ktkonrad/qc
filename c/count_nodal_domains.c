@@ -339,7 +339,7 @@ void findDomain(double **grid, int **counted, int i, int j, int nd, int ny, int 
 	interp   - precalculated 24 x (upsapmle+1)^2 matrix to do interpolation
 
 */
-#define IDX(x, y) (y*(upsample+1)+x)
+#define IDX(x, y) (x*(upsample+1)+y)
 void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp) {
   int k;
   int x, y;
@@ -351,7 +351,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
 
   if (x < 2 || x >= nx - 2 || y < 2 || y >= ny - 2) {
     ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-    exit(12);
+    exit(INTERP_ERR);
   }
   interp_input = gsl_vector_alloc(INTERP_INPUT_POINTS);
 
@@ -385,7 +385,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   for (k = 0 ; k < interp_input->size ; k++) {
     if (isinf(gsl_vector_get(interp_input, k))) {
       ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-      exit(12);
+      exit(INTERP_ERR);
     }
   }
 
@@ -394,8 +394,8 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   // interp_output = interp * interp_input
   rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, interp_input, 0, interp_output);
   if (rc) {
-    ERROR("interpolation failed");
-    exit(13);
+    ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
+    exit(INTERP_ERR);
   }
   
   stack *s = newStack();

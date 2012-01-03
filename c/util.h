@@ -3,6 +3,7 @@
 
 #include "../vergini/billiard.h" // for Billiard
 #include <gsl/gsl_matrix.h> // for gsl_matrix
+#include "exit_codes.h"
 
 #define ERROR(fmt, args...) fprintf(stderr, "Error: %s: %s: %d: "fmt"\n", __FILE__, __FUNCTION__,  __LINE__, ## args)
 
