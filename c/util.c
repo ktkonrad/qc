@@ -456,8 +456,8 @@ char **createMask(int ny, int nx) {
          ny - y dimension of grid
 */
 void destroyGrid(double **grid) {
-  free(grid);
   free(grid[0]);
+  free(grid);
 }
 
 /*
@@ -465,11 +465,10 @@ void destroyGrid(double **grid) {
 
   input:
          mask - array to be freed
-         ny - y dimension of mask
 */
 void destroyMask(char **mask) {
-  free(mask);
   free(mask[0]);
+  free(mask);
 }
 
 
