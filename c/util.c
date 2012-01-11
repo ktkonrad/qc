@@ -33,13 +33,13 @@
 
 int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m) {
   char interpfile[100];
-  char *executable = "create_interp_matrix.sh";
+  char *executable = "../matlab/create_interp_matrix.sh"; // hacky way to allow calling this from other directories
   char *args[7];
   int pid;
   int rc;
   int i;
 
-  sprintf(interpfile, "interp_matrix_k=%0.4f_dx=%0.4f_M=%d.dat", k, dx, M);
+  sprintf(interpfile, "../data/interp_matrix_k=%0.4f_dx=%0.4f_M=%d.dat", k, dx, M);
   
   if (access(interpfile, R_OK) == -1) { // only create the matrix if we don't already have it
     pid = vfork();

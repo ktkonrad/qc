@@ -18,7 +18,11 @@
 % Kyle Konrad 5/12/2011
 
 function [counts, ks, wtms] = ...
-    count_range(k_lo, k_hi, delta_lo, delta_hi, sys, opts)
+    count_range_sinai(k_lo, k_hi, delta_lo, delta_hi, sys, opts)
+
+if k_lo < 300
+  fprintf('warning: using k < 300 may give bad results');
+end
 
 verb = '';
 if isfield(opts, 'v')
@@ -60,7 +64,7 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
     
     outopts = sprintf('-f %g:0 %s', dx);
     
-    cmd = sprintf('verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
+    cmd = sprintf('../vergini/verg -q %s -o %s -b %g -k %g -V %g:%g %s', ...
                   sys, head, b, k, delta_lo, delta_hi, outopts);
     if opts.v>=0
       disp(cmd);
@@ -79,8 +83,17 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
     end
     ne = ne + numel(j);
 
-    % only works for quarter stadium currently
-    cmd = sprintf('../c/count -f %s.sta_bin -l qust:2 -k %g -d %g', head, k, dx);
+    % create interp matrix here so count doesn't have to fork a new
+    % matlab process
+    M = 8;
+    upsample = 20;
+    outfile = sprintf('../data/interp_matrix_k=%0.4f_dx=%0.4f_M=%d.dat', ...
+                      k, dx, M);
+    create_interp_matrix(k, dx, M, upsample, outfile)
+    
+    % command for quarter generalized rectangular sinai
+    cmd = sprintf(['../c/count -f %s.sta_bin -l qugrs:1:0.4:0.7 -k ' ...
+    '%g -d %g -M 8 -u 20'], head, k, dx);
 
     if opts.v>=0
       disp(cmd);
@@ -105,7 +118,7 @@ end % ..................................................
   
 prop.toc = toc;
 if opts.v>=-1
-  disp(sprintf('total time = %f minutes', toc/60));
+  disp(sprintf('total time = %f minutes', prop.toc/60));
 end
 
 % end
