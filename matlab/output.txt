@@ -688,3 +688,5 @@ save_grid...
 done.
 	found 0
 ../c/count -f ././t.sta_bin -l qugrs:1:0.4:0.7 -k 302.1 -d 0.00200771 -M 8 -u 20
+total time = 15.367174 minutes
+>> >> 
