@@ -84,7 +84,7 @@ for k=(k_lo+delta_lo):(delta_lo+delta_hi):(k_hi+delta_lo)
     ne = ne + numel(j);
 
     % create interp matrix here so count doesn't have to fork a new
-    % matlab process
+    % matlab process later in count
     M = 8;
     upsample = 20;
     outfile = sprintf('../data/interp_matrix_k=%0.4f_dx=%0.4f_M=%d.dat', ...

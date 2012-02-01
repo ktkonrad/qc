@@ -1,7 +1,7 @@
 % return a matrix A where
 % A[i,j] = J_{j-1}(k*r_i) * exp(1i*j*theta_i)
 % 1 <= i <= m (where m == length(r))
-% 0 <= j-1 <= N
+% 0 <= j-1 <= M
 
 function [A] = bessel_matrix2(k, points, M)
     % here k is the norm of the vector k

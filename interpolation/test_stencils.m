@@ -1,7 +1,7 @@
 dxs = 10.^(-1:-1:-8);
 dxs = 10.^(-1:-.25:-5);
 k = 200;
-M = 6;
+M = 10;
 
 grids = cell(5,1);
 names = cell(5,1);
@@ -39,7 +39,7 @@ grids{4} = vertcat(grids{3}, ...
               .5 -2.5
              2.5   .5
              2.5  -.5 ]); % 4x4 with 2 extra on each side
-names{4} = '4x4 with 2 extra per side';
+names{4} = '4x4 +2/side';
          
 grids{5} = vertcat(grids{4}, ...
            [-1.5  2.5

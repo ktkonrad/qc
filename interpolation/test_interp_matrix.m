@@ -24,7 +24,7 @@ k_vecs = [k * cos(theta_ks) ; k * sin(theta_ks)];
 f_vals = rpw(cs, k_vecs, points); % random plane waves
 f_vals2 = rpw(cs, k_vecs, points2);
 
-[BAplus, preconditioner] = interp_matrix(k, points, points2, M);
+BAplus = interp_matrix(k, points, points2, M);
 interpolated = BAplus * f_vals;
 error_norm = max(abs(interpolated - f_vals2))
 interpolated2 = bessel_interp2(k, points, f_vals, M, points2);

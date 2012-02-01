@@ -1,5 +1,3 @@
-addpath('~/qc/matlab');
-addpath('~/qc/vergini');
 opts.kdx = exp(-.5);
 opts.v = 2;
 [counts,ks,wtms] = count_range_sinai(300, 302, .1, .1, ...

@@ -1,7 +1,7 @@
-function [error_norms] = plane_wave_interp(k, dx, n, upsample, Ms, cs, theta_ks, plot)
+function [error_norms, conds] = plane_wave_interp(k, dx, n, upsample, Ms, cs, theta_ks, plot)
 % k is wavenumber
 % dx is grid spacing
-% sample a grid of n^2 points
+% sample a grid of n^2 points (use n=4.5 to do 4x4 + 2/side)
 % upsample interpolated fn by upsample
 % use Bessel fns up to degree M for M in Ms
 % cs: 2xp matrix of coeffs for plane waves
@@ -20,13 +20,23 @@ function [error_norms] = plane_wave_interp(k, dx, n, upsample, Ms, cs, theta_ks,
         plot = 0;
     end
 
-    xmin = -(n-1)/2*dx;
-    xmax = (n-1)/2*dx;
+    xmin = -(floor(n)-1)/2*dx;
+    xmax = (floor(n)-1)/2*dx;
 
     x = xmin:dx:xmax;
     xs = meshgrid(x);
     ys = flipud(meshgrid(x)');
     points = [xs(:) ys(:)];
+    if n == 4.5 % add 2 extra to each side
+        points = vertcat(points, [ -.5  2.5
+              .5  2.5
+            -2.5   .5
+            -2.5  -.5
+             -.5 -2.5
+              .5 -2.5
+             2.5   .5
+             2.5  -.5 ] * dx);
+    end
     [theta, r] = cart2pol(points(:,1), points(:,2));
 
     x2 = xmin:dx/upsample:xmax;
