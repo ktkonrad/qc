@@ -1,6 +1,7 @@
-./c/count
-c./c/perc
-./vergini/verg
+*/count
+*/perc
+*/verg
+*/interp
 **.o
 **~
 **#*
