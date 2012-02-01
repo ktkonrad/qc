@@ -1,0 +1,73 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2011 The MathWorks, Inc.
+                    R2011b (7.13.0.564) 64-bit (glnxa64)
+                              August 13, 2011
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+>> >> >> >> >> >> >> ./verg -q -v -l qugrs:1:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -o ././t -b 15 -k 300.1 -V 0.1:0.1 -f 0.0020211:0 
+	Billiard type: 1/4 Gen Rect Sinai (for C4 sym basis)
+		a theta1 theta2
+		1 0.4 0.7 
+
+	Basis type: Outer BIM (Y_0 sources), o-o
+		eta kD corner_pack
+		1.5 7 1 
+
+Vergini: range k-0.1 to k+0.1
+	box: x=[0,1] y=[0,1]
+
+verg: scaling method for Laplacian eigenproblem, 8/9/04
+
+System properties:
+	Physical: area = 0.614037, perim = 2.11376
+	k = 300.1, E = k^2 = 90060
+	1st-order Weyl level spacing dk = 0.0340973, dE = 20.4652
+      approx quantum number (area term) 4401
+      approx quantum number (area + perim terms) 4350
+	Collocation points (M=1514) per wavelength: b = 14.996283
+	Basis: N = 304 (1.51 of the semiclassical size 202)
+
+Output file head: ././t
+
+allocating for ne=61 states.
+Output bdry (Mo=606) has bo = 6.002475
+vergini at k=300.1...
+	A filled
+	F = A^T.W.A built
+	dA/dk filled
+	A^T.W.dA/dk built
+	dF/dk = A^T.W.dA/dk + transpose built
+		T diagonalised: eigenvalue range [2.80667e-16,0.0599385]
+		rank r=304
+		evecs of T rescaled
+		S transformed into trunc eigenbasis of T
+		Generalized eigenproblem done
+	gen eig prob done, eps = 1e-16, rank = 304
+	4th-order correction done (C4=1): good states below 3, above 4.
+vergini found 7 states in k=[300.000000,300.200000]; (7 after clipping)
+	eval_bdry 1 (k=300.023, ten=7.37187e-10, nrm=0.997838)
+	eval_bdry 2 (k=300.076, ten=6.45486e-12, nrm=0.999887)
+	eval_bdry 3 (k=300.094, ten=1.27709e-11, nrm=1.00002)
+	eval_bdry 4 (k=300.133, ten=9.43975e-12, nrm=0.999325)
+	eval_bdry 5 (k=300.156, ten=1.11876e-10, nrm=0.998197)
+	eval_bdry 6 (k=300.165, ten=3.05278e-10, nrm=0.997774)
+	eval_bdry 7 (k=300.2, ten=3.52754e-09, nrm=0.994711)
+ind[1] = 1.
+ind[2] = 2.
+ind[3] = 3.
+ind[4] = 4.
+ind[5] = 5.
+ind[6] = 6.
+ind[7] = 7.
+kept 7 non-spurious states
+summary file (././t.sum) written.
+1d dump (././t.cf) written.
+eval_grid_vecs: ne=7 (nx=495 by ny=495), mask=0, noff=0
+done
+save_grid...
+done.
+>> >> 
