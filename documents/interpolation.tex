@@ -1,0 +1,17 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\begin{document}
+
+$M$ is a 121 x 24 matrix that takes a vector of function values on 24 coarse grid points to function values on 121 fine grid points on center square
+
+$M = BA^{+}$ where B is a matrix that evaluates bessel functions on fine grid and A evaluates bessel functions on coarse grid 
+
+$A$ is 24 x 17.
+$B$ is 121 x 17
+
+$A^{+} = V \Sigma_{n}^{+} U_{n}^{*}$ where $A = U_{n} \Sigma_{n} V^{*}$ is the thin SVD of A.
+
+\end{document}
