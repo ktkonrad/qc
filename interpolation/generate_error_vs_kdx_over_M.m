@@ -23,5 +23,5 @@ xlabel('k*dx');
 ylabel('||errors||_{\infty}');
 
 %%% 3d plot error_norms vs k*dx vs M %%%
-figure;surf(log10(k*dxs), Ms, log10(error_norms));xlabel('log(k*dx)');ylabel('M'),zlabel('log(error)');
-figure;surf(log10(k*dxs), Ms, log10(conds));xlabel('log(k*dx)');ylabel('M'),zlabel('log(cond)');
+%figure;surf(log10(k*dxs), Ms, log10(error_norms));xlabel('log(k*dx)');ylabel('M'),zlabel('log(error)');
+%figure;surf(log10(k*dxs), Ms, log10(conds));xlabel('log(k*dx)');ylabel('M'),zlabel('log(cond)');

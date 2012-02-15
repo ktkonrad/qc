@@ -20,13 +20,13 @@
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
 /*
-  input: k:       wavenumber
+  input: alpha:   k*dx (wavenumber * grid spacing)
          points:  points to evaluate bessles at
          npoints: number of points in points
 	 M:       highest order bessel function to use
 
   output: return value: matrix A where
-          A[i][j] = J_{j'}(k*r_i) * f(j'*\theta_i) where
+          A[i][j] = J_{j'}(alpha*r_i) /  * f(j'*\theta_i) where
 	    0 <= i < npoints
 	    0 <= j <= M
 	    j' = j     if j <= M
@@ -35,24 +35,25 @@
 	        sin if 1 <= j <= M
 	        cos if j > M
  */
-gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M) {
+gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M, double r_typical) {
   gsl_matrix *out = gsl_matrix_alloc(npoints, 2*M+1);
   int i,j;
   double x, y, r, theta;
+
+  double column_scale;
+
   for (i = 0 ; i < npoints ; i++) { // loop over rows
     x = points[i].x;
     y = points[i].y;
     r = R(x, y);
     theta = THETA(x,y);
-    
 
     // loops over columns
-    gsl_matrix_set(out, i, 0, gsl_sf_bessel_J0(alpha * r));
+    gsl_matrix_set(out, i, 0, gsl_sf_bessel_J0(alpha * r) / gsl_sf_bessel_J0(alpha * r_typical));
     for (j = 1 ; j <= M ; j++) {
-      gsl_matrix_set(out, i, j, gsl_sf_bessel_Jn(j, alpha * r) * sin(j * theta));
-    }
-    for (j = 1 ; j <= M ; j++) {
-      gsl_matrix_set(out, i, j+M, gsl_sf_bessel_Jn(j, alpha * r) * cos(j * theta));
+      column_scale = gsl_sf_bessel_Jn(j, alpha * r_typical);
+      gsl_matrix_set(out, i, j, gsl_sf_bessel_Jn(j, alpha * r) * sin(j * theta) / column_scale);
+      gsl_matrix_set(out, i, j+M, gsl_sf_bessel_Jn(j, alpha * r) * cos(j * theta) / column_scale);
     }
   }
 
@@ -60,7 +61,7 @@ gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M) {
 }
 
 /*
-  Compute the pseudoinverse of A and store it in A
+  Compute the pseudoinverse of A and store it in A_plus
 
   A+ = VS+U*
   A m x n
@@ -94,6 +95,7 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
   }
   
   // compute tolerace as MAX(SIZE(A)) * NORM(A) * EPS(class(A))
+  // singular values within tolerance of 0 are considered to be 0
   tolerance = MAX(m,n) * gsl_vector_get(singular_values, 0) * DBL_EPSILON;
   //printf("tolerance = %g\n", tolerance);
   
@@ -143,10 +145,10 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
   alpha = k*dx
   points should be independent of dx
  */
-gsl_matrix *interp_matrix(double alpha, point *points_in, int npoints_in, point *points_out, int npoints_out, int M) {
-  gsl_matrix *A = bessel_matrix(alpha, points_in, npoints_in, M);
+gsl_matrix *interp_matrix(double alpha, point *points_in, int npoints_in, point *points_out, int npoints_out, int M, double r_typical) {
+  gsl_matrix *A = bessel_matrix(alpha, points_in, npoints_in, M, r_typical);
   dump_matrix(A, "A.dat");
-  gsl_matrix *B = bessel_matrix(alpha, points_out, npoints_out, M);
+  gsl_matrix *B = bessel_matrix(alpha, points_out, npoints_out, M, r_typical);
   dump_matrix(B, "B.dat");
   gsl_matrix *A_plus = gsl_matrix_alloc(2*M+1, npoints_in);
   gsl_matrix *interp = gsl_matrix_alloc(npoints_out, npoints_in);
@@ -197,7 +199,9 @@ int main(int argc, char **argv) {
     points_out[i].y;
   }
 
-  gsl_matrix *interp = interp_matrix(alpha, points_in, npoints_in, points_out, npoints_out, M);
+  double r_typical = 2;
+
+  gsl_matrix *interp = interp_matrix(alpha, points_in, npoints_in, points_out, npoints_out, M, r_typical);
 
   dump_matrix(interp, "interp.dat");
 

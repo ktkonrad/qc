@@ -38,7 +38,7 @@ function [error_norms, conds] = plane_wave_interp_c(k, dx, Ms, plot)
         disp(cmd);
         [status, result] = system(cmd);
         if status ~= 0
-            fprintf('error: interp exited with status %d\n', status);
+            fprintf('error: interp exited with status %d\n\t%s\n', status, result);
             continue;
         end  
         interp = read_dumped('interp.dat', 121, 24);
