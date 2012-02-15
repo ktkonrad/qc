@@ -2,7 +2,7 @@ n = 4; % course grid is n x n
 M = 8; % use bessel functions up to order M
 k = 400;
 dx = .001;
-upsample = 30;
+upsample = 10;
 
 xmin = -(n-1)/2*dx;
 xmax = (n-1)/2*dx;

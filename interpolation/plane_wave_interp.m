@@ -58,7 +58,11 @@ function [error_norms, conds] = plane_wave_interp(k, dx, n, upsample, Ms, cs, th
     i = 0;
     for M=Ms
         i = i + 1;
-        [interpolated, conds(i)] = bessel_interp(k, r, theta, f_vals, M, points2);
+        interp = interp_matrix(k, points, points2, M);
+        interpolated = interp * f_vals;
+        
+        conds(i) = cond(interp);
+        
         errors = reshape(interpolated - f_vals2, sqrt(length(f_vals2)), sqrt(length(f_vals2)));
         error_norms(i) = max(max(abs(errors)));
 

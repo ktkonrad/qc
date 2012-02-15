@@ -27,7 +27,7 @@ function [error_norms] = plane_wave_interp3(k, ingrids, outgrid, M, cs, theta_ks
         f_vals = rpw(cs, k_vecs, ingrids{j});
         [theta, r] = cart2pol(ingrids{j}(:,1), ingrids{j}(:,2));
         %interp_mat = interp_matrix(k, ingrids{j}, outgrid, M);
-            interpolated = bessel_interp(k, r, theta, f_vals, M, outgrid);
+        interpolated = bessel_interp(k, r, theta, f_vals, M, outgrid);
         %figure;imagesc(reshape(interpolated, sqrt(length(interpolated)), sqrt(length(interpolated))))
         errors = reshape(interpolated - f_vals2, sqrt(length(f_vals2)), sqrt(length(f_vals2)));
         error_norms(j) = max(max(abs(errors)));
