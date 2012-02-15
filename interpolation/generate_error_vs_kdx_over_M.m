@@ -1,15 +1,16 @@
-dxs = 10.^(-1:-1:-8); %[.1, .05, .01, .005, .001, .0005, .0001, .00005, .00001];
+dxs = 10.^(-1:-1:-5); %[.1, .05, .01, .005, .001, .0005, .0001, .00005, .00001];
 k = 200;
 n = 4.5;
 upsample = 10;
-Ms = 5:15;
+Ms = 6:11;
 
 error_norms = zeros(length(Ms), length(dxs));
 conds = zeros(length(Ms), length(dxs));
 
 i = 1;
 for dx = dxs
-    [error_norms(:,i), conds(:,i)] = plane_wave_interp(k, dx, n, upsample, Ms);
+    [error_norms(:,i), conds(:,i)] = plane_wave_interp_c(k, dx, Ms, 0);
+    %[error_norms(:,i), conds(:,i)] = plane_wave_interp(k, dx, n, upsample, Ms);
     i = i+1;
 end
 
