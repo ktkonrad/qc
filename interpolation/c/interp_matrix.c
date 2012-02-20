@@ -1,7 +1,7 @@
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_sf_trig.h>
 
-#include <gsl/gsl_matrix.h>
+//#include <gsl/gsl_matrix.h> // included in header
 #include <gsl/gsl_vector.h>
 
 #include <gsl/gsl_linalg.h>
@@ -18,6 +18,8 @@
 #define R(x,y) sqrt((x)*(x)+(y)*(y))
 #define THETA(x,y) atan2(y,x)
 #define MAX(x,y) ((x)>(y)?(x):(y))
+
+#define NUM_STENCIL_POINTS 24
 
 /*
   input: alpha:   k*dx (wavenumber * grid spacing)
@@ -140,8 +142,80 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
 }
 
 /*
-    
+returns points of 4x4 + 2 per side stencil in row major order
+*/
+point *stencil(void) {
+  double x, y, row_edge;
+  int i, row;
+  point *stencil_points;
+  
+  stencil_points = (point *)malloc(NUM_STENCIL_POINTS *sizeof(point));
+  if (stencil_points == NULL) {
+    // ERROR
+  }
+  
+  int row_widths[6] = {2,4,6,6,4,2};
 
+  i = 0;
+  for (row = 0 ; row < 6 ; row++) {
+    row_edge = (row_widths[row] - 1) / 2.0;
+    y = 2.5 - row;
+    for (x = -row_edge ; x < row_edge + .1 ; x += 1.0) {
+      stencil_points[i].x = x;
+      stencil_points[i++].y = y;
+    }
+  }
+  
+  return stencil_points;
+}
+
+/*
+  create an interpolation matrix
+  inputs:
+    alpha   : k*dx
+    M       : highest order bessel function to use
+    upsample: ratio to upsample by
+  output:
+    interpolation
+*/
+gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
+  point *points_in;
+  point *points_out;
+  int npoints_out;
+  double x,y;
+  int i;
+  double step;
+  double r_typical;
+  gsl_matrix *interp;
+
+  points_in = stencil();
+  step = 1.0/upsample;
+  r_typical = 3*sqrt(0.5); // this works well for 4x4+2 stencil
+
+  npoints_out = (upsample+1)*(upsample+1);
+
+  points_out = (point *)malloc(npoints_out * sizeof(point));
+  if (points_out == NULL) {
+    // ERROR
+  }
+
+  i = 0;
+    for (x = -0.5 ; x < 0.5+step/2 ; x += step) {
+      for (y = -0.5 ; y < 0.5+step/2 ; y += step) {
+      points_out[i].x = x;
+      points_out[i++].y = y;
+    }
+  }
+  
+  interp = interp_matrix(alpha, points_in, NUM_STENCIL_POINTS, points_out, npoints_out, M, r_typical);
+  
+  free(points_in);
+  free(points_out);
+  
+  return interp;
+}
+
+/*
   alpha = k*dx
   points should be independent of dx
  */
@@ -173,35 +247,17 @@ int main(int argc, char **argv) {
     usage();
     exit(-1);
   }
-
-#define npoints_in 24
-  point points_in[npoints_in] = {{-1.5,-1.5},{-1.5,-0.5},{-1.5,0.5},{-1.5,1.5},{-0.5,-1.5},{-0.5,-0.5},{-0.5,0.5},{-0.5,1.5},{0.5,-1.5},{0.5,-0.5},{0.5,0.5},{0.5,1.5},{1.5,-1.5},{1.5,-0.5},{1.5,0.5},{1.5,1.5},{-0.5,2.5},{0.5,2.5},{-2.5,0.5},{-2.5,-0.5},{-0.5,-2.5},{0.5,-2.5},{2.5,0.5},{2.5,-0.5}};
-
-#define npoints_out 121
-  point points_out[npoints_out] = {{-0.500000,0.500000},{-0.500000,0.400000},{-0.500000,0.300000},{-0.500000,0.200000},{-0.500000,0.100000},{-0.500000,0.000000},{-0.500000,-0.100000},{-0.500000,-0.200000},{-0.500000,-0.300000},{-0.500000,-0.400000},{-0.500000,-0.500000},{-0.400000,0.500000},{-0.400000,0.400000},{-0.400000,0.300000},{-0.400000,0.200000},{-0.400000,0.100000},{-0.400000,0.000000},{-0.400000,-0.100000},{-0.400000,-0.200000},{-0.400000,-0.300000},{-0.400000,-0.400000},{-0.400000,-0.500000},{-0.300000,0.500000},{-0.300000,0.400000},{-0.300000,0.300000},{-0.300000,0.200000},{-0.300000,0.100000},{-0.300000,0.000000},{-0.300000,-0.100000},{-0.300000,-0.200000},{-0.300000,-0.300000},{-0.300000,-0.400000},{-0.300000,-0.500000},{-0.200000,0.500000},{-0.200000,0.400000},{-0.200000,0.300000},{-0.200000,0.200000},{-0.200000,0.100000},{-0.200000,0.000000},{-0.200000,-0.100000},{-0.200000,-0.200000},{-0.200000,-0.300000},{-0.200000,-0.400000},{-0.200000,-0.500000},{-0.100000,0.500000},{-0.100000,0.400000},{-0.100000,0.300000},{-0.100000,0.200000},{-0.100000,0.100000},{-0.100000,0.000000},{-0.100000,-0.100000},{-0.100000,-0.200000},{-0.100000,-0.300000},{-0.100000,-0.400000},{-0.100000,-0.500000},{0.000000,0.500000},{0.000000,0.400000},{0.000000,0.300000},{0.000000,0.200000},{0.000000,0.100000},{0.000000,0.000000},{0.000000,-0.100000},{0.000000,-0.200000},{0.000000,-0.300000},{0.000000,-0.400000},{0.000000,-0.500000},{0.100000,0.500000},{0.100000,0.400000},{0.100000,0.300000},{0.100000,0.200000},{0.100000,0.100000},{0.100000,0.000000},{0.100000,-0.100000},{0.100000,-0.200000},{0.100000,-0.300000},{0.100000,-0.400000},{0.100000,-0.500000},{0.200000,0.500000},{0.200000,0.400000},{0.200000,0.300000},{0.200000,0.200000},{0.200000,0.100000},{0.200000,0.000000},{0.200000,-0.100000},{0.200000,-0.200000},{0.200000,-0.300000},{0.200000,-0.400000},{0.200000,-0.500000},{0.300000,0.500000},{0.300000,0.400000},{0.300000,0.300000},{0.300000,0.200000},{0.300000,0.100000},{0.300000,0.000000},{0.300000,-0.100000},{0.300000,-0.200000},{0.300000,-0.300000},{0.300000,-0.400000},{0.300000,-0.500000},{0.400000,0.500000},{0.400000,0.400000},{0.400000,0.300000},{0.400000,0.200000},{0.400000,0.100000},{0.400000,0.000000},{0.400000,-0.100000},{0.400000,-0.200000},{0.400000,-0.300000},{0.400000,-0.400000},{0.400000,-0.500000},{0.500000,0.500000},{0.500000,0.400000},{0.500000,0.300000},{0.500000,0.200000},{0.500000,0.100000},{0.500000,0.000000},{0.500000,-0.100000},{0.500000,-0.200000},{0.500000,-0.300000},{0.500000,-0.400000},{0.500000,-0.500000}};
-
   int i;
   double alpha = atof(argv[1]);
   int M = atoi(argv[2]);
+  int upsample = 10;
 
   if (alpha == 0.0 || M == 0) {
     usage();
     exit(-1);
   }
 
-  for (i = 0 ; i < npoints_in ; i++) {
-    points_in[i].x;
-    points_in[i].y;
-  }
-
-  for (i = 0 ; i < npoints_out ; i++) {
-    points_out[i].x;
-    points_out[i].y;
-  }
-
-  double r_typical = 2;
-
-  gsl_matrix *interp = interp_matrix(alpha, points_in, npoints_in, points_out, npoints_out, M, r_typical);
+  gsl_matrix *interp = create_interp_matrix(alpha, M, upsample);
 
   dump_matrix(interp, "interp.dat");
 

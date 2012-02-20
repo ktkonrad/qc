@@ -20,24 +20,12 @@ function [error_norms, conds] = plane_wave_interp(k, dx, n, upsample, Ms, cs, th
         plot = 0;
     end
 
+    n = 4.5;
+    
     xmin = -(floor(n)-1)/2*dx;
     xmax = (floor(n)-1)/2*dx;
 
-    x = xmin:dx:xmax;
-    xs = meshgrid(x);
-    ys = flipud(meshgrid(x)');
-    points = [xs(:) ys(:)];
-    if n == 4.5 % add 2 extra to each side
-        points = vertcat(points, [ -.5  2.5
-              .5  2.5
-            -2.5   .5
-            -2.5  -.5
-             -.5 -2.5
-              .5 -2.5
-             2.5   .5
-             2.5  -.5 ] * dx);
-    end
-    [theta, r] = cart2pol(points(:,1), points(:,2));
+    points = stencil()*dx;
 
     x2 = xmin:dx/upsample:xmax;
     xs2 = meshgrid(x2);

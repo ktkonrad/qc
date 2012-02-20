@@ -17,8 +17,7 @@ function [error_norms, conds] = plane_wave_interp_c(k, dx, Ms, plot)
     points = stencil() *dx;
 
     x2 = (-0.5:1/upsample:0.5)*dx;
-    xs2 = meshgrid(x2);
-    ys2 = flipud(meshgrid(x2)');
+    [xs2, ys2] = meshgrid(x2, x2);
     points2 = [xs2(:) ys2(:)];
 
     f_vals = rpw(cs, k_vecs, points);

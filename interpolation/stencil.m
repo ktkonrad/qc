@@ -1,18 +1,16 @@
-function points = stencil()
+function stencil_points = stencil()
+% 4x4 + 2 stencil in row major order
 
-    n = 4;
+    npoints = 24;
+    stencil_points = zeros(npoints, 2);
+    row_widths = [2, 4, 6, 6, 4, 2];
 
-    xmin = -(floor(n)-1)/2;
-    xmax = (floor(n)-1)/2;
-
-    x = xmin:1:xmax;
-    [xs, ys] = meshgrid(x);
-    points = [xs(:) ys(:)];
-    points = vertcat(points, [ -.5  2.5
-              .5  2.5
-            -2.5   .5
-            -2.5  -.5
-             -.5 -2.5
-              .5 -2.5
-             2.5   .5
-             2.5  -.5 ]);
+    i = 1;
+    for row=1:6
+        row_edge = (row_widths(row) - 1) / 2;
+        y = 3.5 - row;
+        for x=-row_edge:row_edge
+            stencil_points(i,:) = [x, y];
+            i = i + 1;
+        end
+    end
