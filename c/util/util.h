@@ -5,6 +5,7 @@
 #include "exit_codes.h"
 
 #define ERROR(fmt, args...) fprintf(stderr, "Error: %s: %s: %d: "fmt"\n", __FILE__, __FUNCTION__,  __LINE__, ## args)
+#define MALLOC_CHECK(ptr) if(!ptr) { ERROR("malloc failed!"); exit(OUT_OF_MEMORY_ERR); }
 
 double **readOneSta(char *file, int *m, int *n);
 double **readSta(char *file, int *ne, int *m, int *n, double *k, int l);

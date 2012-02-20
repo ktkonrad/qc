@@ -8,7 +8,8 @@ Kyle Konrad
 
 #include "count_nodal_domains.h"
 #include "util/stack2.h"
-#include "util.h"
+#include "util/interp_matrix.h"
+#include "util/util.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
@@ -93,16 +94,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   int i, j;
   int rc;
 
-  gsl_matrix *interp = gsl_matrix_alloc((upsample+1)*(upsample+1), 24);
-  if (interp == NULL) {
-    printf("failed to allocate interpolation matrix\n");
-    return -1;
-  }
-  rc = fillInterpMatrix(k, dx, M, upsample, interp); // TODO: could do this lazily in case it's not needed...
-  if (rc) {
-    gsl_matrix_free(interp);
-    exit(rc);
-  }
+  gsl_matrix *interp = create_interp_matrix(k*dx, M, upsample);
 
   int **counted = imatrix(ny, nx);
 

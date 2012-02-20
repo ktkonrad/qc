@@ -6,7 +6,7 @@ Kyle Konrad
 3/30/2011
 */
 
-#include "../exit_codes.h"
+#include "exit_codes.h"
 #include "stack2.h"
 #include <stdlib.h>
 #include <stdio.h>

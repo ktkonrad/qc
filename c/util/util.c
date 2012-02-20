@@ -30,7 +30,7 @@
 
   PRECONDITON: m is (upsample+1)^2 x 24
 */
-
+// DEPRECATED
 int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m) {
   char interpfile[100];
   char *executable = "../matlab/create_interp_matrix.sh"; // hacky way to allow calling this from other directories

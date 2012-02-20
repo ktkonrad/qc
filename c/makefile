@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -g -lgsl -lgslcblas -lm
 
-objects = count_nodal_domains.o random_percolation.o stack2.o util.o
+objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util_verg.o
 
 count: nodal_domain_driver.o $(objects) $(dependencies)
@@ -25,11 +25,14 @@ random_percolation.o: random_percolation.c random_percolation.h
 stack2.o: util/stack2.c util/stack2.h
 	$(CC) $(CFLAGS) -c util/stack2.c
 
-util.o: util.c util.h
-	$(CC) $(CFLAGS) -c util.c
+util.o: util/util.c util/util.h
+	$(CC) $(CFLAGS) -c util/util.c
 
-util_verg.o: util_verg.c util_verg.h util.o
-	$(CC) $(CFLAGS) -c util_verg.c
+util_verg.o: util/util_verg.c util/util_verg.h util.o
+	$(CC) $(CFLAGS) -c util/util_verg.c
+
+interp_matrix.o: util/interp_matrix.c util/interp_matrix.h util/util.h
+	$(CC) $(CFLAGS) -c util/interp_matrix.c
 
 .PHONY : clean
 clean:
