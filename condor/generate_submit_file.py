@@ -12,7 +12,7 @@ def write_submit_file(k_low, k_high, delta_low, delta_high):
     with open("verg_and_count.submit", 'w') as submit_file:
         submit_file.write("""
 Universe = vanilla
-Requirements = HAS_MATLAB =?= TRUE && OpSys == "LINUX" && Arch == "X86_64"
+Requirements = OpSys == "LINUX" && Arch == "X86_64"
 should_transfer_files = YES
 WhenToTransferOutput = ON_EXIT
 notify_user = kyle.t.konrad@gmail.com
@@ -26,6 +26,7 @@ Executable = vc
             submit_file.write("Arguments = %s\n" % args)
             submit_file.write("Output = run_%f.out\n" % k)
             submit_file.write("Error = run_%f.err\n" % k)
+            submit_file.write("Log = run_%f.log\n" % k)
             submit_file.write("Queue\n\n")
     
 def usage():

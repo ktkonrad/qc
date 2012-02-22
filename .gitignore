@@ -10,3 +10,4 @@ t.*
 **.dat
 *.err
 *.out
+*.log
