@@ -8,3 +8,5 @@
 t.*
 **.sta_bin
 **.dat
+*.err
+*.out
