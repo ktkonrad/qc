@@ -72,7 +72,7 @@ Kyle Konrad
 #define RESET_AL(c) (c = AL_DISCONNECTED)
 #define RESET_BL(c) (c = BL_DISCONNECTED)
 
-#define UNCOUNTED(c) (c == 0 || c >= BL_DISCONNECTED)
+#define UNCOUNTED(c) (c >= BL_DISCONNECTED)
 
 
 /*
@@ -97,6 +97,12 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   gsl_matrix *interp = create_interp_matrix(k*dx, M, upsample);
 
   int **counted = imatrix(ny, nx);
+  for (i = 0 ; i < ny ; i++) {
+    for (j = 0 ; j < nx ; j++) {
+      counted[i][j] = INFINITY;
+    }
+  }
+
 
   if (mask != NULL) {
     applyMask(grid, counted, mask, ny, nx);
@@ -106,8 +112,8 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
 
   int nd = 0; // count of nodal domains
  
-  i = 0;
-  j = -1;
+  i = 1; // start at 1 because top row is masked out
+  j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
     findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp);
@@ -140,7 +146,7 @@ int findNextUnseen(int **counted, int *i, int *j, int ny, int nx) {
   int r, c;
 
   for (r = *i ; r < ny ; r++) {
-    for (c = 0 ; c < nx ; c++) {
+    for (c = 1 ; c < nx ; c++) { // start at 1 because leftmost column is masked out
       if (r == *i && c <= *j)
 	continue;
       if (UNCOUNTED(counted[r][c])) {

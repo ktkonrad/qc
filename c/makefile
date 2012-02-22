@@ -10,11 +10,17 @@ count: nodal_domain_driver.o $(objects) $(dependencies)
 perc: percolation_driver.o $(objects)
 	$(CC) $(CFLAGS) -o perc percolation_driver.o $(objects)
 
+verg_and_count:	verg_and_count.o
+	gcc -g -o vc verg_and_count.o
+
 nodal_domain_driver.o: nodal_domain_driver.c
 	$(CC) $(CFLAGS) -c nodal_domain_driver.c
 
 percolation_driver.o: percolation_driver.c
 	$(CC) $(CFLAGS) -c percolation_driver.c
+
+verg_and_count.o: verg_and_count.c
+	gcc -g -c verg_and_count.c
 
 count_nodal_domains.o: count_nodal_domains.c count_nodal_domains.h
 	$(CC) $(CFLAGS) -c count_nodal_domains.c
