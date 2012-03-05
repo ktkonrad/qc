@@ -45,14 +45,14 @@ Kyle Konrad
 #define RESET_BELOW(c) c &= ~BELOW
 
 // diagonal connection directions
-#define BR_CONNECTED INT_MAX // connected to below right
-#define AR_CONNECTED (INT_MAX - 1) // connected to above right
-#define AL_CONNECTED (INT_MAX - 2) // connected to above left
-#define BL_CONNECTED (INT_MAX - 3) // connected to below left
-#define BR_DISCONNECTED (INT_MAX - 4) // disconnected from below right
-#define AR_DISCONNECTED (INT_MAX - 5) // disconnected from above right
-#define AL_DISCONNECTED (INT_MAX - 6) // disconnected from above left
-#define BL_DISCONNECTED (INT_MAX - 7) // disconnected from below left
+#define BR_CONNECTED (INT_MAX - 1) // connected to below right
+#define AR_CONNECTED (INT_MAX - 2) // connected to above right
+#define AL_CONNECTED (INT_MAX - 3) // connected to above left
+#define BL_CONNECTED (INT_MAX - 4) // connected to below left
+#define BR_DISCONNECTED (INT_MAX - 5) // disconnected from below right
+#define AR_DISCONNECTED (INT_MAX - 6) // disconnected from above right
+#define AL_DISCONNECTED (INT_MAX - 7) // disconnected from above left
+#define BL_DISCONNECTED (INT_MAX - 8) // disconnected from below left
 
 // diagonal connection getting macros
 #define GET_BR(c) (c == BR_CONNECTED)
@@ -99,7 +99,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   int **counted = imatrix(ny, nx);
   for (i = 0 ; i < ny ; i++) {
     for (j = 0 ; j < nx ; j++) {
-      counted[i][j] = INFINITY;
+      counted[i][j] = INT_MAX;
     }
   }
 
@@ -108,7 +108,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
     applyMask(grid, counted, mask, ny, nx);
   }
 
-  array2file(grid, ny, nx, "../data/masked.dat");
+  // array2file(grid, ny, nx, "../data/masked.dat");
 
   int nd = 0; // count of nodal domains
  
@@ -119,7 +119,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
     findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp);
   }
 				 
-  intArray2file(counted, ny, nx, "../data/counted.dat");
+  // intArray2file(counted, ny, nx, "../data/counted.dat");
 			       
   free_imatrix(counted);
 
@@ -319,11 +319,13 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   gsl_vector *interp_input, *interp_output;
   int tl_br_connected = 0; // flag indicated whether (x,y) is connected to (x+1,y+1)
   int **interp_counted = imatrix(upsample+1, upsample+1);
+  stack *s = newStack();
+
 
   if (x < 2 || x >= nx - 2 || y < 2 || y >= ny - 2) {
     ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-    exit(INTERP_ERR);
-  }
+    //exit(INTERP_ERR);
+  } else {
   interp_input = gsl_vector_alloc(INTERP_INPUT_POINTS);
 
   gsl_vector_set(interp_input, 0, grid[i-2][j]);
@@ -369,7 +371,6 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     exit(INTERP_ERR);
   }
   
-  stack *s = newStack();
   push(s, 0, 0);
   currentSign = SIGN(gsl_vector_get(interp_output, 0));
 
@@ -410,6 +411,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     }
   }
 
+  }
   // set appropriate values in counted
   if (tl_br_connected) {
     if (!counted[i][j]) SET_BR(counted[i][j]);

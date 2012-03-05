@@ -93,9 +93,11 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
 
   rc = gsl_linalg_SV_decomp(A, V, singular_values, workspace); // NOTE: this does a thin SVD
   // Now A = U
+  /*
   dump_matrix(A, "U.dat");
   dump_matrix(V, "V.dat");
   dump_vector(singular_values, "S.dat");
+  */
 
   if (rc) {
     // ERROR
@@ -223,15 +225,15 @@ gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
  */
 gsl_matrix *interp_matrix(double alpha, point *points_in, int npoints_in, point *points_out, int npoints_out, int M, double r_typical) {
   gsl_matrix *A = bessel_matrix(alpha, points_in, npoints_in, M, r_typical);
-  dump_matrix(A, "A.dat");
+  // dump_matrix(A, "A.dat");
   gsl_matrix *B = bessel_matrix(alpha, points_out, npoints_out, M, r_typical);
-  dump_matrix(B, "B.dat");
+  // dump_matrix(B, "B.dat");
   gsl_matrix *A_plus = gsl_matrix_alloc(2*M+1, npoints_in);
   MALLOC_CHECK(A_plus);
   gsl_matrix *interp = gsl_matrix_alloc(npoints_out, npoints_in);
   MALLOC_CHECK(interp);
   pseudoinverse(A, A_plus);
-  dump_matrix(A_plus, "A_plus.dat");
+  // dump_matrix(A_plus, "A_plus.dat");
   
   gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, B, A_plus, 0.0, interp);
 

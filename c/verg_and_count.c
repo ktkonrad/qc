@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
   //./verg -o test -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1.000000 -k 200.100000 -V 0.1:0.12 -f 0.001000
 
   char *verg_args[16];
-  char *verg_executable = "../vergini/verg";
+  char *verg_executable = "verg";
   verg_args[0] = (char *)malloc(strlen(verg_executable)*sizeof(char));
   for (i = 1 ; i < 16 ; i+=2) {
     verg_args[i] = (char *)malloc(3*sizeof(char));
@@ -186,7 +186,8 @@ int main(int argc, char **argv) {
   } else { // parent
     wait(&rc);
     if (rc) {
-      ERROR("verg failed");
+      ERROR("verg returned %d", rc);
+      exit(-1);
     }
   }
 

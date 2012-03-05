@@ -1,6 +1,0 @@
-{Undefined function 'load_sum' for input arguments of type 'char'.
-
-Error in count_range_sinai (line 79)
-    ks_t = load_sum(head);
-} 
-
