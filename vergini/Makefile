@@ -39,8 +39,8 @@ MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -latlas -lm
 # MATHLIBS_linux := $(ATLASlibinc) -llapack -lcblas -lf77blas -latlas -lg2c -lm
 #
 # add for debugging / profiling...     -ggdb -pg
-# CXXFLAGS_linux = -ggdb -pg -v -Wall -pedantic
-CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
+CXXFLAGS_linux = -ggdb -pg -v -Wall -pedantic
+#CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
 CXX_linux = g++
 
 # i386/linux with Intel compiler (on fricka)
@@ -154,6 +154,10 @@ useful.o: useful.cc
 
 verg.o: verg.cc basis.h billiard.h colloc.h grid.h nrutil.h useful.h
 	$(CXX) $(CXXFLAGS) verg.cc -c $(MATHLIBS)
+
+verg_no_main.o: verg_no_main.cc basis.h billiard.h colloc.h grid.h nrutil.h useful.h
+	$(CXX) $(CXXFLAGS) verg_no_main.cc -c $(MATHLIBS)
+
 
 # pack it up...
 tar:

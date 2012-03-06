@@ -19,7 +19,7 @@ Kyle Konrad
 
 // vergini code dependencies
 #include "../vergini/billiard.h"
-int verb;
+
 
 // options specified by command line arguments
 int showTime = 0; // flag: print time it takes for countNodalDomains to run
@@ -50,7 +50,7 @@ void usage() {
 /*
   process command line arguments
 */
-void processArgs(int argc, char **argv) {
+void count_processArgs(int argc, char **argv) {
   int i = 0;
   int c;
   opterr = 0;
@@ -59,6 +59,8 @@ void processArgs(int argc, char **argv) {
     usage();
     exit(CMD_LINE_ARG_ERR);
   }
+
+  optind = 0; // have to do this for getopt to parse an array other than the one from the command line
 
   while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1")) != -1) {
     switch (c) {
@@ -167,8 +169,8 @@ int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int
 
 
 
-int main(int argc, char **argv) {
-  processArgs(argc, argv);
+int count_main(int argc, char **argv) {
+  count_processArgs(argc, argv);
   int ny, nx;
   double **grid;
 

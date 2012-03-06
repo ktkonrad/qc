@@ -12,24 +12,27 @@
 #include <string.h>
 #include "util/util.h"
 #include "util/exit_codes.h"
+#include "nodal_domain_driver_no_main.h"
+#include "../vergini/verg_no_main.h"
+
 
 // options specified by command line arguments
 char *name; // base name of verg output
 char *billiard; // billiard shape string
 char *basis; // basis set string
-char *dx; // grid spacing
+char *vc_dx; // grid spacing
 char *k; // k_0 value from vergini
 char *window; // window size on either size of k
 char *fourth_order_coeff; // fourth order vergini coefficient
 char *bessel_order; // highest order bessel function to use for interpolation
-char *upsample; // upsampling ratio to use for interpolation
+char *vc_upsample; // upsampling ratio to use for interpolation
 char *remove_spurious; // -u flag to verg
 
 /*
   print a usage statement
 */
-void usage() {
-  fprintf(stderr, "USAGE: verg_and_count -n name -l billiardType -s basisSet -d dx -k k -V verginiWidth -M besselOrder -p upsample\n");
+void vc_usage() {
+  fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n");
 }
 
 /*
@@ -41,7 +44,7 @@ void processArgs(int argc, char **argv) {
   opterr = 0;
 
   if (argc <= 1) {
-    usage();
+    vc_usage();
     exit(CMD_LINE_ARG_ERR);
   }
 
@@ -64,8 +67,8 @@ void processArgs(int argc, char **argv) {
       strcpy(bessel_order, optarg);
       break;
     case 'p':
-      upsample = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(upsample, optarg);
+      vc_upsample = (char *)malloc(strlen(optarg)*sizeof(char));
+      strcpy(vc_upsample, optarg);
       break;
     case 'V':
       window = (char *)malloc(strlen(optarg)*sizeof(char));
@@ -76,8 +79,8 @@ void processArgs(int argc, char **argv) {
       strcpy(fourth_order_coeff, optarg);
       break;
     case 'd':
-      dx = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(dx, optarg);
+      vc_dx = (char *)malloc(strlen(optarg)*sizeof(char));
+      strcpy(vc_dx, optarg);
       break;
     case 'k':
       k = (char *)malloc(strlen(optarg)*sizeof(char));
@@ -127,8 +130,8 @@ void processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  if (dx == NULL) {
-    ERROR("dx not specified or invalid");
+  if (vc_dx == NULL) {
+    ERROR("vc_dx not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
   }
   if (k == NULL) {
@@ -139,11 +142,16 @@ void processArgs(int argc, char **argv) {
     ERROR("bessel_order not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
   }
-  if (upsample == NULL) {
-    ERROR("upsample not specified or invalid");
+  if (vc_upsample == NULL) {
+    ERROR("vc_upsample not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
   }
 }
+
+#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); strcpy(loc, val);} while (0)
+
+#define COUNT_NARGS 13
+#define VERG_NARGS 16
 
 int main(int argc, char **argv) {
   int pid;
@@ -154,74 +162,71 @@ int main(int argc, char **argv) {
 
   //./verg -o test -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1.000000 -k 200.100000 -V 0.1:0.12 -f 0.001000
 
-  char *verg_args[16];
+  char **verg_args = (char **)malloc(VERG_NARGS*sizeof(char *));
   char *verg_executable = "verg";
   verg_args[0] = (char *)malloc(strlen(verg_executable)*sizeof(char));
-  for (i = 1 ; i < 16 ; i+=2) {
+  strcpy(verg_args[0], verg_executable);
+  for (i = 1 ; i < VERG_NARGS ; i+=2) {
     verg_args[i] = (char *)malloc(3*sizeof(char));
   }
   strcpy(verg_args[1], "-o");
-  verg_args[2] = name;
+  SET(verg_args[2], name);
   strcpy(verg_args[3], "-l");
-  verg_args[4] = billiard;
+  SET(verg_args[4], billiard);
   strcpy(verg_args[5], "-s");
-  verg_args[6] = basis;
+  SET(verg_args[6], basis);
   strcpy(verg_args[7], "-4");
-  verg_args[8] = fourth_order_coeff;
+  SET(verg_args[8], fourth_order_coeff);
   strcpy(verg_args[9], "-k");
-  verg_args[10] = k;
+  SET(verg_args[10], k);
   strcpy(verg_args[11], "-V");
-  verg_args[12] = window;
+  SET(verg_args[12], window);
   strcpy(verg_args[13], "-f");
-  verg_args[14] = dx;
-  verg_args[15] = remove_spurious;
+  SET(verg_args[14], vc_dx);
+  strcpy(verg_args[15], remove_spurious);
   verg_args[16] = NULL;
   
 
-  pid = fork();
-  if (!pid) { // child
-    execv(verg_executable, verg_args);
-    ERROR("failed to execute verg");
-    exit(-1);
-  } else { // parent
-    wait(&rc);
-    if (rc) {
-      ERROR("verg returned %d", rc);
-      exit(-1);
-    }
-  }
+  verg_main(16, verg_args);
+
+  /*
+  for (i = 0 ; i < VERG_NARGS-1 ; i++) {
+    free(verg_args[i]);
+  }  
+  free(verg_args);
+  */
 
   //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20
-  char *count_args[13];
+  char **count_args = (char **)malloc(COUNT_NARGS * sizeof(char *));
   char *count_executable = "count";
   count_args[0] = (char *)malloc(strlen(count_executable)*sizeof(char));
-  for (i = 1 ; i < 13 ; i+=2) {
+  strcpy(count_args[0], count_executable);
+  for (i = 1 ; i < COUNT_NARGS - 1 ; i+=2) {
     count_args[i] = (char *)malloc(3*sizeof(char));
   }
   strcpy(count_args[1], "-f");
-  count_args[2] = (char *)malloc((strlen(name) + 8)*sizeof(char));
+  count_args[2] = (char *)malloc((strlen(name) + 9)*sizeof(char));
   strcpy(count_args[2], name);
   strcat(count_args[2], ".sta_bin");
   strcpy(count_args[3], "-l");
-  count_args[4] = billiard;
+  SET(count_args[4], billiard);
   strcpy(count_args[5], "-d");
-  count_args[6] = dx;
+  SET(count_args[6], vc_dx);
   strcpy(count_args[7], "-k");
-  count_args[8] = k;
+  SET(count_args[8], k);
   strcpy(count_args[9], "-M");
-  count_args[10] = bessel_order;
+  SET(count_args[10], bessel_order);
   strcpy(count_args[11], "-u");
-  count_args[12] = upsample;
+  SET(count_args[12], vc_upsample);
   count_args[13] = NULL;
-  pid = fork();
-  if (!pid) { // child
-    execv(count_executable, count_args); 
-  } else { // parent
-    wait(&rc);
-    if (rc) {
-      ERROR("count failed");
-    }
-  }
 
+  count_main(13, count_args);
+
+  /*
+  for (i = 0 ; i < COUNT_NARGS-1 ; i++) {
+    free(count_args[i]);
+  }  
+  free(count_args);
+  */
 
 }

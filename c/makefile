@@ -1,8 +1,12 @@
 CC = g++
-CFLAGS = -g -lgsl -lgslcblas -lm
+CFLAGS = -g -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
 
 objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
-dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util_verg.o
+dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util/util_verg.o
+
+
+VERG = ../vergini/matrix.o ../vergini/billiard.o ../vergini/basis.o ../vergini/colloc.o ../vergini/grid.o ../vergini/nrutil.o ../vergini/useful.o util/util_verg.o
+MATHLIBS = -lgsl -llapack -lblas -lf77blas -latlas -lm
 
 count: nodal_domain_driver.o $(objects) $(dependencies)
 	$(CC) $(CFLAGS) -o count nodal_domain_driver.o $(objects) $(dependencies)
@@ -10,17 +14,20 @@ count: nodal_domain_driver.o $(objects) $(dependencies)
 perc: percolation_driver.o $(objects)
 	$(CC) $(CFLAGS) -o perc percolation_driver.o $(objects)
 
-verg_and_count:	verg_and_count.o
-	gcc -g -o vc verg_and_count.o
+verg_and_count:	verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(dependencies)
+	$(CC) $(CFLAGS) -o vc verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(VERG) $(MATHLIBS)
 
 nodal_domain_driver.o: nodal_domain_driver.c
 	$(CC) $(CFLAGS) -c nodal_domain_driver.c
+
+nodal_domain_driver_no_main.o: nodal_domain_driver_no_main.c
+	$(CC) $(CFLAGS) -c nodal_domain_driver_no_main.c
 
 percolation_driver.o: percolation_driver.c
 	$(CC) $(CFLAGS) -c percolation_driver.c
 
 verg_and_count.o: verg_and_count.c
-	gcc -g -c verg_and_count.c
+	$(CC) $(CFLAGS) -c verg_and_count.c
 
 count_nodal_domains.o: count_nodal_domains.c count_nodal_domains.h
 	$(CC) $(CFLAGS) -c count_nodal_domains.c
@@ -42,4 +49,4 @@ interp_matrix.o: util/interp_matrix.c util/interp_matrix.h util/util.h
 
 .PHONY : clean
 clean:
-	-rm count perc $(objects) interp_matrix_k=*.dat *~
+	-rm count perc vc *~ *.o

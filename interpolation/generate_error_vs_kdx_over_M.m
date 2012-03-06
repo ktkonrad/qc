@@ -9,8 +9,8 @@ conds = zeros(length(Ms), length(dxs));
 
 i = 1;
 for dx = dxs
-    [error_norms(:,i), conds(:,i)] = plane_wave_interp_c(k, dx, Ms, 0);
-    %[error_norms(:,i), conds(:,i)] = plane_wave_interp(k, dx, n, upsample, Ms);
+    %[error_norms(:,i), conds(:,i)] = plane_wave_interp_c(k, dx, Ms, 0);
+    [error_norms(:,i), conds(:,i)] = plane_wave_interp(k, dx, n, upsample, Ms);
     i = i+1;
 end
 
