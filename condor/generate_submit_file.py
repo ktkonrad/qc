@@ -12,7 +12,15 @@ def write_submit_file(k_low, k_high, delta_low, delta_high):
     with open("verg_and_count.submit", 'w') as submit_file:
         submit_file.write("""
 Universe = vanilla
-Requirements = OpSys == "LINUX" && Arch == "X86_64"
+Requirements = OpSys == "LINUX" && Arch == "X86_64" && \
+               Machine != "math-01.grid" && \
+               Machine != "math-02.grid" && \
+               Machine != "math-03.grid" && \
+               Machine != "math-04.grid" && \
+               Machine != "math-05.grid" && \
+               Machine != "math-06.grid" && \
+               Machine != "webwork.dartmouth.edu"
+
 should_transfer_files = YES
 WhenToTransferOutput = ON_EXIT
 notify_user = kyle.t.konrad@gmail.com
