@@ -72,7 +72,13 @@ Kyle Konrad
 #define RESET_AL(c) (c = AL_DISCONNECTED)
 #define RESET_BL(c) (c = BL_DISCONNECTED)
 
-#define UNCOUNTED(c) (c >= BL_DISCONNECTED)
+// special values
+#define UNCOUNTED INT_MAX
+#define MASKED INT_MIN
+
+// boolean functions to check for counted or masked
+#define IS_UNCOUNTED(c) (c >= BL_DISCONNECTED)
+#define IS_MASKED(c) (c == MASKED)
 
 
 /*
@@ -90,7 +96,7 @@ inputs:
 	upsample - upsampling ratio for interpolation
 output: return value - count of nodal domains
 */
-int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample) {
+int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *stats) {
   int i, j;
   int rc;
 
@@ -99,7 +105,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   int **counted = imatrix(ny, nx);
   for (i = 0 ; i < ny ; i++) {
     for (j = 0 ; j < nx ; j++) {
-      counted[i][j] = INT_MAX;
+      counted[i][j] = UNCOUNTED;
     }
   }
 
@@ -116,7 +122,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
-    findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp);
+    findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp, stats);
   }
 				 
   // intArray2file(counted, ny, nx, "../data/counted.dat");
@@ -149,7 +155,7 @@ int findNextUnseen(int **counted, int *i, int *j, int ny, int nx) {
     for (c = 1 ; c < nx ; c++) { // start at 1 because leftmost column is masked out
       if (r == *i && c <= *j)
 	continue;
-      if (UNCOUNTED(counted[r][c])) {
+      if (IS_UNCOUNTED(counted[r][c])) {
 	*i = r;
 	*j = c;
 	return 1;
@@ -176,26 +182,28 @@ inputs:
 precondition: grid and counted are ny x nx
 
 outputs:
-         none
+         updates stats
 */
-void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp) {
+void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
   stack *s = newStack();
   push(s, j, i);
   
   int x, y;
   int currentSign;
   char connections; // keep track of what (x,y) is connected to
+  int size = 0;
 
   while (pop(s, &x, &y)) {
+    size++;
     currentSign = SIGN(grid[i][j]);
     counted[y][x] = currentSign == 1 ? nd : -nd;
     connections = 0;
 
     // orthongal directions
     // left
-    if (x >= 1 && !isinf(grid[y][x-1])) {
+    if (x >= 1 && !IS_MASKED(grid[y][x-1])) {
       if (SIGN(grid[y][x-1]) == currentSign) {
-	if(UNCOUNTED(counted[y][x-1])) {
+	if(IS_UNCOUNTED(counted[y][x-1])) {
 	  SET_LEFT(connections);
 	  push(s, x - 1, y);
 	}
@@ -203,9 +211,9 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // above
-    if (y >= 1 && !isinf(grid[y-1][x])) {
+    if (y >= 1 && !IS_MASKED(grid[y-1][x])) {
       if (SIGN(grid[y-1][x]) == currentSign) {
-	if(UNCOUNTED(counted[y-1][x])) {
+	if(IS_UNCOUNTED(counted[y-1][x])) {
 	  SET_ABOVE(connections);
 	  push(s, x, y-1);
 	}
@@ -213,9 +221,9 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // right
-    if (x < nx-1 && !isinf(grid[y][x+1])) {
+    if (x < nx-1 && !IS_MASKED(grid[y][x+1])) {
       if (SIGN(grid[y][x+1]) == currentSign) {
-	if(UNCOUNTED(counted[y][x+1])) {
+	if(IS_UNCOUNTED(counted[y][x+1])) {
 	  SET_RIGHT(connections);
 	  push(s, x+1, y);
 	}
@@ -223,9 +231,9 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // below
-    if (y < ny-1 && !isinf(grid[y+1][x])) {
+    if (y < ny-1 && !IS_MASKED(grid[y+1][x])) {
       if (SIGN(grid[y+1][x]) == currentSign) {
-	if(UNCOUNTED(counted[y+1][x])) {
+	if(IS_UNCOUNTED(counted[y+1][x])) {
 	  SET_BELOW(connections);
 	  push(s, x, y+1);
 	}
@@ -236,10 +244,10 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     // diagonal directions
     // above left
     if (GET_ABOVE(connections) && GET_LEFT(connections)) {
-      if (!isinf(grid[y-1][x-1])) {
+      if (!IS_MASKED(grid[y-1][x-1])) {
 	if (SIGN(grid[y-1][x-1]) == currentSign) {
-	  if (counted[y][x] == 0) { // check if interpolatin results are memoized
-	    interpolate(grid, counted, y-1, x-1, ny, nx, upsample, interp);
+	  if (counted[y][x] == 0) { // check if interpolation results are memoized
+	    interpolate(grid, counted, y-1, x-1, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x-1, y-1);
@@ -250,10 +258,10 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 
     // below left
     if (GET_BELOW(connections) && GET_LEFT(connections)) {
-      if (!isinf(grid[y+1][x-1])) {
+      if (!IS_MASKED(grid[y+1][x-1])) {
 	if (SIGN(grid[y+1][x-1]) == currentSign) {
 	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y, x-1, ny, nx, upsample, interp);
+	    interpolate(grid, counted, y, x-1, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == BL_CONNECTED) {
 	    push(s, x-1, y+1);
@@ -264,10 +272,10 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 
     // below right
     if (GET_BELOW(connections) && GET_RIGHT(connections)) {
-      if (!isinf(grid[y+1][x+1])) {
+      if (!IS_MASKED(grid[y+1][x+1])) {
 	if (SIGN(grid[y+1][x+1]) == currentSign) {
 	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y, x, ny, nx, upsample, interp);
+	    interpolate(grid, counted, y, x, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y+1);
@@ -278,10 +286,10 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 
     // above right
     if (GET_ABOVE(connections) && GET_RIGHT(connections)) {
-      if (!isinf(grid[y-1][x+1])) {
+      if (!IS_MASKED(grid[y-1][x+1])) {
 	if (SIGN(grid[y-1][x+1]) == currentSign) {
 	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y-1, x, ny, nx, upsample, interp);
+	    interpolate(grid, counted, y-1, x, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y-1);
@@ -289,7 +297,9 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 	}
       }      
     }
-
+  }
+  if (size < SMALL_DOMAIN_SIZE) {
+    stats->small_domain_count++;
   }
   destroyStack(s);
 }
@@ -311,7 +321,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 
 */
 #define IDX(x, y) (x*(upsample+1)+y)
-void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp) {
+void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
   int k;
   int x, y;
   int rc;
@@ -321,10 +331,11 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   int **interp_counted = imatrix(upsample+1, upsample+1);
   stack *s = newStack();
 
+  stats->interp_count++;
 
   if (x < 2 || x >= nx - 2 || y < 2 || y >= ny - 2) {
     ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-    //exit(INTERP_ERR);
+    exit(INTERP_ERR);
   } else {
   interp_input = gsl_vector_alloc(INTERP_INPUT_POINTS);
 
@@ -356,9 +367,10 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   // check that we are not near the boundary
   // TODO: figure out what to do if we are near the boundary
   for (k = 0 ; k < interp_input->size ; k++) {
-    if (isinf(gsl_vector_get(interp_input, k))) {
+    if (IS_MASKED(gsl_vector_get(interp_input, k))) {
       ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-      exit(INTERP_ERR);
+      stats->boundary_interp_count++;
+      //exit(INTERP_ERR);
     }
   }
 

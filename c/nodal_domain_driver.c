@@ -120,7 +120,7 @@ void processArgs(int argc, char **argv) {
     }
   }
 
-  if (strcmp(file, "") == 0) {
+  if (file == NULL || strcmp(file, "") == 0) {
     ERROR("no sta_bin file was given");
     exit(CMD_LINE_ARG_ERR);
   }
@@ -155,9 +155,9 @@ void processArgs(int argc, char **argv) {
 output:
         return value: number of nodal domains
 */
-int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample) {   
+int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample, interp_stats *stats) {
   clock_t start = clock();
-  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample);
+  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats);
   clock_t end = clock();
 
   if (showTime)
@@ -171,6 +171,7 @@ int main(int argc, char **argv) {
   processArgs(argc, argv);
   int ny, nx;
   double **grid;
+  interp_stats stats;
 
   if (mode == 1) {
     int count;
@@ -191,8 +192,8 @@ int main(int argc, char **argv) {
 	exit(DIMENSION_ERR);
       }
     }
-
-    count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample);
+    stats = {0,0,0};
+    count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample, &stats);
 
     destroyMask(mask);
     destroyGrid(grid);
@@ -213,14 +214,18 @@ int main(int argc, char **argv) {
     double k, wtm;
     int ne;
 
+
     rc = build_billiard(&bil, k_base);
     if (rc != 0) {
       ERROR("failed to build billiard");
       exit(VERGINI_ERR);
     }
 
+    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary interp count");
+
     int i = 0;
     do {
+      stats = {0,0,0};
       grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at atime so we don't have to keep them all in memory at once
 
       if (grid == NULL) {
@@ -238,18 +243,18 @@ int main(int argc, char **argv) {
 	exit(DIMENSION_ERR);
       }
 
-      count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample);
-      wtm = wingTipMass(grid, mask, ny, nx);
+      count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample, &stats);
+      // wtm = wingTipMass(grid, mask, ny, nx);
       
       destroyMask(mask);
       destroyGrid(grid);
 
-      printf("%d\t%f\t%f\n", count, k, wtm);
+      printf("%f\t%d\t%d\t%d\t%d\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_interp_count);
 
       if (oneFlag)
 	break;
 
-    } while (++i < ne);  
+    } while (++i < ne);
 
       free(file);
   }
@@ -257,3 +262,10 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+
+/*
+  TODO:
+  track: small domains, # of interpolation calls, # of interpolations on edge
+  
+ */
