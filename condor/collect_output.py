@@ -2,6 +2,7 @@
 
 import glob
 import sys
+import re
 
 def process_file(infile, outfile):
     """
@@ -11,9 +12,9 @@ def process_file(infile, outfile):
     for line in infile:
         if line == "done\n":
             break
-    # output the rest of the lines
     for line in infile:
-        outfile.write(line)
+        if re.match("\d", line):
+            outfile.write(line)
 
 def collect_output(outfile_name):
     with open(outfile_name, 'w') as outfile:
