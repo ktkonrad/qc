@@ -472,6 +472,10 @@ void destroyMask(char **mask) {
   free(mask);
 }
 
+void free_imatrix(int **m) {
+  free(m[0]);
+  free(m);
+}
 
 /*
   write an array of doubles to a file, tab separator
@@ -575,10 +579,12 @@ int charArray2file(char **array, int m, int n, char *file) {
 void applyMask(double **grid, int **counted, char **mask, int ny, int nx) {
   int i, j;
   for (i = 0 ; i < ny ; i++) {
+    // the output from verg is zero in the first row and column so mask them out
     grid[0][i] = INT_MAX;
     grid[i][0] = INT_MAX;
     counted[0][i] = 0;
     counted[i][0] = 0;
+
     for (j = 0 ; j < nx ; j++) {
       if (!mask[i][j]) {
 	grid[i][j] = INT_MIN;
@@ -641,7 +647,3 @@ int **imatrix(int rows, int cols) {
   return m;
 }
 
-void free_imatrix(int **m) {
-  free(m[0]);
-  free(m);
-}

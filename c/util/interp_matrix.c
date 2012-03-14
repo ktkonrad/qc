@@ -19,7 +19,6 @@
 #define THETA(x,y) atan2(y,x)
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
-#define NUM_STENCIL_POINTS 24
 
 /*
   input: alpha:   k*dx (wavenumber * grid spacing)
@@ -182,7 +181,7 @@ point *stencil(void) {
     M       : highest order bessel function to use
     upsample: ratio to upsample by
   output:
-    interpolation
+    interpolation matrix such that Ax=y where A is the interpolation matrix, x is a vector of function values on stencil points and y is a vector of function values on upsample points between the central square of the central, with columns stacked
 */
 gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
   point *points_in;

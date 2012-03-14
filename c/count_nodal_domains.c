@@ -18,8 +18,6 @@ Kyle Konrad
 
 #define SIGN(x) ((x) > 0 ? 1 : -1)
 
-#define INTERP_INPUT_POINTS 24
-
 // orthogonal connection directions
 #define LEFT 1
 #define RIGHT 2
@@ -77,9 +75,9 @@ Kyle Konrad
 #define MASKED INT_MIN
 
 // boolean functions to check for counted or masked
-#define IS_UNCOUNTED(c) (c >= BL_DISCONNECTED)
+#define IS_COUNTED(c) (c < BL_DISCONNECTED)
 #define IS_MASKED(c) (c == MASKED)
-
+#define IS_INTERPOLATED(c) (c >= BL_DISCONNECTED && c != UNCOUNTED)
 
 /*
 count the number of nodal domains in grid
@@ -109,7 +107,6 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
     }
   }
 
-
   if (mask != NULL) {
     applyMask(grid, counted, mask, ny, nx);
   }
@@ -118,14 +115,15 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
 
   int nd = 0; // count of nodal domains
  
-  i = 1; // start at 1 because top row is masked out
+  i = 0;
   j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
     findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp, stats);
   }
-				 
-  // intArray2file(counted, ny, nx, "../data/counted.dat");
+
+  // TODO: verbosity global to control this output
+  intArray2file(counted, ny, nx, "../data/counted.dat");
 			       
   free_imatrix(counted);
 
@@ -152,10 +150,10 @@ int findNextUnseen(int **counted, int *i, int *j, int ny, int nx) {
   int r, c;
 
   for (r = *i ; r < ny ; r++) {
-    for (c = 1 ; c < nx ; c++) { // start at 1 because leftmost column is masked out
+    for (c = 0 ; c < nx ; c++) {
       if (r == *i && c <= *j)
 	continue;
-      if (IS_UNCOUNTED(counted[r][c])) {
+      if (!IS_COUNTED(counted[r][c])) {
 	*i = r;
 	*j = c;
 	return 1;
@@ -196,15 +194,14 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
   while (pop(s, &x, &y)) {
     size++;
     currentSign = SIGN(grid[i][j]);
-    counted[y][x] = currentSign == 1 ? nd : -nd;
     connections = 0;
 
     // orthongal directions
     // left
     if (x >= 1 && !IS_MASKED(grid[y][x-1])) {
       if (SIGN(grid[y][x-1]) == currentSign) {
-	if(IS_UNCOUNTED(counted[y][x-1])) {
-	  SET_LEFT(connections);
+	SET_LEFT(connections);
+	if(!IS_COUNTED(counted[y][x-1])) {
 	  push(s, x - 1, y);
 	}
       }
@@ -213,8 +210,8 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     // above
     if (y >= 1 && !IS_MASKED(grid[y-1][x])) {
       if (SIGN(grid[y-1][x]) == currentSign) {
-	if(IS_UNCOUNTED(counted[y-1][x])) {
-	  SET_ABOVE(connections);
+	SET_ABOVE(connections);
+	if(!IS_COUNTED(counted[y-1][x])) {
 	  push(s, x, y-1);
 	}
       }
@@ -223,8 +220,8 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     // right
     if (x < nx-1 && !IS_MASKED(grid[y][x+1])) {
       if (SIGN(grid[y][x+1]) == currentSign) {
-	if(IS_UNCOUNTED(counted[y][x+1])) {
-	  SET_RIGHT(connections);
+	SET_RIGHT(connections);
+	if(!IS_COUNTED(counted[y][x+1])) {
 	  push(s, x+1, y);
 	}
       }
@@ -233,8 +230,8 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     // below
     if (y < ny-1 && !IS_MASKED(grid[y+1][x])) {
       if (SIGN(grid[y+1][x]) == currentSign) {
-	if(IS_UNCOUNTED(counted[y+1][x])) {
-	  SET_BELOW(connections);
+	SET_BELOW(connections);
+	if(!IS_COUNTED(counted[y+1][x])) {
 	  push(s, x, y+1);
 	}
       }
@@ -243,11 +240,11 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 
     // diagonal directions
     // above left
-    if (GET_ABOVE(connections) && GET_LEFT(connections)) {
+    if (x > 0 && y > 0 && !GET_ABOVE(connections) && !GET_LEFT(connections)) {
       if (!IS_MASKED(grid[y-1][x-1])) {
 	if (SIGN(grid[y-1][x-1]) == currentSign) {
-	  if (counted[y][x] == 0) { // check if interpolation results are memoized
-	    interpolate(grid, counted, y-1, x-1, ny, nx, upsample, interp, stats);
+	  if (!IS_INTERPOLATED(counted[y][x])) { // check if interpolation results are memoized
+	    interpolate(grid, counted, y-1, x-1, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x-1, y-1);
@@ -257,11 +254,11 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // below left
-    if (GET_BELOW(connections) && GET_LEFT(connections)) {
+    if (x > 0 && y < ny-1 && !GET_BELOW(connections) && !GET_LEFT(connections)) {
       if (!IS_MASKED(grid[y+1][x-1])) {
 	if (SIGN(grid[y+1][x-1]) == currentSign) {
-	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y, x-1, ny, nx, upsample, interp, stats);
+	  if (!IS_INTERPOLATED(counted[y][x])) {
+	    interpolate(grid, counted, y, x-1, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == BL_CONNECTED) {
 	    push(s, x-1, y+1);
@@ -271,11 +268,11 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // below right
-    if (GET_BELOW(connections) && GET_RIGHT(connections)) {
+    if (x < nx-1 && y < ny-1 && !GET_BELOW(connections) && !GET_RIGHT(connections)) {
       if (!IS_MASKED(grid[y+1][x+1])) {
 	if (SIGN(grid[y+1][x+1]) == currentSign) {
-	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y, x, ny, nx, upsample, interp, stats);
+	  if (!IS_INTERPOLATED(counted[y][x])) {
+	    interpolate(grid, counted, y, x, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y+1);
@@ -285,11 +282,11 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     }
 
     // above right
-    if (GET_ABOVE(connections) && GET_RIGHT(connections)) {
+    if (x < nx-1 && y > 0 && !GET_ABOVE(connections) && !GET_RIGHT(connections)) {
       if (!IS_MASKED(grid[y-1][x+1])) {
 	if (SIGN(grid[y-1][x+1]) == currentSign) {
-	  if (counted[y][x] == 0) {
-	    interpolate(grid, counted, y-1, x, ny, nx, upsample, interp, stats);
+	  if (!IS_INTERPOLATED(counted[y][x])) {
+	    interpolate(grid, counted, y-1, x, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y-1);
@@ -297,6 +294,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 	}
       }      
     }
+    counted[y][x] = currentSign == 1 ? nd : -nd;
   }
   if (size < SMALL_DOMAIN_SIZE) {
     stats->small_domain_count++;
@@ -318,26 +316,38 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
 	nx       - columns in grid
 	upsample - upsampling rate
 	interp   - precalculated 24 x (upsapmle+1)^2 matrix to do interpolation
-
+	
+  outputs:
+        stores connection values in counted[j:j+1][i:i+1]
 */
-#define IDX(x, y) (x*(upsample+1)+y)
-void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
+#define IDX(x, y) ((x)*ny+(y))
+void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_matrix *interp, interp_stats *stats) {
   int k;
   int x, y;
+  int nx = upsample + 1, ny = upsample + 1;
   int rc;
   int currentSign;
   gsl_vector *interp_input, *interp_output;
   int tl_br_connected = 0; // flag indicated whether (x,y) is connected to (x+1,y+1)
-  int **interp_counted = imatrix(upsample+1, upsample+1);
+  int **interp_counted = imatrix(ny, nx);
   stack *s = newStack();
 
-  stats->interp_count++;
 
-  if (x < 2 || x >= nx - 2 || y < 2 || y >= ny - 2) {
+  // validate size of interp matrix
+  if (interp->size1 != ny*nx || interp->size2 != NUM_STENCIL_POINTS) {
+    ERROR("invalid size for interpolation matrix");
+    exit(INTERP_ERR);
+  }
+
+  // check we're not too close to the edge
+  if (i < 2 || i >= nx - 2 || j < 2 || j >= ny - 2) {
     ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
     exit(INTERP_ERR);
-  } else {
-  interp_input = gsl_vector_alloc(INTERP_INPUT_POINTS);
+  }
+    
+  stats->interp_count++;
+  interp_input = gsl_vector_alloc(NUM_STENCIL_POINTS);
+  interp_output = gsl_vector_alloc(interp->size1);
 
   gsl_vector_set(interp_input, 0, grid[i-2][j]);
   gsl_vector_set(interp_input, 1, grid[i-2][j+1]);
@@ -374,8 +384,6 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     }
   }
 
-  interp_output = gsl_vector_alloc(interp->size2);
-
   // interp_output = interp * interp_input
   rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, interp_input, 0, interp_output);
   if (rc) {
@@ -387,7 +395,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   currentSign = SIGN(gsl_vector_get(interp_output, 0));
 
   while (pop(s, &x, &y)) {
-    if (x == upsample && y == upsample) { // we got to the bottom right
+    if (x == nx && y == ny) { // we got to the bottom right
       tl_br_connected = 1;
       break;
     }
@@ -396,47 +404,55 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     
     // left
     if (x >= 1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y))) == currentSign && !interp_counted[y][x]) {
+      if (SIGN(gsl_vector_get(interp_output, IDX(x-1,y))) == currentSign && !interp_counted[y][x-1]) {
 	push(s, x-1, y);
       }
     }
 
     // above
     if (y >= 1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y))) == currentSign && !interp_counted[y][x]) {
+      if (SIGN(gsl_vector_get(interp_output, IDX(x,y-1))) == currentSign && !interp_counted[y-1][x]) {
 	push(s, x, y-1);
       }
     }
 
     // right
     if (x < nx-1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y))) == currentSign && !interp_counted[y][x]) {
+      if (SIGN(gsl_vector_get(interp_output, IDX(x+1,y))) == currentSign && !interp_counted[y][x+1]) {
 	push(s, x+1, y);
       }
     }
 
     // below
     if (y < ny-1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y))) == currentSign && !interp_counted[y][x]) {
+      if (SIGN(gsl_vector_get(interp_output, IDX(x,y+1))) == currentSign && !interp_counted[y+1][x]) {
 	push(s, x, y+1);
       }
     }
   }
 
-  }
   // set appropriate values in counted
   if (tl_br_connected) {
-    if (!counted[i][j]) SET_BR(counted[i][j]);
-    if (!counted[i+1][j+1]) SET_AL(counted[i+1][j+1]);
-    if (!counted[i+1][j]) RESET_AR(counted[i+1][j]);
-    if (!counted[i][j+1]) RESET_BL(counted[i][j+1]);
+    if (!IS_COUNTED(counted[i][j])) SET_BR(counted[i][j]);
+    if (!IS_COUNTED(counted[i+1][j+1])) SET_AL(counted[i+1][j+1]);
+    if (!IS_COUNTED(counted[i+1][j])) RESET_AR(counted[i+1][j]);
+    if (!IS_COUNTED(counted[i][j+1])) RESET_BL(counted[i][j+1]);
   } else {
-    if (!counted[i][j]) RESET_BR(counted[i][j]);
-    if (!counted[i+1][j+1]) RESET_AL(counted[i+1][j+1]);
-    if (!counted[i+1][j]) SET_AR(counted[i+1][j]);
-    if (!counted[i][j+1]) SET_BL(counted[i][j+1]);
+    if (!IS_COUNTED(counted[i][j])) RESET_BR(counted[i][j]);
+    if (!IS_COUNTED(counted[i+1][j+1])) RESET_AL(counted[i+1][j+1]);
+    if (!IS_COUNTED(counted[i+1][j])) SET_AR(counted[i+1][j]);
+    if (!IS_COUNTED(counted[i][j+1])) SET_BL(counted[i][j+1]);
   }
 
+
+  // debug output
+  char filename[50];
+  sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
+  FILE *outfile = fopen(filename, "w");
+  gsl_vector_fprintf(outfile, interp_output, "%.16g");
+  fclose(outfile);
+
+  // cleanup
   destroyStack(s);
   gsl_vector_free(interp_input);
   gsl_vector_free(interp_output);

@@ -3,6 +3,8 @@
 
 #include <gsl/gsl_matrix.h>
 
+#define NUM_STENCIL_POINTS 24
+
 typedef struct {
   double x;
   double y;

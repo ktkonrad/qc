@@ -195,14 +195,17 @@ int main(int argc, char **argv) {
     stats = {0,0,0};
     count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample, &stats);
 
-    destroyMask(mask);
     destroyGrid(grid);
-
     free(file);
-    if (maskFlag)
-      free(maskFile);
 
-    printf("counted %d nodal domains\n", count);
+    if (maskFlag) {
+      destroyMask(mask);
+      free(maskFile);
+    }
+
+    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary interp count");
+    printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_interp_count);
+
   }
 
   if (mode == 2) {
