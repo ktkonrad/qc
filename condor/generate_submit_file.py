@@ -26,7 +26,7 @@ WhenToTransferOutput = ON_EXIT
 notify_user = kyle.t.konrad@gmail.com
 
 transfer_input_files = verg, count, dummy
-transfer_output_files = dummy
+transfer_output_files = dummy, *.sta_bin
 
 Executable = vc
 
