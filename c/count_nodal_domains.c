@@ -340,7 +340,7 @@ void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_m
   }
 
   // check we're not too close to the edge
-  if (i < 2 || i >= nx - 2 || j < 2 || j >= ny - 2) {
+  if (i < 2 || i >= ny - 2 || j < 2 || j >= nx - 2) {
     ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
     exit(INTERP_ERR);
   }
@@ -349,16 +349,33 @@ void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_m
   interp_input = gsl_vector_alloc(NUM_STENCIL_POINTS);
   interp_output = gsl_vector_alloc(interp->size1);
 
-  gsl_vector_set(interp_input, 0, grid[i-2][j]);
-  gsl_vector_set(interp_input, 1, grid[i-2][j+1]);
-  gsl_vector_set(interp_input, 2, grid[i-1][j-1]);
-  gsl_vector_set(interp_input, 3, grid[i-1][j]);
-  gsl_vector_set(interp_input, 4, grid[i-1][j+1]);
-  gsl_vector_set(interp_input, 5, grid[i-1][j+2]);
-  gsl_vector_set(interp_input, 6, grid[i][j-2]);
-  gsl_vector_set(interp_input, 7, grid[i][j-1]);
-  gsl_vector_set(interp_input, 8, grid[i][j]);
-  gsl_vector_set(interp_input, 9, grid[i][j+1]);
+
+  /*
+    populate the vector of stencil points
+    stencil points are laid out as follows:
+
+
+    y\x  -2  -1   0   1   2   3
+       +--------------------------
+    -2 |          00  01
+    -1 |      02  03  04  05
+     0 |  06  07  08  09  10  11
+     1 |  12  13  14  15  16  17
+     2 |      18  19  20  21
+     3 |          22  23
+  
+    point 8, the top left point of the inner square, is at (x,y)=(0,0)
+  */
+  gsl_vector_set(interp_input, 0 , grid[i-2][j]);
+  gsl_vector_set(interp_input, 1 , grid[i-2][j+1]);
+  gsl_vector_set(interp_input, 2 , grid[i-1][j-1]);
+  gsl_vector_set(interp_input, 3 , grid[i-1][j]);
+  gsl_vector_set(interp_input, 4 , grid[i-1][j+1]);
+  gsl_vector_set(interp_input, 5 , grid[i-1][j+2]);
+  gsl_vector_set(interp_input, 6 , grid[i][j-2]);
+  gsl_vector_set(interp_input, 7 , grid[i][j-1]);
+  gsl_vector_set(interp_input, 8 , grid[i][j]);
+  gsl_vector_set(interp_input, 9 , grid[i][j+1]);
   gsl_vector_set(interp_input, 10, grid[i][j+2]);
   gsl_vector_set(interp_input, 11, grid[i][j+3]);
   gsl_vector_set(interp_input, 12, grid[i+1][j-2]);

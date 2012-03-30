@@ -3,6 +3,8 @@ ppw = 5;
 
 n = 20;
 upsample = 20;
+dx = 1 / n;
+k = 2*pi / (ppw * dx)
 
 
 %%

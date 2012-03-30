@@ -73,7 +73,7 @@ gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M, doubl
  */
 int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
   int rc;
-  float temp;
+  double temp;
   int m = (int)(A->size1);
   int n = (int)(A->size2);
   gsl_vector *workspace = gsl_vector_alloc(n);

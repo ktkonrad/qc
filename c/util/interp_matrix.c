@@ -149,7 +149,17 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
 }
 
 /*
-returns points of 4x4 + 2 per side stencil in row major order
+returns points of 4x4 + 2 per side stencil in row major order:
+
+
+          00  01
+      02  03  04  05
+  06  07  08  09  10  11
+  12  13  14  15  16  17
+      18  19  20  21
+          22  23
+
+
 */
 point *stencil(void) {
   double x, y, row_edge;
@@ -203,8 +213,8 @@ gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
   MALLOC_CHECK(points_out);
 
   i = 0;
-    for (x = -0.5 ; x < 0.5+step/2 ; x += step) {
-      for (y = -0.5 ; y < 0.5+step/2 ; y += step) {
+  for (x = -0.5 ; x < 0.5+step/2 ; x += step) {
+    for (y = -0.5 ; y < 0.5+step/2 ; y += step) {
       points_out[i].x = x;
       points_out[i++].y = y;
     }
