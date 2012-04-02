@@ -51,5 +51,11 @@ char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, dou
     for (j = 0 ; j < *nx ; j++)
       mask[i][j] = inside_billiard(j * dx / scale, i * dx / scale, &b);
 
+  // special case for qugrs billiard: mask out the two points at the tip
+  if (b.type == QU_GEN_RECT_SINAI) {
+    mask[*ny-1][*nx-1] = 0;
+    mask[*ny-2][*nx-2] = 0;
+  }
+
   return mask;
 }

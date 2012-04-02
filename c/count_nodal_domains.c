@@ -244,7 +244,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
       if (!IS_MASKED(grid[y-1][x-1])) {
 	if (SIGN(grid[y-1][x-1]) == currentSign) {
 	  if (!IS_INTERPOLATED(counted[y][x])) { // check if interpolation results are memoized
-	    interpolate(grid, counted, y-1, x-1, upsample, interp, stats);
+	    interpolate(grid, counted, y-1, x-1, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x-1, y-1);
@@ -258,7 +258,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
       if (!IS_MASKED(grid[y+1][x-1])) {
 	if (SIGN(grid[y+1][x-1]) == currentSign) {
 	  if (!IS_INTERPOLATED(counted[y][x])) {
-	    interpolate(grid, counted, y, x-1, upsample, interp, stats);
+	    interpolate(grid, counted, y, x-1, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == BL_CONNECTED) {
 	    push(s, x-1, y+1);
@@ -272,7 +272,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
       if (!IS_MASKED(grid[y+1][x+1])) {
 	if (SIGN(grid[y+1][x+1]) == currentSign) {
 	  if (!IS_INTERPOLATED(counted[y][x])) {
-	    interpolate(grid, counted, y, x, upsample, interp, stats);
+	    interpolate(grid, counted, y, x, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y+1);
@@ -286,7 +286,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
       if (!IS_MASKED(grid[y-1][x+1])) {
 	if (SIGN(grid[y-1][x+1]) == currentSign) {
 	  if (!IS_INTERPOLATED(counted[y][x])) {
-	    interpolate(grid, counted, y-1, x, upsample, interp, stats);
+	    interpolate(grid, counted, y-1, x, ny, nx, upsample, interp, stats);
 	  }
 	  if (counted[y][x] == AL_CONNECTED) {
 	    push(s, x+1, y-1);
@@ -320,11 +320,11 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
   outputs:
         stores connection values in counted[j:j+1][i:i+1]
 */
-#define IDX(x, y) ((x)*ny+(y))
-void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_matrix *interp, interp_stats *stats) {
+#define IDX(x, y) ((x)*n+(y))
+void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
   int k;
   int x, y;
-  int nx = upsample + 1, ny = upsample + 1;
+  int n = upsample + 1;
   int rc;
   int currentSign;
   gsl_vector *interp_input, *interp_output;
@@ -334,118 +334,134 @@ void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_m
 
 
   // validate size of interp matrix
-  if (interp->size1 != ny*nx || interp->size2 != NUM_STENCIL_POINTS) {
+  if (interp->size1 != n*n || interp->size2 != NUM_STENCIL_POINTS) {
     ERROR("invalid size for interpolation matrix");
     exit(INTERP_ERR);
   }
 
   // check we're not too close to the edge
   if (i < 2 || i >= ny - 2 || j < 2 || j >= nx - 2) {
-    ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-    exit(INTERP_ERR);
-  }
+    ERROR("trouble spot near edge: (x,y) = (%d,%d)", j, i);
+    stats->edge_trouble_count++;
+    tl_br_connected = rand() % 2; // we can't interpolate so guess randomly which way it's connected
+  } else {
     
-  stats->interp_count++;
-  interp_input = gsl_vector_alloc(NUM_STENCIL_POINTS);
-  interp_output = gsl_vector_alloc(interp->size1);
+
+    stats->interp_count++;
+    interp_input = gsl_vector_alloc(NUM_STENCIL_POINTS);
+    interp_output = gsl_vector_alloc(interp->size1);
 
 
-  /*
-    populate the vector of stencil points
-    stencil points are laid out as follows:
+    /*
+      populate the vector of stencil points
+      stencil points are laid out as follows:
 
 
-    y\x  -2  -1   0   1   2   3
-       +--------------------------
-    -2 |          00  01
-    -1 |      02  03  04  05
-     0 |  06  07  08  09  10  11
-     1 |  12  13  14  15  16  17
-     2 |      18  19  20  21
-     3 |          22  23
+      y\x  -2  -1   0   1   2   3
+      +--------------------------
+      -2 |          00  01
+      -1 |      02  03  04  05
+      0 |  06  07  08  09  10  11
+      1 |  12  13  14  15  16  17
+      2 |      18  19  20  21
+      3 |          22  23
   
-    point 8, the top left point of the inner square, is at (x,y)=(0,0)
-  */
-  gsl_vector_set(interp_input, 0 , grid[i-2][j]);
-  gsl_vector_set(interp_input, 1 , grid[i-2][j+1]);
-  gsl_vector_set(interp_input, 2 , grid[i-1][j-1]);
-  gsl_vector_set(interp_input, 3 , grid[i-1][j]);
-  gsl_vector_set(interp_input, 4 , grid[i-1][j+1]);
-  gsl_vector_set(interp_input, 5 , grid[i-1][j+2]);
-  gsl_vector_set(interp_input, 6 , grid[i][j-2]);
-  gsl_vector_set(interp_input, 7 , grid[i][j-1]);
-  gsl_vector_set(interp_input, 8 , grid[i][j]);
-  gsl_vector_set(interp_input, 9 , grid[i][j+1]);
-  gsl_vector_set(interp_input, 10, grid[i][j+2]);
-  gsl_vector_set(interp_input, 11, grid[i][j+3]);
-  gsl_vector_set(interp_input, 12, grid[i+1][j-2]);
-  gsl_vector_set(interp_input, 13, grid[i+1][j-1]);
-  gsl_vector_set(interp_input, 14, grid[i+1][j]);
-  gsl_vector_set(interp_input, 15, grid[i+1][j+1]);
-  gsl_vector_set(interp_input, 16, grid[i+1][j+2]);
-  gsl_vector_set(interp_input, 17, grid[i+1][j+3]);
-  gsl_vector_set(interp_input, 18, grid[i+2][j-1]);
-  gsl_vector_set(interp_input, 19, grid[i+2][j]);
-  gsl_vector_set(interp_input, 20, grid[i+2][j+1]);
-  gsl_vector_set(interp_input, 21, grid[i+2][j+2]);
-  gsl_vector_set(interp_input, 22, grid[i+3][j]);
-  gsl_vector_set(interp_input, 23, grid[i+3][j+1]);
+      point 8, the top left point of the inner square, is at (x,y)=(0,0)
+    */
+    gsl_vector_set(interp_input, 0 , grid[i-2][j]);
+    gsl_vector_set(interp_input, 1 , grid[i-2][j+1]);
+    gsl_vector_set(interp_input, 2 , grid[i-1][j-1]);
+    gsl_vector_set(interp_input, 3 , grid[i-1][j]);
+    gsl_vector_set(interp_input, 4 , grid[i-1][j+1]);
+    gsl_vector_set(interp_input, 5 , grid[i-1][j+2]);
+    gsl_vector_set(interp_input, 6 , grid[i][j-2]);
+    gsl_vector_set(interp_input, 7 , grid[i][j-1]);
+    gsl_vector_set(interp_input, 8 , grid[i][j]);
+    gsl_vector_set(interp_input, 9 , grid[i][j+1]);
+    gsl_vector_set(interp_input, 10, grid[i][j+2]);
+    gsl_vector_set(interp_input, 11, grid[i][j+3]);
+    gsl_vector_set(interp_input, 12, grid[i+1][j-2]);
+    gsl_vector_set(interp_input, 13, grid[i+1][j-1]);
+    gsl_vector_set(interp_input, 14, grid[i+1][j]);
+    gsl_vector_set(interp_input, 15, grid[i+1][j+1]);
+    gsl_vector_set(interp_input, 16, grid[i+1][j+2]);
+    gsl_vector_set(interp_input, 17, grid[i+1][j+3]);
+    gsl_vector_set(interp_input, 18, grid[i+2][j-1]);
+    gsl_vector_set(interp_input, 19, grid[i+2][j]);
+    gsl_vector_set(interp_input, 20, grid[i+2][j+1]);
+    gsl_vector_set(interp_input, 21, grid[i+2][j+2]);
+    gsl_vector_set(interp_input, 22, grid[i+3][j]);
+    gsl_vector_set(interp_input, 23, grid[i+3][j+1]);
   
-  // check that we are not near the boundary
-  // TODO: figure out what to do if we are near the boundary
-  for (k = 0 ; k < interp_input->size ; k++) {
-    if (IS_MASKED(gsl_vector_get(interp_input, k))) {
-      ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-      stats->boundary_interp_count++;
-      //exit(INTERP_ERR);
+    // check that we are not near the boundary
+    // TODO: figure out what to do if we are near the boundary
+    for (k = 0 ; k < interp_input->size ; k++) {
+      if (IS_MASKED(gsl_vector_get(interp_input, k))) {
+        ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
+        stats->boundary_trouble_count++;
+        break;
+      }
     }
-  }
 
-  // interp_output = interp * interp_input
-  rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, interp_input, 0, interp_output);
-  if (rc) {
-    ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
-    exit(INTERP_ERR);
-  }
-  
-  push(s, 0, 0);
-  currentSign = SIGN(gsl_vector_get(interp_output, 0));
-
-  while (pop(s, &x, &y)) {
-    if (x == nx && y == ny) { // we got to the bottom right
-      tl_br_connected = 1;
-      break;
+    // interp_output = interp * interp_input
+    rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, interp_input, 0, interp_output);
+    if (rc) {
+      ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
+      exit(INTERP_ERR);
     }
+  
+    push(s, 0, 0);
+    currentSign = SIGN(gsl_vector_get(interp_output, 0));
+
+    while (pop(s, &x, &y)) {
+      if (x == n && y == n) { // we got to the bottom right
+        tl_br_connected = 1;
+        break;
+      }
     
-    interp_counted[y][x] = 1;
+      interp_counted[y][x] = 1;
     
-    // left
-    if (x >= 1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x-1,y))) == currentSign && !interp_counted[y][x-1]) {
-	push(s, x-1, y);
+      // left
+      if (x >= 1) {
+        if (SIGN(gsl_vector_get(interp_output, IDX(x-1,y))) == currentSign && !interp_counted[y][x-1]) {
+          push(s, x-1, y);
+        }
       }
-    }
 
-    // above
-    if (y >= 1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y-1))) == currentSign && !interp_counted[y-1][x]) {
-	push(s, x, y-1);
+      // above
+      if (y >= 1) {
+        if (SIGN(gsl_vector_get(interp_output, IDX(x,y-1))) == currentSign && !interp_counted[y-1][x]) {
+          push(s, x, y-1);
+        }
       }
-    }
 
-    // right
-    if (x < nx-1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x+1,y))) == currentSign && !interp_counted[y][x+1]) {
-	push(s, x+1, y);
+      // right
+      if (x < n-1) {
+        if (SIGN(gsl_vector_get(interp_output, IDX(x+1,y))) == currentSign && !interp_counted[y][x+1]) {
+          push(s, x+1, y);
+        }
       }
-    }
 
-    // below
-    if (y < ny-1) {
-      if (SIGN(gsl_vector_get(interp_output, IDX(x,y+1))) == currentSign && !interp_counted[y+1][x]) {
-	push(s, x, y+1);
+      // below
+      if (y < n-1) {
+        if (SIGN(gsl_vector_get(interp_output, IDX(x,y+1))) == currentSign && !interp_counted[y+1][x]) {
+          push(s, x, y+1);
+        }
       }
     }
+    // debug output
+    char filename[50];
+    sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
+    FILE *outfile = fopen(filename, "w");
+    gsl_vector_fprintf(outfile, interp_output, "%.16g");
+    fclose(outfile);
+
+    // cleanup
+    destroyStack(s);
+    gsl_vector_free(interp_input);
+    gsl_vector_free(interp_output);
+    free_imatrix(interp_counted);
+
   }
 
   // set appropriate values in counted
@@ -460,18 +476,4 @@ void interpolate(double **grid, int **counted, int i, int j, int upsample, gsl_m
     if (!IS_COUNTED(counted[i+1][j])) SET_AR(counted[i+1][j]);
     if (!IS_COUNTED(counted[i][j+1])) SET_BL(counted[i][j+1]);
   }
-
-
-  // debug output
-  char filename[50];
-  sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
-  FILE *outfile = fopen(filename, "w");
-  gsl_vector_fprintf(outfile, interp_output, "%.16g");
-  fclose(outfile);
-
-  // cleanup
-  destroyStack(s);
-  gsl_vector_free(interp_input);
-  gsl_vector_free(interp_output);
-  free_imatrix(interp_counted);
 }

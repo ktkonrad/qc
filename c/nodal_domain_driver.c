@@ -203,8 +203,8 @@ int main(int argc, char **argv) {
       free(maskFile);
     }
 
-    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary interp count");
-    printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_interp_count);
+    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary trouble count", "edge trouble count");
+    printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
 
   }
 
@@ -224,7 +224,7 @@ int main(int argc, char **argv) {
       exit(VERGINI_ERR);
     }
 
-    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary interp count");
+    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary trouble count", "edge trouble count");
 
     int i = 0;
     do {
@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
       destroyMask(mask);
       destroyGrid(grid);
 
-      printf("%f\t%d\t%d\t%d\t%d\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_interp_count);
+      printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
 
       if (oneFlag)
 	break;
