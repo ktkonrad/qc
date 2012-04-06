@@ -1,13 +1,31 @@
+# executables
 */count
 */perc
 */verg
 */interp
-**.o
-**~
-**#*
+*/vc
+
+# objects and backups
+*.o
+*~
+*#*
+
+# vergini output
 t.*
-**.sta_bin
-**.dat
+*.sta_bin
+*.cf
+*.sum
+
+# data, log, etc files
+*.dat
 *.err
 *.out
 *.log
+
+# compiled latex
+documents/*.dvi
+documents/*.pdf
+documents/*.aux
+
+# condor submit files
+*.submit

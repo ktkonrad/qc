@@ -224,7 +224,7 @@ int count_main(int argc, char **argv) {
       exit(VERGINI_ERR);
     }
 
-    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary trouble count", "edge trouble count");
+    //    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary trouble count", "edge trouble count");
 
     int i = 0;
     do {
@@ -252,7 +252,7 @@ int count_main(int argc, char **argv) {
       destroyMask(mask);
       destroyGrid(grid);
 
-      printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
+      printf("%f, %d, %d, %d, %d, %d\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
 
       if (oneFlag)
 	break;
