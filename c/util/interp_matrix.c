@@ -27,7 +27,7 @@
 	 M:       highest order bessel function to use
 
   output: return value: matrix A where
-          A[i][j] = J_{j'}(alpha*r_i) /  * f(j'*\theta_i) where
+          A[i][j] = J_{j'}(alpha*r_i) * f(j'*\theta_i) where
 	    0 <= i < npoints
 	    0 <= j <= M
 	    j' = j     if j <= M
