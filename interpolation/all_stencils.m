@@ -1,11 +1,4 @@
-dxs = 10.^(-1:-1:-8);
-dxs = 10.^(-1:-.25:-5);
-k = 200;
-M = 13;
-
-grids = cell(5,1);
-names = cell(5,1);
-
+function [grids, names] = all_stencils()
 grids{1} = [ -.5   .5
               .5   .5
              -.5  -.5
@@ -50,22 +43,5 @@ grids{5} = vertcat(grids{4}, ...
              1.5 -2.5
              2.5  1.5
              2.5 -1.5 ]); % 6x6 without corners
-names{5} = '6x6 no corners';            
-         
-outx = -.5:.1:.5;
-outxs = meshgrid(-.5:.1:.5);
-outys = flipud(meshgrid(-.5:.1:.5)');
-outgrid = [outxs(:), outys(:)];    
-error_norms = zeros(length(dxs), length(grids));
-
-i = 0;
-for dx=dxs
-    i = i + 1;
-    error_norms(i,:) = plane_wave_interp2(k, cellfun(@(x) dx*x, grids, 'UniformOutput', false), dx*outgrid, M);
+names{5} = '6x6 no corners';
 end
-
-figure;
-loglog(k*dxs, error_norms);
-xlabel('k*dx');
-ylabel('||errors||_{\infty}');
-legend(names);
