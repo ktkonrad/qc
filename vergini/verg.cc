@@ -144,6 +144,7 @@ int main(int argc, char **argv)
   char headchop[LEN];
   int m_c;
   double y_c, f_c, x_fc, y_fc, dummy, *mass, **per_chop, **ngr_chop, alpha;
+  clock_t start_clock;
   
   gsl_set_error_handler_off();       // turn off GNU Sci Lib error handler
 
@@ -412,12 +413,15 @@ int main(int argc, char **argv)
 
 
   case TASK_VERGINI: // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+    start_clock = clock();
     nev = vergini(&bil, &bps, &bas, k_base, epsilon, delta_lo, delta_hi, \
 		  ks, a, ne, C4);
     ne = min(ne, nev); // if too many found, can't use them
-    if (verb)
+    if (verb) {
       printf("vergini found %d states in k=[%f,%f]; (%d after clipping)\n", \
 	     nev, k_base-delta_lo, k_base+delta_hi, ne);
+      printf("took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
+    }
     // evaluate per, ngr values... nrm is pre-normalization Dirichlet norm.
     for (i=1; i<=ne; ++i) {
       nrm[i] = eval_bdry(ks[i], a[i], &bas, per[i], ngr[i], &ten[i], \
@@ -642,8 +646,11 @@ int main(int argc, char **argv)
     }
     if (geom)
       save_mask(&bil, &g, head, xl, xh, yl, yh);
-    if (grid==1) // fast, same k
+    if (grid==1) { // fast, same k
+      start_clock = clock();
       eval_grid_vecs(&bil, &bas, k_base, a, &g, ne, 0);
+      printf("took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
+    }
     else // slow, correct ks
       eval_grid_vecs_each_k(&bil, &bas, ks, kos, a, &g, ne, 0);
     if (encode)
