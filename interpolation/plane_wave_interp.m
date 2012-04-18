@@ -19,13 +19,11 @@ function [error_norms, conds] = plane_wave_interp(k, dx, n, upsample, Ms, cs, th
     if nargin < 8
         plot = 0;
     end
-
-    n = 4.5;
     
     xmin = -(floor(n)-1)/2*dx;
     xmax = (floor(n)-1)/2*dx;
 
-    points = stencil()*dx;
+    points = stencil_n(n)*dx;
 
     x2 = xmin:dx/upsample:xmax;
     xs2 = meshgrid(x2);

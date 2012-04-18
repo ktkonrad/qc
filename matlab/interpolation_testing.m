@@ -70,6 +70,34 @@ axis off;
 set(h, 'pos', get(h, 'pos') + [-0.1,-0.1,0.1,0.1]);
 rectangle('Position', trouble_rect*upsample, 'EdgeColor', 'red', 'LineWidth', 3);
 
+%% generate 4 separate figures
+trouble = [8, 13];
+trouble_rect = [trouble - 0.5, 2, 2];
+
+figure;
+imagesc(lo_res>0);
+axis off;
+rectangle('Position', trouble_rect, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+
+figure;
+imagesc(lo_res);
+axis off;
+rectangle('Position', trouble_rect, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+
+figure;
+imagesc(hi_res>0);
+axis off;
+rectangle('Position', trouble_rect*upsample, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+
+figure;
+imagesc(hi_res);
+axis off;
+rectangle('Position', trouble_rect*upsample, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+
 %% run count
 cmd = sprintf('../c/count -f ../data/rpw.sta_bin -d %f -M 9 -u 20 -k %f', dx, k);
 system(cmd);

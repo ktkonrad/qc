@@ -20,7 +20,7 @@
 \section*{Notation}
 $N :=$ number of points sampled
 
-$N \sim {\Delta x}^{2}$
+$N \sim h^{-2}$
 
 $B :=$ number of basis functions used in vergini method
 
@@ -28,9 +28,9 @@ $k :=$ wavenumber
 
 $E = k^{2} :=$ energy of eigenfunction
 
-$\Delta x :=$ orthogonal spacing between sampled points
+$h :=$ orthogonal spacing between sampled points
 
-$\alpha := k \Delta x$
+$\alpha := k h$
 
 $\Omega \in \mathbb{R}^2$ compact domain
 
@@ -55,13 +55,13 @@ V(\rr) =\begin{cases}
 \]
 A quantum wave-particle in the presence of such a potential obeys the Schrödinger equation
 \[
-E u(\rr) = - \frac{\hbar^{2}}{2m} \nabla^{2} u(\rr) + V(\rr) u(\rr)
+E u(\rr) = - \frac{\hbar^{2}}{2m} \Delta u(\rr) + V(\rr) u(\rr)
 \]
-Setting $\hbar = m = 1$ and enforcing continuity of $u(\rr)$ at the domain boundary $\Gamma = \partial \Omega$ simplifies this to the Helmholtz equation
+Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partial^{2}}{\partial y^{2}}$ is the Laplacian differential operator in two dimensions. Setting $\hbar = 2m = 1$ and enforcing continuity of $u(\rr)$ at the domain boundary $\Gamma = \partial \Omega$ simplifies this to the Helmholtz equation
 \begin{equation}
 \label{eq:helmholtz}
 \begin{cases}
-(\nabla^{2} + k^{2})u(\rr) = 0 & \text{if } \rr \in \Omega\\
+(\Delta + k^{2})u(\rr) = 0 & \text{if } \rr \in \Omega\\
   u(\rr) = 0 & \text{if } \rr \in \Gamma
 \end{cases}
 \end{equation}
@@ -85,7 +85,8 @@ The stadium billiard is construced from a rectangular region and a quarter circl
 
 \chapter{Methods}
 \section{Scaling Method}
-Vergini and Saraceno \cite{vergini} developed a method of computing high energy eigenfunctions of chaotic billiards using a scaling method. The method simultaneously finds all eigenfunctions $\phi_{i}(\rr)$ with energy in a given window $[E - \Delta E, E + \Delta E]$ by scaling each eigenfunction. The scaled eigenfunctions $\chi_{i}(k, \rr)$ are computed as
+\subsection{Theory}
+Vergini and Saraceno \cite{vergini} developed a method of computing high energy eigenfunctions of chaotic billiards using a scaling method. The method simultaneously finds all eigenfunctions $\phi_{i}(\rr)$ with energy in a given energy window $[E - \Delta E, E + \Delta E]$ for some $E = k^{2}$ by scaling each eigenfunction. The scaled eigenfunctions $\chi_{i}(k, \rr)$ are computed as
 \[
 \chi_{i}(k, \rr) = \phi_{i} \left( \frac{k}{k_{i}} \rr \right) = \phi_{i} \left( \rr + \frac{\omega_{i}}{k_i} \rr \right)
 \]
@@ -93,25 +94,35 @@ where $\omega_{i} = k - k_i$. This scaling causes all eigenfunctions to fall app
 \[
 \chi_{i}(k, \rr) = \sum_{l=1}^{B} X_{li} \xi_{l}(k, \rr) + \epsilon_{i}(\rr)
 \]
-where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$. Values of B of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This fact provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system. The basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used.For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\nabla^{2} + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3})$ time where  is the number of basis functions used. The scaling method only computes coefficients of basis functions which can then be used to evaluate the eigenfunctions at arbitrary $\rr \in \Omega$. \cite{barnett}
+where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This fact provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system. The basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3} = O(k^{3})$ time. \cite{barnett}
+
+\subsection{Run Time}
+The scaling method only computes coefficients of basis functions which can then be used to evaluate the eigenfunctions at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window, for $NB$ basis function evaluations. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires $nNB$ multiplications.
+
+In order to maintain accuracy when scaling functions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call and for both billiards considered here $B \sim k$. Thus, in practice $N \gg n, B$ so it is primarily $N$ which is determined by $h$ that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [need timing data].
 
 \section{Counting Nodal Domains}
-Nodal domains are counted by exploring domains pixel by pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
+Eigenfunctions are sampled on a regular grid; each point in this grid will be referred to as a ``pixel.'' Nodal domains are counted by exploring domains pixel-by-pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
 
-Letting $N$ be the number of points the eigenfunction is sampled at, this method has computational complexity $O(N)$. This is because the method performs a fixed number of comparisons for each pixel plus $O(N)$ total comparisons searching for an unseen nodal domain after a nodal domain has been explored. This algorithm uses an array of $N$ integers to store, for each pixel, whether it has been counted, which nodal domain it is in, whether or not it is within the boundary of the billiard, and additional information relating to the interpolation method described below. In addition, this method uses a dynamically sized array as a stack whose size it as most the size of the nodal domain being explored and usually only a fraction of that.
+Letting $N$ be the number of points the eigenfunction is sampled at, this method has computational complexity $O(N)$. This is because the method performs a fixed number of comparisons for each pixel plus $O(N)$ total comparisons searching for an unseen nodal domain after a nodal domain has been explored. This algorithm uses an array of $N$ integers to store, for each pixel, whether it has been counted, which nodal domain it is in, whether or not it is within the boundary of the billiard, and additional information relating to the interpolation method described below. In addition, this method uses a dynamically sized array as a stack whose size is (loosed) bounded above by the number of pixels in the nodal domain being explored.
 
 \section{Interpolation}
-Because sampling eigenfunctions is expensive, we are limited by $N$ which scales like $\Delta x ^{-2}$. As a consequence of working with relatively coursely sampled grids we encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
+Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$ which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width and height of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=0.9\textwidth]{figs/interpolation_sample.eps}
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_high_res.eps}
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_high_res_domains.eps}
+    \linebreak
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_low_res.eps}
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_low_res_domains.eps}
+
     \caption{An ambiguity in nodal domain connectivity due to coarse sampling. The ambiguous region is shown with a red box. Top left: high resolution image of an eigenfunction; top right: nodal domains of the same eigenfunction; bottom left: low resolution image of the same eigenfunction; bottom right: nodal domains of low resolution eigenfunction}
     \label{fig:interpolation_sample}
   \end{center}
 \end{figure}
 
-We resolve such ambiguities by performing an interpolation in the ambigious region. We interpolate with the functions
+We resolve such ambiguities by performing an interpolation in the ambiguous region. We interpolate with the functions
 \[
 J_{n}(\alpha r) \sin(n \theta)
 \]
@@ -132,20 +143,21 @@ We construct a surrogate function
 \[
   \tilde{u}(\rr) = \sum_{i=0}^{2M+1} c_{i} \xi_{i}(\rr)
 \]
-as a local approximation to the eigenfunction $u(\rr$ by fitting the coeffiecients $c_{i} \in \mathbb{R}$ to minimize the error $\Vert u - \tilde{u} \Vert_{2}$. This function can then be sampled at a higher resolution within the region in question. We define the sampling ratio of this surrogate function to the original eigenfunction to be $\rho$.
+as a local approximation to the eigenfunction $u(\rr)$ by fitting the coeffiecients $c_{i} \in \mathbb{R}$ to minimize the error $\Vert u - \tilde{u} \Vert_{2}$. This function can then be sampled at a higher resolution within the region in question. We define the sampling ratio of this surrogate function to the original eigenfunction to be $\rho$.
 
 Interpolation occurs only between four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. After testing various stencil shapes we selected one using 24 points consisting of a four by four square with two additional points on each side of the square. See \ref{sec:params} for a discussion of the choice of stencil, $M$, and $\alpha$.
 
+\subsection{Numerical Implementation}
 We can construct a single matrix to transform values on a stencil to upsampled values in the center of the stencil, performing the process described above with a single matrix multiplication. We construct the interpolation matrix as
 \[
 U = L H^{+}
 \]
-Where $L$ is a matrix which performs an evaluation of Bessel functions at low resolution, $H$ performs an evalution of Bessel functions at high resolution and $A^{+}$ denotes the pseudoinverse of $A$. Specifically,
+Where $L$ is a matrix which performs an evaluation of Bessel functions at low resolution, $H$ performs an evalution of Bessel functions at high resolution and $^{+}$ denotes the pseudoinverse. Specifically,
 \[
 L_{ij} =\begin{cases}
-J_{j}(r_{i}) & \text{for } j = 0 \text{ and } 0 \le i < 24\\
-J_{j}(r_{i}) \sin{(j \theta_{i})} & \text{for } 1 \le j \le M \text{ and } 0 \le i < 24\\
-J_{j-M}(r_{i}) \cos{((j-M) \theta_{i})} & \text{for } M+1 \le j \le 2M+1 \text{ and } 0 \le i < 24
+J_{j}(r_{i}) & \text{for } j = 0 \text{ and } 0 \le i < T\\
+J_{j}(r_{i}) \sin{(j \theta_{i})} & \text{for } 1 \le j \le M \text{ and } 0 \le i < T\\
+J_{j-M}(r_{i}) \cos{((j-M) \theta_{i})} & \text{for } M+1 \le j \le 2M+1 \text{ and } 0 \le i < T
 \end{cases}
 \]
 and
@@ -156,7 +168,7 @@ J_{j}(r_{i}) \sin{(j \theta_{i})} & \text{for } 1 \le j \le M \text{ and } 0 \le
 J_{j-M}(r_{i}) \cos{((j-M) \theta_{i})} & \text{for } M+1 \le j \le 2M+1 \text{ and } 0 \le i < \gamma
 \end{cases}
 \]
-where $\gamma = (\rho + 1)^{2}$, $(r_{i},\theta_{i}) = \rr_{i}$ in polar coordinates, and $\rr_{i}$ are points in the stencil.
+where $T$ is the number of points in the stencil, $\gamma = (\rho + 1)^{2}$, $(r_{i},\theta_{i})$ are points in the stencil expressed in polar coordinates.
 
 The pseudoinverse $H^{+}$ is computed using a singular value decomposition as follows,
 \[
@@ -171,16 +183,30 @@ where $H = U^{*} \Sigma V$ is a singular value decompostion of $H$ and
 \]
 where $\epsilon = \gamma \epsilon_{double} \vert \Sigma \vert$ where $\epsilon_{double}$ is the difference between $1$ and the smallest IEEE double precision floating point number greater than $1$. Singular values less than $\epsilon$ are considered to be zero within working precision.
 
+\subsection{Code Implemenation}
+A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (Fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = U {\bf v}$ where $U$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.2\textwidth]{figs/interpolation/trouble_spot1.eps}
+    \hspace{1 cm} 
+    \includegraphics[width=0.2\textwidth]{figs/interpolation/trouble_spot2.eps}
+    \caption{Configurations that will result in interpolation}
+    \label{fig:trouble_spot}
+  \end{center}
+\end{figure}
+
+
 \chapter{Results}
 
 \appendix
 \chapter{General Solution of the Helmholtz Equation}
 \label{sec:helmholtz_basis}
-Here we show that the functions $J_{n}(\alpha r) \sin(n \theta)$ and $J_{n}(\alpha r) \cos(n \theta)$ for a complete orthonormal basis of solutions of (\ref{eq:helmholtz}).
+Here we show that the functions $J_{n}(\alpha r) \sin(n \theta)$ and $J_{n}(\alpha r) \cos(n \theta)$ form a complete orthonormal basis of solutions of (\ref{eq:helmholtz}).
 
 In polar coordinates,
 \[
-\nabla^{2} = \frac{1}{r} \partial_{r} (r \partial_{r}) + \frac{1}{r^{2}} \partial_{\theta \theta}
+\Delta = \frac{1}{r} \partial_{r} (r \partial_{r}) + \frac{1}{r^{2}} \partial_{\theta \theta}
 \]
 Thus, (\ref{eq:helmholtz}) can be expressed as
 \[
@@ -196,7 +222,7 @@ where $\Theta(\theta)$ is periodic with period $2 \pi$. This gives
 \]
 and
 \[
-r^{2} R''(r) + r R'(r) + r^{2} k^{2} R(r) - n^{r} R(r) = 0
+r^{2} R''(r) + r R'(r) + r^{2} k^{2} R(r) - n^{2} R(r) = 0
 \]
 The periodicity of $\Theta(\theta)$ requires that
 \[
@@ -209,10 +235,12 @@ R(r) = J_{n}(k r)
 \]
 where $k \in \mathbb{R}$ is allowed to take discrete values determined by boundary conditions.
 
-Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of terms of the form
-\[
-J_{n}(k r) \sin(n \theta) \text{ and } J_{n}(k r) \cos(n \theta)
-\]
+Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of the form
+
+\begin{equation}
+  \label{eq:helmholtz_gen_soln}
+  b_{0} J_{0}(kr) + \sum_{n = 1}^{\infty}{a_{n} J_n(kr) \sin{n \theta} + b{n} J_n{kr} \cos{n \theta}}
+\end{equation}
 
 \chapter{Interpolation Parameter Selection}
 \label{sec:params}
