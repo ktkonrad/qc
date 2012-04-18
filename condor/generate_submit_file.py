@@ -4,13 +4,20 @@ import sys
 
 alpha = 0.5 # k*dx
 
-def krange(k_low, k_high, delta_low, delta_high):
-    k = k_low + delta_low
-    while k <= k_high - delta_high + 1e-6:
-        yield k
-        k += delta_low + delta_high
+def krange(k_low, k_high, delta_0):
+    """
+    yield pairs (k1, k2) partitioning the interval [k_low, k_high]
+    into subintervals of equal work. work scales like k^3
+    interval width starts at delta_0 and decreases
+    """
+    k = k_low
+    delta = delta_0
+    while k < k_high:
+        yield (k, k+delta)
+        delta = delta_0 * (k_low/k)**3
+        k += delta
 
-def write_submit_file(k_low, k_high, delta_low, delta_high):
+def write_submit_file(k_low, k_high, delta_0):
     with open("verg_and_count.submit", 'w') as submit_file:
         submit_file.write("""
 Universe = vanilla
@@ -33,9 +40,11 @@ Executable = vc
 
 """)
 
-        for k in krange(k_low, k_high, delta_low, delta_high):
+        for (k1, k2) in krange(k_low, k_high, delta_0):
+            k = (k1+k2)/2
             dx = alpha / k
-            args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f:%f -d %f -M 9 -p 20" % (k, k, delta_low, delta_high, dx)
+            delta_k = k - k1 # = k2 - k
+            args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f:%f -d %f -M 9 -p 20" % (k, k, delta_k, delta_k, dx)
             submit_file.write("Arguments = %s\n" % args)
             submit_file.write("Output = run_%f.out\n" % k)
             submit_file.write("Error = run_%f.err\n" % k)
@@ -43,11 +52,11 @@ Executable = vc
             submit_file.write("Queue\n\n")
     
 def usage():
-    print "usage: ./generate_submit_file.py k_low k_high delta_low delta_high"
+    print "usage: ./generate_submit_file.py k_low k_high delta_0"
 
 
 def main():
-    if len(sys.argv) < 5:
+    if len(sys.argv) != 4:
         usage()
         exit(-1)
     write_submit_file(*map(float, sys.argv[1:]))
