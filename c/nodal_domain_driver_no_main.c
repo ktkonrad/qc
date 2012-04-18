@@ -51,6 +51,7 @@ void usage() {
   process command line arguments
 */
 void count_processArgs(int argc, char **argv) {
+  optind = 0;
   int i = 0;
   int c;
   opterr = 0;

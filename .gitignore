@@ -9,6 +9,8 @@
 *.o
 *~
 *#*
+*.bak
+*.backup
 
 # vergini output
 t.*

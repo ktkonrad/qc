@@ -144,17 +144,17 @@ int verg_main(int argc, char **argv)
   char headchop[LEN];
   int m_c;
   double y_c, f_c, x_fc, y_fc, dummy, *mass, **per_chop, **ngr_chop, alpha;
+  clock_t start_clock;
   
   gsl_set_error_handler_off();       // turn off GNU Sci Lib error handler
-
 
   // parse command line....................................................
   grab_cmdline(cmdline, argc, argv);
   opterr = 0;
-  optind = 0; // have to do this for getopt to parse an array other than the one from the command line
   bil.type = NBILLIARDS;
   bil.neumann = 0;   // default
   bas.set_type = NBASES;
+  optind = 0;
   while ((i = getopt(argc, argv, \
 		     "l:s:b:k:x:o:vhmqg:f:e:p:V:R:T:I:E:N:C:4:u2z:dn")) != -1)
     switch (i) {
@@ -414,12 +414,15 @@ int verg_main(int argc, char **argv)
 
 
   case TASK_VERGINI: // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+    start_clock = clock();
     nev = vergini(&bil, &bps, &bas, k_base, epsilon, delta_lo, delta_hi, \
 		  ks, a, ne, C4);
     ne = min(ne, nev); // if too many found, can't use them
-    if (verb)
+    if (verb) {
       printf("vergini found %d states in k=[%f,%f]; (%d after clipping)\n", \
 	     nev, k_base-delta_lo, k_base+delta_hi, ne);
+      printf("took %f seconds\n", (clock() - start_clock)/CLOCKS_PER_SEC);
+    }
     // evaluate per, ngr values... nrm is pre-normalization Dirichlet norm.
     for (i=1; i<=ne; ++i) {
       nrm[i] = eval_bdry(ks[i], a[i], &bas, per[i], ngr[i], &ten[i], \
