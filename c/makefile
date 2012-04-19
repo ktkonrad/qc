@@ -6,7 +6,7 @@ dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o uti
 
 
 VERG = ../vergini/matrix.o ../vergini/billiard.o ../vergini/basis.o ../vergini/colloc.o ../vergini/grid.o ../vergini/nrutil.o ../vergini/useful.o util/util_verg.o
-MATHLIBS = -lgsl -llapack -lblas -lf77blas -latlas -lm
+MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -lgsl -llapack -lblas -lf77blas -latlas -lm
 
 count: nodal_domain_driver.o $(objects) $(dependencies)
 	$(CC) $(CFLAGS) -o count nodal_domain_driver.o $(objects) $(dependencies)

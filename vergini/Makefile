@@ -31,7 +31,7 @@ OS=linux
 # sudo ln -s libcblas.so.3 /usr/lib/atlas/libcblas.so
 # sudo ln -s libf77blas.so.3 /usr/lib/atlas/libf77blas.so
 # sudo ln -s liblapack.so.3 /usr/lib/atlas/liblapack.so
-MATHLIBS_linux := -lgsl -llapack -lblas -lf77blas -latlas -lm
+MATHLIBS_linux := -I/usr/include/atlas -L/usr/lib64/atlas -lgsl -llapack -lblas -lf77blas -latlas -lm
 #
 # non-GSL working lib choice:
 # ATLAS libs (faster dgemm, same or slower dsyev)...
