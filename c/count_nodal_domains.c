@@ -123,7 +123,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   }
 
   // TODO: verbosity global to control this output
-  intArray2file(counted, ny, nx, "../data/counted.dat");
+  //intArray2file(counted, ny, nx, "../data/counted.dat");
 			       
   free_imatrix(counted);
 
@@ -449,12 +449,15 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
         }
       }
     }
+
+    /*
     // debug output
     char filename[50];
     sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
     FILE *outfile = fopen(filename, "w");
     gsl_vector_fprintf(outfile, interp_output, "%.16g");
     fclose(outfile);
+    */
 
     // cleanup
     destroyStack(s);

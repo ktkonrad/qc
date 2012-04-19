@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
+CFLAGS = -g -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing -m64
 
 objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util/util_verg.o
