@@ -1,0 +1,4 @@
+#!/bin/sh
+
+latex thesis.tex
+dvipdf thesis.dvi

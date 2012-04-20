@@ -42,7 +42,17 @@ $\Gamma = \partial \Omega$ domain boundary
 \label{sec:motivation}
 Nodal domains characterize regions of a vibrational surface that move together. The boundaries between nodal domains, known as nodal line are the regions which do not vibrate at all. Understanding the characteristics of nodal domains has potential applications in musical instruments, mechanical engineering, geophysics, astrophysics, and many other areas dealing with wave behavior \cite{wigman}.
 
-The nodal domains studied herein are formulated in terms of quantum mechanical wave functions on Euclidean billiards, a canonical example of quantum chaos. Quantum chaos lies at the intersection of quantum mechanics and chaos theory. The primary signature of chaos in classical systems is a nonlinear (exponential) divergence of paths in phase space of a system. Quantum mechanics however, is entirely linear and quantum chaos deals with energy eigenfunctions of systems, which are constant in time. Thus chaos in quantum systems is manifest in different ways, one of the most studied being wavefunctions in chaotic domains.
+The nodal domains studied herein are formulated in terms of quantum mechanical wave functions on Euclidean billiards, a canonical example of quantum chaos. Quantum chaos lies at the intersection of quantum mechanics and chaos theory. The primary signature of chaos in classical systems is a nonlinear (exponential) divergence of paths in phase space of a system. Quantum mechanics however, is entirely linear and quantum chaos deals with energy eigenfunctions of systems, which are constant in time. Thus chaos in quantum systems is manifest in different ways, one of the most studied being wavefunctions in chaotic domains. Figure \ref{fig:classical_vs_quantum} shows a classical orbit and a quantum eigenfunction on the same billiard.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/classical/stadium_orbit.eps}
+    \linebreak
+    \includegraphics[width=\textwidth]{figs/classical/stadium_eigenfunction.eps}
+    \caption{Top: A classical orbit in a billiard; bottom: a quantum eigenfunction in the same billiard}
+    \label{fig:classical_vs_quantum}
+  \end{center}
+\end{figure}
 
 \section{Chaotic Billiards}
 \label{sec:billiards}
@@ -99,12 +109,12 @@ where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis 
 \subsection{Run Time}
 The scaling method only computes coefficients of basis functions which can then be used to evaluate the eigenfunctions at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window, for $NB$ basis function evaluations. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires $nNB$ multiplications.
 
-In order to maintain accuracy when scaling functions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call and for both billiards considered here $B \sim k$. Thus, in practice $N \gg n, B$ so it is primarily $N$ which is determined by $h$ that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [need timing data].
+In order to maintain accuracy when scaling functions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call and for both billiards considered here $B \sim k$. Thus, in practice $N \gg n, B$ so it is primarily $N$ which is determined by $h$ that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [TODO: need timing data].
 
 \section{Counting Nodal Domains}
 Eigenfunctions are sampled on a regular grid; each point in this grid will be referred to as a ``pixel.'' Nodal domains are counted by exploring domains pixel-by-pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
 
-Letting $N$ be the number of points the eigenfunction is sampled at, this method has computational complexity $O(N)$. This is because the method performs a fixed number of comparisons for each pixel plus $O(N)$ total comparisons searching for an unseen nodal domain after a nodal domain has been explored. This algorithm uses an array of $N$ integers to store, for each pixel, whether it has been counted, which nodal domain it is in, whether or not it is within the boundary of the billiard, and additional information relating to the interpolation method described below. In addition, this method uses a dynamically sized array as a stack whose size is (loosed) bounded above by the number of pixels in the nodal domain being explored.
+Letting $N$ be the number of points the eigenfunction is sampled at, this method has computational complexity $O(N)$. This is because the method performs a fixed number of comparisons for each pixel plus $O(N)$ total comparisons searching for an unseen nodal domain after a nodal domain has been explored. This algorithm uses an array of $N$ integers to store, for each pixel, whether it has been counted, which nodal domain it is in, whether or not it is within the boundary of the billiard, and additional information relating to the interpolation method described below. In addition, this method uses a dynamically sized array as a stack whose size is (loosely) bounded above by the number of pixels in the nodal domain being explored.
 
 \section{Interpolation}
 Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$ which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width and height of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
@@ -250,10 +260,12 @@ Only stencil shapes that which are symmetric about the four central points were 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_no_corners_centered.eps}
-    \hspace{1.1 cm}
+    \hspace{1.5 cm}
     \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_centered.eps}
     \linebreak
+    \linebreak
     \includegraphics[width=0.3\textwidth]{figs/stencils/4x4+2_centered.eps}
+    \hspace{0.4 cm}
     \includegraphics[width=0.3\textwidth]{figs/stencils/6x6_no_corners_centered.eps}
     \caption{The four stencil shapes considered for interpolation}
     \label{fig:stencils}
