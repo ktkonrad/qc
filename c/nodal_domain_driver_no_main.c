@@ -232,6 +232,10 @@ int count_main(int argc, char **argv) {
       stats = {0,0,0};
       grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at atime so we don't have to keep them all in memory at once
 
+      if (ne == 0) {
+        break;
+      }
+
       if (grid == NULL) {
 	ERROR("failed to read grid");
 	exit(IO_ERR);

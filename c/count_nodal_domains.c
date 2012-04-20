@@ -111,7 +111,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
     applyMask(grid, counted, mask, ny, nx);
   }
 
-  // array2file(grid, ny, nx, "../data/masked.dat");
+  array2file(grid, ny, nx, "../data/masked.dat");
 
   int nd = 0; // count of nodal domains
  

@@ -1048,6 +1048,9 @@ void eval_multi_vecs_spatial(double x, double y, double k, int nv, \
 {
   int i, j, N = s->N;
   double psi;
+
+  if (nv == 0) // don't waste time evaluating basis functions if there are no coefficients
+    return;
   
   /* zero the output... */
   for (i=1;i<=nv;++i)
