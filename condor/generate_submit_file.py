@@ -32,7 +32,6 @@ Requirements = OpSys == "LINUX" && Arch == "X86_64" && \
 
 should_transfer_files = YES
 WhenToTransferOutput = ON_EXIT
-notify_user = kyle.t.konrad@gmail.com
 
 transfer_input_files = verg, count
 
