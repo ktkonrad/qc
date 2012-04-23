@@ -13,8 +13,10 @@ typedef struct {
 } interp_stats;
 
 int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *status);
+int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx);
 int findNextUnseen(int **counted, int *i, int *j, int ny, int nx);
 void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats);
+void findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx);
 void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats);
 
 

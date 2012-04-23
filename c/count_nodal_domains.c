@@ -131,6 +131,52 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   return nd;
 }
 
+
+/*
+count the number of nodal domains in grid
+precondition: grid must be ny x nx
+
+inputs:
+        grid   - function values sampled at grid points
+	mask   - array that defines boundaries of grid (no boundaries if NULL)
+        nx     - number of samples in x-direction for grid
+        ny     - number of samples in y-direction for grid
+output: return value - count of nodal domains
+*/
+int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx) {
+  int i, j;
+  int rc;
+
+  int **counted = imatrix(ny, nx);
+  for (i = 0 ; i < ny ; i++) {
+    for (j = 0 ; j < nx ; j++) {
+      counted[i][j] = UNCOUNTED;
+    }
+  }
+
+  if (mask != NULL) {
+    applyMask(grid, counted, mask, ny, nx);
+  }
+
+  // array2file(grid, ny, nx, "../data/masked.dat");
+
+  int nd = 0; // count of nodal domains
+ 
+  i = 0;
+  j = 0;
+  while (findNextUnseen(counted, &i, &j, ny, nx)) {
+    nd++;
+    findDomainNoInterp(grid, counted, i, j, nd, ny, nx);
+  }
+
+  // TODO: verbosity global to control this output
+  // intArray2file(counted, ny, nx, "../data/counted.dat");
+			       
+  free_imatrix(counted);
+
+  return nd;
+}
+
 /*
 find next unseen value of grid
 precondition: *i and *j nonnull
@@ -169,13 +215,16 @@ mark nodal domain containing grid[i][j] as counted
 non-recursive version
 
 inputs:
-        grid    - 2d array of function values
-	counted - 2d array indicating whether a point has been counted
-	i       - row of initial point in grid
-        j       - column of initial point in grid
-	nd      - number of current nodal domain
-	ny      - rows in grid
-	nx      - columns in grid
+        grid     - 2d array of function values
+	counted  - 2d array indicating whether a point has been counted
+	i        - row of initial point in grid
+        j        - column of initial point in grid
+	nd       - number of current nodal domain
+	ny       - rows in grid
+	nx       - columns in grid
+        upsample - upsampling ratio for interpolation
+        interp   - matrix to perform interpolation
+        stats    - interpolation statistics struct
 
 precondition: grid and counted are ny x nx
 
@@ -301,6 +350,80 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
   }
   destroyStack(s);
 }
+
+/*
+mark nodal domain containing grid[i][j] as counted
+non-recursive version
+
+inputs:
+        grid    - 2d array of function values
+	counted - 2d array indicating whether a point has been counted
+	i       - row of initial point in grid
+        j       - column of initial point in grid
+	nd      - number of current nodal domain
+	ny      - rows in grid
+	nx      - columns in grid
+
+precondition: grid and counted are ny x nx
+
+outputs:
+         updates stats
+*/
+void findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx) {
+  stack *s = newStack();
+  push(s, j, i);
+  
+  int x, y;
+  int currentSign;
+  char connections; // keep track of what (x,y) is connected to
+  int size = 0;
+
+  while (pop(s, &x, &y)) {
+    size++;
+    currentSign = SIGN(grid[i][j]);
+
+    // orthongal directions
+    // left
+    if (x >= 1 && !IS_MASKED(grid[y][x-1])) {
+      if (SIGN(grid[y][x-1]) == currentSign) {
+	if(!IS_COUNTED(counted[y][x-1])) {
+	  push(s, x - 1, y);
+	}
+      }
+    }
+
+    // above
+    if (y >= 1 && !IS_MASKED(grid[y-1][x])) {
+      if (SIGN(grid[y-1][x]) == currentSign) {
+	if(!IS_COUNTED(counted[y-1][x])) {
+	  push(s, x, y-1);
+	}
+      }
+    }
+
+    // right
+    if (x < nx-1 && !IS_MASKED(grid[y][x+1])) {
+      if (SIGN(grid[y][x+1]) == currentSign) {
+	if(!IS_COUNTED(counted[y][x+1])) {
+	  push(s, x+1, y);
+	}
+      }
+    }
+
+    // below
+    if (y < ny-1 && !IS_MASKED(grid[y+1][x])) {
+      if (SIGN(grid[y+1][x]) == currentSign) {
+	if(!IS_COUNTED(counted[y+1][x])) {
+	  push(s, x, y+1);
+	}
+      }
+    }
+
+    counted[y][x] = currentSign == 1 ? nd : -nd;
+  }
+  destroyStack(s);
+}
+
 
 /*
   interpolate a region of the grid and put the results in counted

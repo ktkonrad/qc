@@ -8,7 +8,7 @@ Kyle Konrad
 
 #include "count_nodal_domains.h"
 #include "random_percolation.h"
-#include "util.h"
+#include "util/util.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,12 +109,14 @@ int main(int argc, char **argv) {
   double mean = 0.0, variance = 0.0;
 
   int i;
+  grid = createGrid(ny, nx);
+  if (!grid) {
+    exit(OUT_OF_MEMORY_ERR);
+  }
+  srand(time(NULL));
+
   // run the trials and calculate mean count
   for (i = 0 ; i < trials ; i++) {
-    grid = createGrid(ny, nx);
-    if (!grid) {
-      exit(OUT_OF_MEMORY_ERR);
-    }
     randomPercolation(grid, ny, nx);
     
     if (outputGrid) {
@@ -124,9 +126,10 @@ int main(int argc, char **argv) {
     }
     
     counts[i] = runTest(grid, ny, nx);
-    destroyGrid(grid);
+    fprintf(stderr, "%d\n", counts[i]);
     mean += counts[i];
   }
+  destroyGrid(grid);
   mean /= trials;
 
   // calculate variance of counts

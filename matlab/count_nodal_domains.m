@@ -23,8 +23,8 @@ function [nd] = count_nodal_domains(grid)
         findDomain(i);
     end
 
-    %figure;
-    %imagesc(counted);
+    figure;
+    imagesc(counted);
     
     % search outward from point k in grid to boundaries of nodal domain
     % mark all points in counted
