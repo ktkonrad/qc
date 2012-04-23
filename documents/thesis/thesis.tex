@@ -54,16 +54,28 @@ The nodal domains studied herein are formulated in terms of quantum mechanical w
   \end{center}
 \end{figure}
 
+\section{Classical Chaos}
+\label{sec:classical}
+Chaos in classical systems is characterized by the Lyapunov exponent $\lambda$ of a system, which describes how quickly nearby trajectories diverge. It is computed as the long time ratio of the divergence of two initially close paths:
+\[
+\lambda = \lim_{t \to \infty} \lim_{\vert \boldsymbol\epsilon \vert \to 0} \frac{1}{t} \frac{\vert f({\bf x_{0}}, t) - f({\bf x_{0}} + \boldsymbol\epsilon, t) \vert}{\vert \boldsymbol\epsilon \vert}
+\]
+From this definition it follows that
+\[
+\vert f({\bf x_{0}}, t) - f({\bf x_{0}} + \boldsymbol\epsilon, t) \vert \approx e^{\lambda t} \vert \boldsymbol\epsilon \vert
+\]
+for small $\boldsymbol\epsilon$ and large $t$. Thus a tiny change $\boldsymbol\epsilon$ in initial conditions produces a change that grows exponentially over time with growth rate $\lambda$. Chaotic systems have a positive Lyapunov exponent and this fact makes it difficult to predict long-term behavior because arbitrarily small errors in measurements of initial conditions eventually become large.
+
 \section{Chaotic Billiards}
 \label{sec:billiards}
-A compact domain $\Omega \in \mathbb{R}^{2}$ is chaotic if a classical point-particle follows a trajectory with a positive Lyapunov exponent. Physically, a domain $\Omega$ is represented by a potential function
+A compact domain $\Omega \subset \mathbb{R}^{2}$ is chaotic if a classical point-particle follows a trajectory with a positive Lyapunov exponent. Physically, a domain $\Omega$ is represented by a potential function
 \[
 V(\rr) =\begin{cases}
 0 & \text{if } \rr \in \Omega\\
 \infty & \text{if } \rr \notin \Omega
 \end{cases}
 \]
-A quantum wave-particle in the presence of such a potential obeys the Schrödinger equation
+A quantum wave-particle in the presence of such a potential obeys the Schr\"odinger equation
 \[
 E u(\rr) = - \frac{\hbar^{2}}{2m} \Delta u(\rr) + V(\rr) u(\rr)
 \]
@@ -77,7 +89,7 @@ Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partia
 \end{equation}
 where $k^{2} = E$ is the energy of the eigenfunction $u(\rr)$ and corresponds to the kinetic energy of the quantum wave-particle.
 
-Two billard shapes are investigated here: the generalized rectangular Sinai billiard and the Stadium billiard. In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as a function of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$. The desymmetrized billiards are shown in figure \ref{fig:billiards}
+We focus our investigation on to billard shapes: the generalized rectangular Sinai billiard and the Stadium billiard. In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as a function of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$. The desymmetrized billiards are shown in figure \ref{fig:billiards}
 
 \begin{figure}[h!]
   \begin{center}
@@ -88,7 +100,7 @@ Two billard shapes are investigated here: the generalized rectangular Sinai bill
   \end{center}
 \end{figure}
 
-The Sinai billiard is constructed from circular arcs which meet at $(1,1)$ and is parameterized by two angles, $\theta_{1}$ and $\theta_{2}$, which are the angles from horizonal and vertical of the arcs at $(1,1)$. The Sinai billiard is said to demonstrate ``hard chaos'' becase there are no stable orbits.
+The Sinai billiard is constructed from circular arcs that meet at $(1,1)$ and is parameterized by two angles, $\theta_{1}$ and $\theta_{2}$, the angles from horizonal and vertical, respectively, of the arcs at $(1,1)$. The Sinai billiard is said to demonstrate ``hard chaos'' becase there are no stable orbits.
 
 The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. Trajectories with vertical momentum in the rectangular region are stable but such orbits occupy a measure zero subset of phase space and the quarter stadium still demonstrates chaotic properties.
 
@@ -96,7 +108,7 @@ The stadium billiard is construced from a rectangular region and a quarter circl
 \chapter{Methods}
 \section{Scaling Method}
 \subsection{Theory}
-Vergini and Saraceno \cite{vergini} developed a method of computing high energy eigenfunctions of chaotic billiards using a scaling method. The method simultaneously finds all eigenfunctions $\phi_{i}(\rr)$ with energy in a given energy window $[E - \Delta E, E + \Delta E]$ for some $E = k^{2}$ by scaling each eigenfunction. The scaled eigenfunctions $\chi_{i}(k, \rr)$ are computed as
+Vergini and Saraceno \cite{vergini} developed a method of computing high energy eigenfunctions of chaotic billiards using a scaling method. The method simultaneously finds all eigenfunctions $\phi_{i}(\rr)$ with energy in a given window $[E - \Delta E, E + \Delta E]$ for some $E = k^{2}$ by scaling each eigenfunction. The scaled eigenfunctions $\chi_{i}(k, \rr)$ are computed as
 \[
 \chi_{i}(k, \rr) = \phi_{i} \left( \frac{k}{k_{i}} \rr \right) = \phi_{i} \left( \rr + \frac{\omega_{i}}{k_i} \rr \right)
 \]
@@ -104,12 +116,12 @@ where $\omega_{i} = k - k_i$. This scaling causes all eigenfunctions to fall app
 \[
 \chi_{i}(k, \rr) = \sum_{l=1}^{B} X_{li} \xi_{l}(k, \rr) + \epsilon_{i}(\rr)
 \]
-where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This fact provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system. The basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3} = O(k^{3})$ time. \cite{barnett}
+where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This single basis set provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system. The basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3}) = O(k^{3})$ time. \cite{barnett}
 
 \subsection{Run Time}
-The scaling method only computes coefficients of basis functions which can then be used to evaluate the eigenfunctions at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window, for $NB$ basis function evaluations. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires $nNB$ multiplications.
+The scaling method only computes coefficients of basis functions, which must be evaluated in order to obtain eigenfunction values at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window. Thus $NB$ basis function evaluations are required. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires a total of $nNB$ multiplications.
 
-In order to maintain accuracy when scaling functions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call and for both billiards considered here $B \sim k$. Thus, in practice $N \gg n, B$ so it is primarily $N$ which is determined by $h$ that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [TODO: need timing data].
+In order to maintain accuracy when scaling eigenfunctions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call. For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which is determined by $h$) that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [TODO: need timing data].
 
 \section{Counting Nodal Domains}
 Eigenfunctions are sampled on a regular grid; each point in this grid will be referred to as a ``pixel.'' Nodal domains are counted by exploring domains pixel-by-pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
@@ -134,35 +146,35 @@ Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) b
 
 We resolve such ambiguities by performing an interpolation in the ambiguous region. We interpolate with the functions
 \[
-J_{n}(\alpha r) \sin(n \theta)
+J_{n}(k r) \sin(n \theta)
 \]
 and
 \[
-J_{n}(\alpha r) \cos(n \theta)
+J_{n}(k r) \cos(n \theta)
 \]
 where $J_{n}(r)$ is a regular Bessel function. These functions form a complete orthonormal basis for solutions of (\ref{eq:helmholtz}) (see \ref{sec:helmholtz_basis}). We fix a value $M$ to be the order of the highest order Bessel function, restricting our basis to the finite set
 \begin{equation}
   \label{eq:interp_functions}
   \xi_{i}(r, \theta)=\begin{cases}
-  J_{i}(\alpha r) & \text{if }i=0\\
-  J_{i}(\alpha r)\sin(i\theta) & \text{if }1 \le i \le M\\
-  J_{i-M}(\alpha r)\cos((i-M)\theta) & \text{if }M+1 \le i \le 2M
+  J_{i}(k r) & \text{if }i=0\\
+  J_{i}(k r)\sin(i\theta) & \text{if }1 \le i \le M\\
+  J_{i-M}(k r)\cos((i-M)\theta) & \text{if }M+1 \le i \le 2M
   \end{cases}
 \end{equation}
 We construct a surrogate function
 \[
-  \tilde{u}(\rr) = \sum_{i=0}^{2M+1} c_{i} \xi_{i}(\rr)
+  \tilde{u}(\rr) = \sum_{i=0}^{2M} c_{i} \xi_{i}(\rr)
 \]
 as a local approximation to the eigenfunction $u(\rr)$ by fitting the coeffiecients $c_{i} \in \mathbb{R}$ to minimize the error $\Vert u - \tilde{u} \Vert_{2}$. This function can then be sampled at a higher resolution within the region in question. We define the sampling ratio of this surrogate function to the original eigenfunction to be $\rho$.
 
-Interpolation occurs only between four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. After testing various stencil shapes we selected one using 24 points consisting of a four by four square with two additional points on each side of the square. See \ref{sec:params} for a discussion of the choice of stencil, $M$, and $\alpha$.
+Interpolation occurs only between the central four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. After testing various stencil shapes we selected one using 24 points consisting of a four by four square with two additional points on each side of the square. See \ref{sec:params} for a discussion of the choice of stencil, $M$, and $h$.
 
 \subsection{Numerical Implementation}
-We can construct a single matrix to transform values on a stencil to upsampled values in the center of the stencil, performing the process described above with a single matrix multiplication. We construct the interpolation matrix as
+We can construct a single matrix to transform values on a stencil to interpolated values in the center of the stencil, performing the process described above with a single matrix multiplication. We construct the interpolation matrix as
 \[
 U = L H^{+}
 \]
-Where $L$ is a matrix which performs an evaluation of Bessel functions at low resolution, $H$ performs an evalution of Bessel functions at high resolution and $^{+}$ denotes the pseudoinverse. Specifically,
+Where $L$ is a matrix which contains evaluations of Bessel functions at low resolution, $H$ contains evalutions of Bessel functions at high resolution and $^{+}$ denotes the pseudoinverse. Specifically,
 \[
 L_{ij} =\begin{cases}
 J_{j}(r_{i}) & \text{for } j = 0 \text{ and } 0 \le i < T\\
@@ -178,7 +190,7 @@ J_{j}(r_{i}) \sin{(j \theta_{i})} & \text{for } 1 \le j \le M \text{ and } 0 \le
 J_{j-M}(r_{i}) \cos{((j-M) \theta_{i})} & \text{for } M+1 \le j \le 2M+1 \text{ and } 0 \le i < \gamma
 \end{cases}
 \]
-where $T$ is the number of points in the stencil, $\gamma = (\rho + 1)^{2}$, $(r_{i},\theta_{i})$ are points in the stencil expressed in polar coordinates.
+where $T$ is the number of points in the stencil, $\gamma = (\rho + 1)^{2}$ and $(r_{i},\theta_{i})$ are points in the stencil expressed in polar coordinates.
 
 The pseudoinverse $H^{+}$ is computed using a singular value decomposition as follows,
 \[
@@ -186,12 +198,12 @@ H^{+} = V \Sigma^{+} U^{*}
 \]
 where $H = U^{*} \Sigma V$ is a singular value decompostion of $H$ and
 \[
-\Sigma^{+}_{i,i} =\begin{cases}
-\Sigma_{i,i}^{-1} & \text{if }\Sigma_{i,i} > \epsilon\\
-\Sigma_{i,i} & \text{otherwise}
+\Sigma^{+}_{ii} =\begin{cases}
+\Sigma_{ii}^{-1} & \text{if }\Sigma_{ii} > \epsilon\\
+\Sigma_{ii} & \text{otherwise}
 \end{cases}
 \]
-where $\epsilon = \gamma \epsilon_{double} \vert \Sigma \vert$ where $\epsilon_{double}$ is the difference between $1$ and the smallest IEEE double precision floating point number greater than $1$. Singular values less than $\epsilon$ are considered to be zero within working precision.
+where $\epsilon = \gamma \epsilon_{double} \Sigma_{11}$ where $\epsilon_{double}$ is the difference between $1$ and the smallest IEEE double precision floating point number greater than $1$. Singular values less than $\epsilon$ are considered to be zero within working precision.
 
 \subsection{Code Implemenation}
 A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (Fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = U {\bf v}$ where $U$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
@@ -212,7 +224,7 @@ A region is interpolated if and only if, when counting nodal domains, we encount
 \appendix
 \chapter{General Solution of the Helmholtz Equation}
 \label{sec:helmholtz_basis}
-Here we show that the functions $J_{n}(\alpha r) \sin(n \theta)$ and $J_{n}(\alpha r) \cos(n \theta)$ form a complete orthonormal basis of solutions of (\ref{eq:helmholtz}).
+Here we show that the functions $J_{n}(k r) \sin(n \theta)$ and $J_{n}(k r) \cos(n \theta)$ form a complete orthonormal basis of solutions of (\ref{eq:helmholtz}).
 
 In polar coordinates,
 \[
@@ -249,7 +261,7 @@ Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of 
 
 \begin{equation}
   \label{eq:helmholtz_gen_soln}
-  b_{0} J_{0}(kr) + \sum_{n = 1}^{\infty}{a_{n} J_n(kr) \sin{n \theta} + b{n} J_n{kr} \cos{n \theta}}
+  b_{0} J_{0}(kr) + \sum_{n = 1}^{\infty}{a_{n} J_n(kr) \sin{n \theta} + b_{n} J_n{kr} \cos{n \theta}}
 \end{equation}
 
 \chapter{Interpolation Parameter Selection}
@@ -272,7 +284,7 @@ Only stencil shapes that which are symmetric about the four central points were 
   \end{center}
 \end{figure}
 
-The accuracy of interpolation also depends on $M$ and $\alpha$, which must be considered simultaneously with the choice of stencil. Figure \ref{fig:errors_all} shows a comparison of the infinity norm of the interpolation error over various values of $M$ and $\alpha$ for each of the stencils shown above.
+The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must be considered simultaneously with the choice of stencil. Figure \ref{fig:errors_all} shows a comparison of the infinity norm of the interpolation error over various values of $M$ and $\alpha$ for each of the stencils shown above.
 
 \begin{figure}[h!]
   \begin{center}

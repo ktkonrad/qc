@@ -18,7 +18,7 @@ cmd = sprintf('echo %s | ./spray -T 0:%.15g:200', geom, 4/7);  % single traj
 [s,out] = system([cmd ' 2>/dev/null']);
 [x,y,vx,vy,obj,l] = strread(out, '%f%f%f%f%d%f');
 figure; plot(bx, by, 'b-'); axis equal; axis off; hold on; plot(x, y, 'k-');
-%figure; semilogy(abs(vx.^2+vy.^2-1));   % grows by factor 10 each arc bounce!
+figure; semilogy(abs(vx.^2+vy.^2-1));   % grows by factor 10 each arc bounce!
 print -depsc2 stadium_orbit.eps
 
 addpath('../vergini')
