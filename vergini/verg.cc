@@ -420,7 +420,7 @@ int main(int argc, char **argv)
     if (verb) {
       printf("vergini found %d states in k=[%f,%f]; (%d after clipping)\n", \
 	     nev, k_base-delta_lo, k_base+delta_hi, ne);
-      printf("took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
+      printf("solving took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
     }
     // evaluate per, ngr values... nrm is pre-normalization Dirichlet norm.
     for (i=1; i<=ne; ++i) {
@@ -649,7 +649,7 @@ int main(int argc, char **argv)
     if (grid==1) { // fast, same k
       start_clock = clock();
       eval_grid_vecs(&bil, &bas, k_base, a, &g, ne, 0);
-      printf("took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
+      printf("evaluating took %f seconds\n", (float)(clock() - start_clock)/CLOCKS_PER_SEC);
     }
     else // slow, correct ks
       eval_grid_vecs_each_k(&bil, &bas, ks, kos, a, &g, ne, 0);

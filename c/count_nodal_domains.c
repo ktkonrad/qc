@@ -463,7 +463,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   }
 
   // check we're not too close to the edge
-  if (i < 2 || i >= ny - 2 || j < 2 || j >= nx - 2) {
+  if (i < 2 || i >= ny - 3 || j < 2 || j >= nx - 3) {
     ERROR("trouble spot near edge: (x,y) = (%d,%d)", j, i);
     stats->edge_trouble_count++;
     tl_br_connected = rand() % 2; // we can't interpolate so guess randomly which way it's connected

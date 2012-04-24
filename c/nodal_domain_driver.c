@@ -156,12 +156,7 @@ output:
         return value: number of nodal domains
 */
 int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample, interp_stats *stats) {
-  clock_t start = clock();
   int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats);
-  clock_t end = clock();
-
-  if (showTime)
-    printf("countNodalDomains took %f seconds\n", ((double)(end - start)) / CLOCKS_PER_SEC);
   return nd;
 }
 
@@ -172,6 +167,8 @@ int main(int argc, char **argv) {
   int ny, nx;
   double **grid;
   interp_stats stats;
+
+  clock_t start = clock();
 
   if (mode == 1) {
     int count;
@@ -266,13 +263,9 @@ int main(int argc, char **argv) {
       free(file);
   }
 
+  if (showTime)
+    printf("counting took %f seconds\n", ((double)(clock() - start)) / CLOCKS_PER_SEC);
 
-  return 0;
+  exit(0);
 }
 
-
-/*
-  TODO:
-  track: small domains, # of interpolation calls, # of interpolations on edge
-  
- */

@@ -150,7 +150,7 @@ void processArgs(int argc, char **argv) {
 
 #define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); strcpy(loc, val);} while (0)
 
-#define COUNT_NARGS 13
+#define COUNT_NARGS 14
 #define VERG_NARGS 16
 
 int main(int argc, char **argv) {
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
   verg_args[16] = NULL;
   
 
-  verg_main(16, verg_args);
+  verg_main(VERG_NARGS, verg_args);
 
   /*
   for (i = 0 ; i < VERG_NARGS-1 ; i++) {
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
   free(verg_args);
   */
 
-  //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20
+  //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20 -t
   char **count_args = (char **)malloc(COUNT_NARGS * sizeof(char *));
   char *count_executable = "count";
   count_args[0] = (char *)malloc(strlen(count_executable)*sizeof(char));
@@ -218,9 +218,10 @@ int main(int argc, char **argv) {
   SET(count_args[10], bessel_order);
   strcpy(count_args[11], "-u");
   SET(count_args[12], vc_upsample);
-  count_args[13] = NULL;
+  strcpy(count_args[13], "-t");
+  count_args[14] = NULL;
 
-  count_main(13, count_args);
+  count_main(COUNT_NARGS, count_args);
 
   /*
   for (i = 0 ; i < COUNT_NARGS-1 ; i++) {
