@@ -4,17 +4,14 @@ import sys
 
 alpha = 0.5 # k*dx
 
-def krange(k_low, k_high, delta_0):
+def krange(k_low, k_high, delta):
     """
     yield pairs (k1, k2) partitioning the interval [k_low, k_high]
-    into subintervals of equal work. work scales like k^3
-    interval width starts at delta_0 and decreases
+    into subintervals of width delta
     """
     k = k_low
-    delta = delta_0
     while k < k_high:
         yield (k, k+delta)
-        delta = delta_0 * (k_low/k)**3
         k += delta
 
 def write_submit_file(k_low, k_high, delta_0):
@@ -28,7 +25,8 @@ Requirements = OpSys == "LINUX" && Arch == "X86_64" && \
                Machine != "math-04.grid" && \
                Machine != "math-05.grid" && \
                Machine != "math-06.grid" && \
-               Machine != "webwork.dartmouth.edu"
+               Machine != "webwork.dartmouth.edu" && \
+               Machine != "stanmore.dartmouth.edu"
 
 should_transfer_files = YES
 WhenToTransferOutput = ON_EXIT
