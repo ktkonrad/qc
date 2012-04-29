@@ -94,7 +94,7 @@ inputs:
 	upsample - upsampling ratio for interpolation
 output: return value - count of nodal domains
 */
-int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *stats) {
+int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *stats, FILE *sizefile) {
   int i, j;
   int rc;
 
@@ -114,12 +114,17 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   //array2file(grid, ny, nx, "../data/masked.dat");
 
   int nd = 0; // count of nodal domains
- 
+  int size; // area of last nodal domain (in pixels)
+
   i = 0;
   j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
-    findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp, stats);
+    size = findDomainInterp(grid, counted, i, j, nd, ny, nx, upsample, interp, stats);
+    if (sizefile) {
+      fprintf(sizefile, "%d ", size);
+    }
+
   }
 
   // TODO: verbosity global to control this output
@@ -141,6 +146,7 @@ inputs:
 	mask   - array that defines boundaries of grid (no boundaries if NULL)
         nx     - number of samples in x-direction for grid
         ny     - number of samples in y-direction for grid
+        sizefile - file to write size of nodal domains to
 output: return value - count of nodal domains
 */
 int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx) {
@@ -161,7 +167,7 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx) {
   // array2file(grid, ny, nx, "../data/masked.dat");
 
   int nd = 0; // count of nodal domains
- 
+
   i = 0;
   j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
@@ -229,9 +235,10 @@ inputs:
 precondition: grid and counted are ny x nx
 
 outputs:
+         return value: area of domain
          updates stats
 */
-void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
+int findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats) {
   stack *s = newStack();
   push(s, j, i);
   
@@ -349,6 +356,7 @@ void findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny
     stats->small_domain_count++;
   }
   destroyStack(s);
+  return size;
 }
 
 /*

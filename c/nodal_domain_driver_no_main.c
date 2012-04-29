@@ -152,12 +152,15 @@ void count_processArgs(int argc, char **argv) {
 
 
 /*
-
 output:
         return value: number of nodal domains
 */
 int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample, interp_stats *stats) {
-  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats);
+  char sizefilename[50];
+  sprintf(sizefilename, "sizes_%f_%f.dat", k, dx);
+  FILE *sizefile = fopen(sizefilename, "w");
+  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats, sizefile);
+  fclose(sizefile);
   return nd;
 }
 
@@ -190,7 +193,7 @@ int count_main(int argc, char **argv) {
 	exit(DIMENSION_ERR);
       }
     }
-    stats = {0,0,0};
+    bzero(&stats, sizeof(stats));
     count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample, &stats);
 
     destroyGrid(grid);
@@ -209,7 +212,7 @@ int count_main(int argc, char **argv) {
   if (mode == 2) {
     int rc;
     int count;
-    int k_base = 20; // to be passed to build_billiard (not used for qugrs or qust shapes)
+    int k_base = 20; // to be passed to build_billiard
     int masky, maskx;
     char **mask = NULL;
     double k, wtm;
@@ -226,7 +229,7 @@ int count_main(int argc, char **argv) {
 
     int i = 0;
     do {
-      stats = {0,0,0};
+      bzero(&stats, sizeof(stats));
       grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at atime so we don't have to keep them all in memory at once
 
       if (ne == 0) {
@@ -264,9 +267,8 @@ int count_main(int argc, char **argv) {
       free(file);
   }
 
-  if (showTime) {
+  if (showTime)
     printf("counting took %f seconds\n", ((double)(clock() - start)) / CLOCKS_PER_SEC);
-  }
 
   exit(0);
 }
