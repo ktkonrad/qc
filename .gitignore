@@ -15,6 +15,7 @@
 # vergini output
 t.*
 *.sta_bin
+*.sta_bin.gz
 *.cf
 *.sum
 
