@@ -17,6 +17,11 @@ alpha = 0.5
 scale = alpha**2 / (pi * j1**2)
 
 with open(sys.argv[1], 'w') as outfile:
+    first = True
     for f in glob.glob('sizes_*.dat'):
         with open(f) as sizefile:
-            print >> outfile, ','.join((str(round(int(x) * scale,2)) for x in sizefile.read().split()))
+            if first:
+                first = False
+            else:
+                print >> outfile, ',',
+            print >> outfile, ','.join((str(round(int(x) * scale,2)) for x in sizefile.read().split())),
