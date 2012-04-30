@@ -63,7 +63,7 @@ hold on;
 plot(k_windows, vars, 'k-', 'LineWidth', 3);
 xlabel('k', 'FontSize', fontsize);
 ylabel('\sigma^{2}(k)/N(k)', 'FontSize', fontsize);
-legend('predicted mean', 'measured mean');
+legend('predicted variance', 'measured variance');
 set(gca, 'FontSize', fontsize);
 print('-deps2c', '../documents/thesis/figs/results/variance.eps');
 
