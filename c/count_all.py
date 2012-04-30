@@ -4,12 +4,13 @@ import os
 import re
 import sys
 
-if len(sys.argv) < 2:
-    print 'usage: count_all.py path_to_sta_bin_files'
+if len(sys.argv) < 3:
+    print 'usage: count_all.py path_to_sta_bin_files output_file'
     exit(-1)
 
 path = sys.argv[1]
 escaped_path = re.sub(' ', '\ ', path)
+outfile = sys.argv[2]
 
 alpha = 0.5
 for f in os.listdir(path):
@@ -18,6 +19,6 @@ for f in os.listdir(path):
         raise ValueError('failed to parse filename: %s' % f)
     k = float(match.groups(1)[0])
     h = alpha / k
-    cmd = './count -f %s/%s -l qugrs:1.0:0.4:0.7 -d %f -M 9 -u 20 -k %f -t >> counts.txt' % (escaped_path, f, h, k)
+    cmd = './count -f %s/%s -l qugrs:1.0:0.4:0.7 -d %f -M 9 -u 20 -k %f >> %s' % (escaped_path, f, h, k, outfile)
     print cmd
     os.system(cmd)
