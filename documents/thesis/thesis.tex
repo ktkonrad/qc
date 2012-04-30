@@ -4,9 +4,10 @@
 \usepackage{epstopdf}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
 
-\newcommand{\xx}[0]{\mathbf{x}}
 \newcommand{\rr}[0]{\mathbf{r}}
+\newcommand{\xx}[0]{\mathbf{x}}
 
 \begin{document}
 \title{Asympototic Statistics of Nodal Domains in Quantum Chaotic Billiards in the Semiclassical Limit}
@@ -40,11 +41,19 @@ $\Gamma = \partial \Omega$ domain boundary
 \label{chap:intro}
 \section{Motivation}
 \label{sec:motivation}
-Nodal domains characterize regions of a vibrational surface that move together. The boundaries between nodal domains, known as nodal line are the regions which do not vibrate at all. Understanding the characteristics of nodal domains has potential applications in musical instruments, mechanical engineering, geophysics, astrophysics, and many other areas dealing with wave behavior \cite{wigman}.
+Nodal domains characterize regions of a vibrational surface (e.g. a drum head) that move together. The boundaries between nodal domains, known as nodal line are the regions which do not vibrate at all (Fig. \ref{fig:drum}). Understanding the characteristics of nodal domains has potential applications in musical instruments, mechanical engineering, geophysics, astrophysics, and many other areas dealing with wave behavior \cite{wigman}.
 
-The nodal domains studied herein are formulated in terms of quantum mechanical wave functions on Euclidean billiards, a canonical example of quantum chaos. Quantum chaos lies at the intersection of quantum mechanics and chaos theory. The primary signature of chaos in classical systems is a nonlinear (exponential) divergence of paths in phase space of a system. Quantum mechanics however, is entirely linear and quantum chaos deals with energy eigenfunctions of systems, which are constant in time. Thus chaos in quantum systems is manifest in different ways, one of the most studied being wavefunctions in chaotic domains. Figure \ref{fig:classical_vs_quantum} shows a classical orbit and a quantum eigenfunction on the same billiard.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/drum/2_3_mode_side_view.eps}
+    \caption{A circular vibrational surface with nodal lines shown in black. Nodal domains are regions between black lines}
+    \label{fig:drum}
+  \end{center}
+\end{figure}
 
-\begin{figure}[h!]
+The nodal domains studied herein are formulated in terms of quantum mechanical wave functions on Euclidean billiards, a canonical example of quantum chaos. Quantum chaos lies at the intersection of quantum mechanics and chaos theory. The primary signature of chaos in classical systems is a nonlinear (exponential) divergence of paths in the phase space of a system. Quantum mechanics however, is entirely linear and quantum chaos deals with energy eigenfunctions of systems, which are constant in time. Thus chaos in quantum systems is manifest in different ways, one of the most studied being wavefunctions in chaotic domains. Figure \ref{fig:classical_vs_quantum} shows a classical orbit and a quantum eigenfunction on the same billiard.
+
+\begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/classical/stadium_orbit.eps}
     \linebreak
@@ -54,8 +63,12 @@ The nodal domains studied herein are formulated in terms of quantum mechanical w
   \end{center}
 \end{figure}
 
-\section{Classical Chaos}
+The goal of this project is to numerically test certain conjectures regarding properties of nodal domains in quantum chaotic eigenfunctions in the high energy, or semiclassical, limit. Efficiently testing these conjectures requires solving new computational challenges. We hope these results will enable further mathematical investigation of eigenfunctions and that the tools developed herein may be applied to related problems in experimental mathematics.
+
+\section{Classical Chaos in Billiards}
 \label{sec:classical}
+A billiard is a compact domain $\Omega \subset \mathbb{R}^{2}$. A billiard defines a map $f(\xx, t): \Omega \times S^{1} \times \mathbb{R} \rightarrow \Omega \times S^{1}$ where $S^{1}$ is the unit circle and $\xx = (q, p) \in \Omega \times S^{1}$ is a point in phase space where $q \in \Omega$ is a position and $p \in S^{1}$ is a momentum, or direction of motion. This map describes the motion of a ball bouncing in the domain $\Omega$.
+
 Chaos in classical systems is characterized by the Lyapunov exponent $\lambda$ of a system, which describes how quickly nearby trajectories diverge. It is computed as the long time ratio of the divergence of two initially close paths:
 \[
 \lambda = \lim_{t \to \infty} \lim_{\vert \boldsymbol\epsilon \vert \to 0} \frac{1}{t} \frac{\vert f({\bf x_{0}}, t) - f({\bf x_{0}} + \boldsymbol\epsilon, t) \vert}{\vert \boldsymbol\epsilon \vert}
@@ -64,22 +77,15 @@ From this definition it follows that
 \[
 \vert f({\bf x_{0}}, t) - f({\bf x_{0}} + \boldsymbol\epsilon, t) \vert \approx e^{\lambda t} \vert \boldsymbol\epsilon \vert
 \]
-for small $\boldsymbol\epsilon$ and large $t$. Thus a tiny change $\boldsymbol\epsilon$ in initial conditions produces a change that grows exponentially over time with growth rate $\lambda$. Chaotic systems have a positive Lyapunov exponent and this fact makes it difficult to predict long-term behavior because arbitrarily small errors in measurements of initial conditions eventually become large.
+for small $\boldsymbol\epsilon$ and large $t$. Thus a tiny change $\boldsymbol\epsilon$ in initial conditions produces a change that grows exponentially over time with growth rate $\lambda$. Chaotic systems have a positive Lyapunov exponent and this fact makes it difficult to predict long-term behavior because arbitrarily small errors in measurements of initial conditions eventually become large. As these errors grow to the size of the domain, the position of approaches a uniform distribution over the entire billiard. The property that small subsets of $\Omega$ eventually map to all of $\Omega$ is known as ergodicity.
 
-\section{Chaotic Billiards}
+\section{Quantum Chaos in Billiards}
 \label{sec:billiards}
-A compact domain $\Omega \subset \mathbb{R}^{2}$ is chaotic if a classical point-particle follows a trajectory with a positive Lyapunov exponent. Physically, a domain $\Omega$ is represented by a potential function
-\[
-V(\rr) =\begin{cases}
-0 & \text{if } \rr \in \Omega\\
-\infty & \text{if } \rr \notin \Omega
-\end{cases}
-\]
-A quantum wave-particle in the presence of such a potential obeys the Schr\"odinger equation
+A quantum wave-particle in a billiard $\Omega$ obeys the Schr\"odinger equation
 \[
 E u(\rr) = - \frac{\hbar^{2}}{2m} \Delta u(\rr) + V(\rr) u(\rr)
 \]
-Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partial^{2}}{\partial y^{2}}$ is the Laplacian differential operator in two dimensions. Setting $\hbar = 2m = 1$ and enforcing continuity of $u(\rr)$ at the domain boundary $\Gamma = \partial \Omega$ simplifies this to the Helmholtz equation
+Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partial^{2}}{\partial y^{2}}$ is the Laplacian differential operator in two dimensions. Setting $\hbar = 2m = 1$ and $V(\rr) = 0$ for $\rr \in \Omega$ while enforcing Dirichlet boundary conditions $u(\rr) = 0$ for $\rr \in \Gamma = \partial \Omega$ simplifies this to the Helmholtz equation
 \begin{equation}
 \label{eq:helmholtz}
 \begin{cases}
@@ -89,9 +95,9 @@ Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partia
 \end{equation}
 where $k^{2} = E$ is the energy of the eigenfunction $u(\rr)$ and corresponds to the kinetic energy of the quantum wave-particle.
 
-We focus our investigation on to billard shapes: the generalized rectangular Sinai billiard and the Stadium billiard. In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as a function of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$. The desymmetrized billiards are shown in figure \ref{fig:billiards}
+We focus our investigation on two billard shapes: the generalized rectangular Sinai billiard and the Stadium billiard. In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as a function of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$. The desymmetrized billiards are shown in figure \ref{fig:billiards}
 
-\begin{figure}[h!]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.3\textwidth]{figs/domains/qugrs_fig.eps}
     \includegraphics[width=0.6\textwidth]{figs/domains/qust_fig.eps}
@@ -102,8 +108,57 @@ We focus our investigation on to billard shapes: the generalized rectangular Sin
 
 The Sinai billiard is constructed from circular arcs that meet at $(1,1)$ and is parameterized by two angles, $\theta_{1}$ and $\theta_{2}$, the angles from horizonal and vertical, respectively, of the arcs at $(1,1)$. The Sinai billiard is said to demonstrate ``hard chaos'' becase there are no stable orbits.
 
-The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. Trajectories with vertical momentum in the rectangular region are stable but such orbits occupy a measure zero subset of phase space and the quarter stadium still demonstrates chaotic properties.
+The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. The stadium billiard contians neutrally stable orbits, specifically those with vertical momentum in the rectangular region. Neutrally stable orbits have zero Lyapunov exponent but any perturbation will cause them to have positive Lyapunov exponenet. The existence of such orbits implies that the stadium does not demonstrate hard chaos but because these orbits occupy a measure zero subset of phase space, the stadium still demonstrates chaotic properties.
 
+\section{Percolation Model}
+Bogomolny and Schmit \cite{bogomolny} have argued that nodal domains of random functions (which are considered an accurate proxy for eigenfunctions of chaotic systems) can be modeled by nodal domains of a percolation model. Their percolation model is formed by creating a checkerboard of positive and negative regions with a grid size given by the average spacing of zeros of random functions along a particular axis. This checkerboard pattern can be realized as an eigenfunction $\bar{u}(x,y) = sin(\frac{kx}{\sqrt{2}})sin(\frac{ky}{\sqrt{2}})$ of a square billiard $\Omega = [0,1]^{2}$. A random eigenfunction can be modelled as this mean eigenfunction $\bar{u}(x,y)$ plus another term representing deviation from the mean $u(x,y) = \bar u(x,y) + \delta u(x,y)$. The deviation term $\delta u(x,y)$ is modelled by perturbing each nodal line crossing by connecting two diagonal regions (Fig. \ref{fig:percolation}). The decision of which nodal domains to connect is made randomly with equal probability for either possibility.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{figs/percolation/checkerboard.eps}
+    \hspace{1 cm}
+    \includegraphics[width=0.4\textwidth]{figs/percolation/perturbed.eps}
+    \caption{Left: checkerboard pattern; right: perturbed checkerboard pattern}
+    \label{fig:percolation}
+  \end{center}
+\end{figure}
+
+Bogomolny and Schmit apply results from graph theory and statistical physics to compute the distribution of nodal domains in this percolation model. These results form the two primary conjectures we wish to test numerically.
+
+\newtheorem{mean_conj}{Conjecture}
+\begin{mean_conj}[Mean of Nodal Domain Count]
+  The number of nodal domains $\nu(E)$ in a quantum chaotic eigenfunction with energy $E$ is normally distributed with mean
+  \begin{equation}
+    \label{eq:mean_prediction}
+    \frac{\bar{\nu}(E)}{\bar{N}(E)} = \frac{3 \sqrt{3} - 5}{\pi} \approx 0.0624
+  \end{equation}
+\end{mean_conj}
+
+\newtheorem{var_conj}{Conjecture}
+\begin{var_conj}[Variance of Nodal Domain Count]
+  The number of nodal domains $\nu(E)$ in a quantum chaotic eigenfunction with energy $E$ is normally distributed with variance
+  \begin{equation}
+    \label{eq:variance_prediction}
+    \frac{\sigma^{2}(\nu(E))}{\bar{N}(E)} = \frac{18}{\pi^{2}} + \frac{4 \sqrt{3}}{\pi} - \frac{25}{2 \pi} \approx 0.0502
+  \end{equation}
+\end{var_conj}  
+
+In both conjectures, $\bar{N}(E)$ is the mean number of eigenfunctions with energy less than $E$ which is given by Weyl's law \cite{garabedian} to be
+\[
+\bar{N}(E) = \frac{\vert \Omega \vert E}{4 \pi}
+\]
+
+Bogolmony and Schmit also obtain a prediction for the distribution of areas of nodal domains
+
+\newtheorem{area_conj}{Conjecture}
+\begin{area_conj}[Area of Nodal Domains]
+  The area $s$ of nodal domains in a quantum chaotic eigenfunction follows the distribution
+  \begin{equation}
+    \label{eq:area_prediction}
+    f(s) \propto s^{-\tau}
+  \end{equation}
+  where $\tau = \frac{187}{91}$
+\end{area_conj}
 
 \chapter{Methods}
 \section{Scaling Method}
@@ -116,12 +171,47 @@ where $\omega_{i} = k - k_i$. This scaling causes all eigenfunctions to fall app
 \[
 \chi_{i}(k, \rr) = \sum_{l=1}^{B} X_{li} \xi_{l}(k, \rr) + \epsilon_{i}(\rr)
 \]
-where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This single basis set provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system. The basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3}) = O(k^{3})$ time. \cite{barnett}
+where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This single basis set provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system.
+
+The choice of basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3}) = O(k^{3})$ time. \cite{barnett}
 
 \subsection{Run Time}
-The scaling method only computes coefficients of basis functions, which must be evaluated in order to obtain eigenfunction values at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window. Thus $NB$ basis function evaluations are required. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires a total of $nNB$ multiplications.
+The scaling method only computes coefficients of basis functions, which must be evaluated in order to obtain eigenfunction values at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window. Thus $NB$ basis function evaluations are required. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires a total of $nNB$ multiplications. Basis evaluation are much more expensive than multiplications however. Table \ref{tab:eval_ratios} summarizes the ratios of these costs.
 
-In order to maintain accuracy when scaling eigenfunctions we must use relatively small energy windows, typically getting $n \sim 20$ eigenfunctions per call. For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which is determined by $h$) that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time [TODO: need timing data].
+\begin{table}
+  \centering
+  \begin{tabular}{|r|c|c|}
+    \hline
+    Billiard & Ratio & $k_c$ \\ \hline
+    \hline
+    Sinai & 40 & 2000 \\ \hline
+    Stadium & 20 & 100 \\
+    \hline
+  \end{tabular}
+  \caption{Ratios of basis function evaluation to multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio and coefficient multiplications take as long as evaluating basis functions}
+  \label{tab:eval_ratios}
+\end{table}
+
+Errors in eigenfunctions produced by the scaling method scale like $O({\Delta E}^{3})$ \cite{barnett_hassell} and are independent of $E$ so we use a constant $\Delta E$. We estimate errors by calculating the tension
+\[
+t = \left( \int_{\Gamma} u(\rr)^{2} d\rr \right)^{\frac{1}{2}}
+\]
+$\Delta E$ is chosen such that $t \lesssim 10^{-4}$. Using Weyl's law we can obtain an estimate of the number of eigenfunctions in an energy window to be
+\[
+n \approx \frac{\vert \Omega \vert}{4 \pi} ((k + \Delta k)^{2} - (k - \Delta k)^{2}) = \frac{\vert \Omega \vert}{\pi} k \Delta k
+\]
+where $k = \sqrt{E}$ and $\Delta k = \sqrt{\Delta E}$.
+
+For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which scales like $\alpha^{-2}$) that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time (Fig. \ref{fig:timing}).
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/timing/timing_comp_1000_to_1200.eps}
+    \caption{Comparison of run times of solving for basis coefficients, evaluating eigenfunctions, and counting nodal domains. Evaluating eigenfunctions dominates runtime, taking approximately 97\% of computation time.}
+    \label{fig:timing}
+  \end{center}
+\end{figure}
+
 
 \section{Counting Nodal Domains}
 Eigenfunctions are sampled on a regular grid; each point in this grid will be referred to as a ``pixel.'' Nodal domains are counted by exploring domains pixel-by-pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
@@ -131,7 +221,7 @@ Letting $N$ be the number of points the eigenfunction is sampled at, this method
 \section{Interpolation}
 Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$ which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width and height of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
 
-\begin{figure}[h!]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_high_res.eps}
     \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_high_res_domains.eps}
@@ -208,7 +298,7 @@ where $\epsilon = \gamma \epsilon_{double} \Sigma_{11}$ where $\epsilon_{double}
 \subsection{Code Implemenation}
 A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (Fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = U {\bf v}$ where $U$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
 
-\begin{figure}[h!]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.2\textwidth]{figs/interpolation/trouble_spot1.eps}
     \hspace{1 cm} 
@@ -220,6 +310,45 @@ A region is interpolated if and only if, when counting nodal domains, we encount
 
 
 \chapter{Results}
+
+\section{Mean of number of nodal domains}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/mean.eps}
+    \caption{Mean number of nodal domains}
+    \label{fig:mean}
+  \end{center}
+\end{figure}
+
+\section{Variance of number of nodal domains}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/variance.eps}
+    \caption{Variance number of nodal domains}
+    \label{fig:variance}
+  \end{center}
+\end{figure}
+
+\section{Interpolation frequency}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/interp_counts.eps}
+    \caption{Number of interpolations per pixel}
+    \label{fig:interp_counts}
+  \end{center}
+\end{figure}
+
+% TODO: time saved by interpolating
+
+\section{Nodal Domain Size}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/sizes.eps}
+    \caption{Size of nodal domains}
+    \label{fig:sizes}
+  \end{center}
+\end{figure}
+
 
 \appendix
 \chapter{General Solution of the Helmholtz Equation}
@@ -269,7 +398,7 @@ Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of 
 In this section, we discuss the various stencils, $M$, and $\alpha$ values that were considered and how we picked our particular values.
 Only stencil shapes that which are symmetric about the four central points were considered. The four shapes considered are shown in figure \ref{fig:stencils}. The most important consideration in choosing a stencil was the accuracy of the interpolation. The size of the stencil affects the computational cost of interpolation but this difference is trivial.
 
-\begin{figure}[h!]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_no_corners_centered.eps}
     \hspace{1.5 cm}
@@ -286,7 +415,7 @@ Only stencil shapes that which are symmetric about the four central points were 
 
 The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must be considered simultaneously with the choice of stencil. Figure \ref{fig:errors_all} shows a comparison of the infinity norm of the interpolation error over various values of $M$ and $\alpha$ for each of the stencils shown above.
 
-\begin{figure}[h!]
+\begin{figure}
   \begin{center}
     \includegraphics[width=1.2\textwidth]{figs/interpolation/error_norms_all.eps}
     \caption{Comparison of interpolation error norms over $M$ and $\alpha$ for each stencil.}
