@@ -22,14 +22,17 @@ int gridSize = -1; // size of grid in x and y dimensions
 int trials = 1; // number of grids to generate and count
 int trial = 1; // current trial number
 int outputGrid = 0; // flag: output grid(s) to file(s): grid_[n].dat
+double k = -1; // effective k of grid: k = (gridSize*pi)/(2*sqrt(2))
+FILE *sizefile = NULL; // file to write sizes to
 
 /*
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -n gridSize [-N trials] [-t] [-o]\n");
+  fprintf(stderr, "USAGE: count {-n gridSize | -k k} [-N trials] [-t] [-o] [-s]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
+  fprintf(stderr, "-s: output nodal domain sizes to file\n");
 }
 
 /*
@@ -45,13 +48,18 @@ void processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "n:N:to")) != -1) {
+  while ((c = getopt(argc, argv, "n:N:k:tos")) != -1) {
     switch (c) {
     case 'n':
       gridSize = atoi(optarg);
+      k = (gridSize * M_PI)/(2*sqrt(2));
       break;
     case 'N':
       trials = atoi(optarg);
+      break;
+    case 'k':
+      k = atof(optarg);
+      gridSize = (2*sqrt(2)*k)/(M_PI);
       break;
     case 't':
       showTime = 1;
@@ -59,10 +67,14 @@ void processArgs(int argc, char **argv) {
     case 'o':
       outputGrid = 1;
       break;
+    case 's':
+      sizefile = fopen("perc_sizes.dat", "w");
+      break;
     case '?':
       switch (optopt) {
       case 'n':
       case 'N':
+      case 'k':
 	fprintf(stderr, "Option -%c requires an argument.\n", optopt);
 	break;
       default:
@@ -81,13 +93,12 @@ void processArgs(int argc, char **argv) {
 
 
 /*
-
 output:
         return value: number of nodal domains
 */
 int runTest(double **grid, int ny, int nx) {   
   clock_t start = clock();
-  int nd = countNodalDomainsNoInterp(grid, NULL, ny, nx);
+  int nd = countNodalDomainsNoInterp(grid, NULL, ny, nx, sizefile);
   clock_t end = clock();
 
   if (showTime) {
@@ -116,18 +127,21 @@ int main(int argc, char **argv) {
   srand(time(NULL));
 
   // run the trials and calculate mean count
-  for (i = 0 ; i < trials ; i++) {
+  for (trial = 0 ; trial < trials ; trial++) {
     randomPercolation(grid, ny, nx);
     
     if (outputGrid) {
       char outfile[50];
-      sprintf(outfile, "../data/grid_%d.dat", trial++);
+      sprintf(outfile, "../data/grid_%d.dat", trial);
 	array2file(grid, ny, nx, outfile);
     }
     
-    counts[i] = runTest(grid, ny, nx);
-    fprintf(stderr, "%d\n", counts[i]);
+    counts[trial] = runTest(grid, ny, nx);
+    fprintf(stderr, "%d\n", counts[trial]);
     mean += counts[i];
+  }
+  if (sizefile) {
+    fclose(sizefile);
   }
   destroyGrid(grid);
   mean /= trials;

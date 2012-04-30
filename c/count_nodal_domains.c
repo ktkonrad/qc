@@ -92,6 +92,7 @@ inputs:
         dx       - sampled resoultion of eigenfunction
         M        - highest order bessel function to do
 	upsample - upsampling ratio for interpolation
+        sizefile - file to write sizes of domains to
 output: return value - count of nodal domains
 */
 int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *stats, FILE *sizefile) {
@@ -149,7 +150,7 @@ inputs:
         sizefile - file to write size of nodal domains to
 output: return value - count of nodal domains
 */
-int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx) {
+int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *sizefile) {
   int i, j;
   int rc;
 
@@ -167,12 +168,16 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx) {
   // array2file(grid, ny, nx, "../data/masked.dat");
 
   int nd = 0; // count of nodal domains
+  int size; // area of last nodal domain (in pixels)
 
   i = 0;
   j = 0;
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
-    findDomainNoInterp(grid, counted, i, j, nd, ny, nx);
+    size = findDomainNoInterp(grid, counted, i, j, nd, ny, nx);
+    if (sizefile) {
+      fprintf(sizefile, "%d ", size);
+    }
   }
 
   // TODO: verbosity global to control this output
@@ -375,9 +380,10 @@ inputs:
 precondition: grid and counted are ny x nx
 
 outputs:
+         return value: area of domain (in pixels)
          updates stats
 */
-void findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx) {
+int findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx) {
   stack *s = newStack();
   push(s, j, i);
   
@@ -430,6 +436,7 @@ void findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int 
     counted[y][x] = currentSign == 1 ? nd : -nd;
   }
   destroyStack(s);
+  return size;
 }
 
 
