@@ -36,15 +36,17 @@ double k_0 = -1; // k_0 value from vergini
 
 int besselOrder = -1; // highest order bessel function to use for interpolation
 int upsample = -1; // upsampling ratio to use for interpolation
+int interp = 1; // boolean whether or not to interpolate
 
 /*
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1] [-n]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
+  fprintf(stderr, "-n: do not use interpolation\n");
 }
 
 /*
@@ -61,7 +63,7 @@ void count_processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1")) != -1) {
+  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1n")) != -1) {
     switch (c) {
     case 'f':
       file = (char *)malloc(strlen(optarg)*sizeof(char));
@@ -101,6 +103,9 @@ void count_processArgs(int argc, char **argv) {
       break;
     case '1':
       oneFlag = 1;
+      break;
+    case 'n':
+      interp = 0;
       break;
     case '?':
       switch (optopt) {
@@ -159,7 +164,13 @@ int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int
   char sizefilename[50];
   sprintf(sizefilename, "sizes_%f_%f.dat", k, dx);
   FILE *sizefile = fopen(sizefilename, "w");
-  int nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats, sizefile);
+  int nd;
+  if (interp) {
+    nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats, sizefile);
+  }
+  else {
+    nd = countNodalDomainsNoInterp(grid, mask, ny, nx, sizefile);
+  }
   fclose(sizefile);
   return nd;
 }
