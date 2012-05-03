@@ -129,7 +129,7 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   }
 
   // TODO: verbosity global to control this output
-  //intArray2file(counted, ny, nx, "../data/counted.dat");
+  intArray2file(counted, ny, nx, "../data/counted.dat");
 			       
   free_imatrix(counted);
 
@@ -175,6 +175,9 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
     size = findDomainNoInterp(grid, counted, i, j, nd, ny, nx);
+    if (size == 1) {
+      printf("nodal domain of size 1 at (%d, %d)\n", j, i);
+    }
     if (sizefile) {
       fprintf(sizefile, "%d ", size);
     }
@@ -335,7 +338,7 @@ int findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny,
 	  if (!IS_INTERPOLATED(counted[y][x])) {
 	    interpolate(grid, counted, y, x, ny, nx, upsample, interp, stats);
 	  }
-	  if (counted[y][x] == AL_CONNECTED) {
+	  if (counted[y][x] == BR_CONNECTED) {
 	    push(s, x+1, y+1);
 	  }
 	}
@@ -349,7 +352,7 @@ int findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny,
 	  if (!IS_INTERPOLATED(counted[y][x])) {
 	    interpolate(grid, counted, y-1, x, ny, nx, upsample, interp, stats);
 	  }
-	  if (counted[y][x] == AL_CONNECTED) {
+	  if (counted[y][x] == AR_CONNECTED) {
 	    push(s, x+1, y-1);
 	  }
 	}
@@ -358,6 +361,7 @@ int findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny,
     counted[y][x] = currentSign == 1 ? nd : -nd;
   }
   if (size < SMALL_DOMAIN_SIZE) {
+    ERROR("small domain (size %d) at (%d, %d)", size, j, i);
     stats->small_domain_count++;
   }
   destroyStack(s);
