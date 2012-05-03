@@ -1,15 +1,15 @@
 CC = g++
-CFLAGS = -g -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing -m64
+CFLAGS = -O2 -m64 -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
 
 objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util/util_verg.o
 
 
 VERG = ../vergini/matrix.o ../vergini/billiard.o ../vergini/basis.o ../vergini/colloc.o ../vergini/grid.o ../vergini/nrutil.o ../vergini/useful.o util/util_verg.o
-MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -lgsl -llapack -lblas -lf77blas -latlas -lm
+MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -L/usr/lib64/lapack -L/usr/lib64/libblas -lgsl -llapack -lblas -lf77blas -latlas -lm
 
 count: nodal_domain_driver.o $(objects) $(dependencies)
-	$(CC) $(CFLAGS) -o count nodal_domain_driver.o $(objects) $(dependencies)
+	$(CC) -o count nodal_domain_driver.o $(objects) $(dependencies) $(CFLAGS)
 
 perc: percolation_driver.o $(objects)
 	$(CC) $(CFLAGS) -o perc percolation_driver.o $(objects)

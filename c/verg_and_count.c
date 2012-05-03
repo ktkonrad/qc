@@ -15,6 +15,10 @@
 #include "nodal_domain_driver_no_main.h"
 #include "../vergini/verg_no_main.h"
 
+#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); strcpy(loc, val);} while (0)
+
+#define COUNT_NARGS 14
+#define VERG_NARGS 16
 
 // options specified by command line arguments
 char *name; // base name of verg output
@@ -51,40 +55,32 @@ void processArgs(int argc, char **argv) {
   while ((c = getopt(argc, argv, "n:l:s:d:k:V:4:M:p:u")) != -1) {
     switch (c) {
     case 'n':
-      name = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(name, optarg);
+      SET(name, optarg);
       break;
     case 'l':
-      billiard = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(billiard, optarg);
+      SET(billiard, optarg);
       break;
     case 's':
-      basis = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(basis, optarg);
+      SET(basis, optarg);
       break;
     case 'M':
-      bessel_order = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(bessel_order, optarg);
+      SET(bessel_order, optarg);
       break;
     case 'p':
       vc_upsample = (char *)malloc(strlen(optarg)*sizeof(char));
       strcpy(vc_upsample, optarg);
       break;
     case 'V':
-      window = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(window, optarg);
+      SET(window, optarg);
       break;
     case '4':
-      fourth_order_coeff = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(fourth_order_coeff, optarg);
+      SET(fourth_order_coeff, optarg);
       break;
     case 'd':
-      vc_dx = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(vc_dx, optarg);
+      SET(vc_dx, optarg);
       break;
     case 'k':
-      k = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(k, optarg);
+      SET(k, optarg);
       break;
     case 'u':
       remove_spurious = (char *)malloc(3*sizeof(char));
@@ -148,11 +144,6 @@ void processArgs(int argc, char **argv) {
   }
 }
 
-#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); strcpy(loc, val);} while (0)
-
-#define COUNT_NARGS 14
-#define VERG_NARGS 16
-
 int main(int argc, char **argv) {
   int pid;
   int i;
@@ -164,8 +155,7 @@ int main(int argc, char **argv) {
 
   char **verg_args = (char **)malloc(VERG_NARGS*sizeof(char *));
   char *verg_executable = "verg";
-  verg_args[0] = (char *)malloc(strlen(verg_executable)*sizeof(char));
-  strcpy(verg_args[0], verg_executable);
+  SET(verg_args[0], verg_executable);
   for (i = 1 ; i < VERG_NARGS ; i+=2) {
     verg_args[i] = (char *)malloc(3*sizeof(char));
   }
@@ -199,13 +189,12 @@ int main(int argc, char **argv) {
   //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20 -t
   char **count_args = (char **)malloc(COUNT_NARGS * sizeof(char *));
   char *count_executable = "count";
-  count_args[0] = (char *)malloc(strlen(count_executable)*sizeof(char));
-  strcpy(count_args[0], count_executable);
+  SET(count_args[0], count_executable);
   for (i = 1 ; i < COUNT_NARGS - 1 ; i+=2) {
     count_args[i] = (char *)malloc(3*sizeof(char));
   }
   strcpy(count_args[1], "-f");
-  count_args[2] = (char *)malloc((strlen(name) + 9)*sizeof(char));
+  count_args[2] = (char *)malloc((strlen(name) + 9)*sizeof(char)); // + 8 for .sta_bin
   strcpy(count_args[2], name);
   strcat(count_args[2], ".sta_bin");
   strcpy(count_args[3], "-l");
