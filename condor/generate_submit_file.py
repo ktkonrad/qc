@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 
 alpha = 0.7 # k*dx
 
@@ -14,9 +15,8 @@ def krange(k_low, k_high, delta):
         yield (k, k+delta)
         k += delta
 
-def write_submit_file(k_low, k_high, delta_0):
-    with open("verg_and_count.submit", 'w') as submit_file:
-        submit_file.write("""
+def write_prelude(submit_file):
+    submit_file.write("""
 Universe = vanilla
 Requirements = OpSys == "LINUX" && Arch == "X86_64" && \
                Machine != "math-01.grid" && \
@@ -37,26 +37,48 @@ Executable = vc
 
 """)
 
+def write_job(submit_file, k1, k2):
+    k = (k1+k2)/2
+    dx = alpha / k
+    delta_k = k - k1 # = k2 - k
+    args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f -d %f -M 9 -p 30" % (k, k, delta_k, dx)
+    submit_file.write("Arguments = %s\n" % args)
+    submit_file.write("Output = run_%f.out\n" % k)
+    submit_file.write("Error = run_%f.err\n" % k)
+    submit_file.write("Log = run_%f.log\n" % k)
+    submit_file.write("Queue\n\n")
+
+
+def write_submit_file(k_low, k_high, delta_0):
+    with open("verg_and_count.submit", 'w') as submit_file:
+        write_prelude(submit_file)
+        for (k1, k2) in krange(k_low, k_high, delta_0):
+            write_job(k1,k2)
+
+def write_filtered_submit_file(k_low, k_high, delta_0):
+    with open("verg_and_count.submit", 'w') as submit_file:
+        write_prelude(submit_file)
         for (k1, k2) in krange(k_low, k_high, delta_0):
             k = (k1+k2)/2
-            dx = alpha / k
-            delta_k = k - k1 # = k2 - k
-            args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f -d %f -M 9 -p 30" % (k, k, delta_k, dx)
-            submit_file.write("Arguments = %s\n" % args)
-            submit_file.write("Output = run_%f.out\n" % k)
-            submit_file.write("Error = run_%f.err\n" % k)
-            submit_file.write("Log = run_%f.log\n" % k)
-            submit_file.write("Queue\n\n")
-    
+            if not os.path.exists('run_%f.sta_bin' % k):
+                write_job(submit_file, k1,k2)
+
+
 def usage():
-    print "usage: ./generate_submit_file.py k_low k_high delta_0"
+    print "usage: ./generate_submit_file.py k_low k_high delta_0 [f]"
 
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 4:
         usage()
         exit(-1)
-    write_submit_file(*map(float, sys.argv[1:]))
+    elif len(sys.argv) > 5:
+        usage()
+        exit(-1)
+    elif len(sys.argv) == 5 and sys.argv[4] == 'f':
+        write_filtered_submit_file(*map(float, sys.argv[1:-1]))
+    else:
+        write_submit_file(*map(float, sys.argv[1:]))
 
 if __name__ == "__main__":
     main()
