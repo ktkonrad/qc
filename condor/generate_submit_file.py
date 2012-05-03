@@ -2,7 +2,7 @@
 
 import sys
 
-alpha = 0.5 # k*dx
+alpha = 0.7 # k*dx
 
 def krange(k_low, k_high, delta):
     """
@@ -41,7 +41,7 @@ Executable = vc
             k = (k1+k2)/2
             dx = alpha / k
             delta_k = k - k1 # = k2 - k
-            args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f -d %f -M 9 -p 20" % (k, k, delta_k, dx)
+            args = "-n run_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f -d %f -M 9 -p 30" % (k, k, delta_k, dx)
             submit_file.write("Arguments = %s\n" % args)
             submit_file.write("Output = run_%f.out\n" % k)
             submit_file.write("Error = run_%f.err\n" % k)
