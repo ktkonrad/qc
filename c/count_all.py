@@ -18,7 +18,7 @@ if len(sys.argv) >= 4:
         for line in f:
             already_counted_ks.append(float(line.split(',')[0]))
 
-alpha = 0.5
+alpha = 0.7
 for f in os.listdir(path):
     match = re.match('run_(.*)\.sta_bin', f)
     if not match:
