@@ -12,7 +12,7 @@ count: nodal_domain_driver.o $(objects) $(dependencies)
 	$(CC) -o count nodal_domain_driver.o $(objects) $(dependencies) $(CFLAGS)
 
 perc: percolation_driver.o $(objects)
-	$(CC) $(CFLAGS) -o perc percolation_driver.o $(objects)
+	$(CC) -o perc percolation_driver.o $(objects) $(CFLAGS)
 
 verg_and_count:	verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(dependencies)
 	$(CC) $(CFLAGS) -o vc verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(VERG) $(MATHLIBS)

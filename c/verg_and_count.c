@@ -27,10 +27,10 @@ char *basis; // basis set string
 char *vc_dx; // grid spacing
 char *k; // k_0 value from vergini
 char *window; // window size on either size of k
-char *fourth_order_coeff; // fourth order vergini coefficient
+char *fourth_order_coeff = "4"; // fourth order vergini coefficient
 char *bessel_order; // highest order bessel function to use for interpolation
 char *vc_upsample; // upsampling ratio to use for interpolation
-char *remove_spurious; // -u flag to verg
+char *remove_spurious = ""; // -u flag to verg
 
 /*
   print a usage statement
