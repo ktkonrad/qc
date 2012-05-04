@@ -175,9 +175,6 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *
   while (findNextUnseen(counted, &i, &j, ny, nx)) {
     nd++;
     size = findDomainNoInterp(grid, counted, i, j, nd, ny, nx);
-    if (size == 1) {
-      printf("nodal domain of size 1 at (%d, %d)\n", j, i);
-    }
     if (sizefile) {
       fprintf(sizefile, "%d ", size);
     }
