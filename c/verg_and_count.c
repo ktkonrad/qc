@@ -16,7 +16,7 @@
 #include "../vergini/verg_no_main.h"
 
 #define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
-#define RESET(loc, val) do {realloc(loc, (strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
+#define RESET(loc, val) do {loc = (char *)realloc(loc, (strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
 
 #define COUNT_NARGS 14
 #define VERG_NARGS 16
