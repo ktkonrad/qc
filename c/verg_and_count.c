@@ -15,7 +15,8 @@
 #include "nodal_domain_driver_no_main.h"
 #include "../vergini/verg_no_main.h"
 
-#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); strcpy(loc, val);} while (0)
+#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
+#define RESET(loc, val) do {realloc(loc, (strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
 
 #define COUNT_NARGS 14
 #define VERG_NARGS 16
@@ -27,16 +28,32 @@ char *basis; // basis set string
 char *vc_dx; // grid spacing
 char *k; // k_0 value from vergini
 char *window; // window size on either size of k
-char *fourth_order_coeff = "4"; // fourth order vergini coefficient
+char *fourth_order_coeff; // fourth order vergini coefficient
 char *bessel_order; // highest order bessel function to use for interpolation
 char *vc_upsample; // upsampling ratio to use for interpolation
-char *remove_spurious = ""; // -u flag to verg
+char *remove_spurious; // -u flag to verg
 
 /*
   print a usage statement
 */
 void vc_usage() {
   fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n");
+}
+
+/*
+  free the memory used for command line args
+*/
+void freeArgs() {
+  free(name);
+  free(billiard);
+  free(basis);
+  free(bessel_order);
+  free(vc_upsample);
+  free(window);
+  free(fourth_order_coeff); // may not be malloc'd
+  free(vc_dx);
+  free(k);
+  free(remove_spurious); // may not be malloc'd
 }
 
 /*
@@ -51,6 +68,10 @@ void processArgs(int argc, char **argv) {
     vc_usage();
     exit(CMD_LINE_ARG_ERR);
   }
+
+  // set default values
+  SET(fourth_order_coeff, "4");
+  SET(remove_spurious, "");
 
   while ((c = getopt(argc, argv, "n:l:s:d:k:V:4:M:p:u")) != -1) {
     switch (c) {
@@ -67,14 +88,13 @@ void processArgs(int argc, char **argv) {
       SET(bessel_order, optarg);
       break;
     case 'p':
-      vc_upsample = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(vc_upsample, optarg);
+      SET(vc_upsample, optarg);
       break;
     case 'V':
       SET(window, optarg);
       break;
     case '4':
-      SET(fourth_order_coeff, optarg);
+      RESET(fourth_order_coeff, optarg);
       break;
     case 'd':
       SET(vc_dx, optarg);
@@ -83,8 +103,7 @@ void processArgs(int argc, char **argv) {
       SET(k, optarg);
       break;
     case 'u':
-      remove_spurious = (char *)malloc(3*sizeof(char));
-      strcpy(remove_spurious, "-u");
+      RESET(remove_spurious, "-u");
       break;
     case '?':
       switch (optopt) {
@@ -127,7 +146,7 @@ void processArgs(int argc, char **argv) {
   }
 
   if (vc_dx == NULL) {
-    ERROR("vc_dx not specified or invalid");
+    ERROR("dx not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
   }
   if (k == NULL) {
@@ -153,7 +172,7 @@ int main(int argc, char **argv) {
 
   //./verg -o test -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1.000000 -k 200.100000 -V 0.1:0.12 -f 0.001000
 
-  char **verg_args = (char **)malloc(VERG_NARGS*sizeof(char *));
+  char **verg_args = (char **)malloc((VERG_NARGS+1)*sizeof(char *));
   char *verg_executable = "verg";
   SET(verg_args[0], verg_executable);
   for (i = 1 ; i < VERG_NARGS ; i+=2) {
@@ -179,18 +198,18 @@ int main(int argc, char **argv) {
 
   verg_main(VERG_NARGS, verg_args);
 
-  /*
-  for (i = 0 ; i < VERG_NARGS-1 ; i++) {
+  
+  for (i = 0 ; i < VERG_NARGS ; i++) {
     free(verg_args[i]);
   }  
   free(verg_args);
-  */
+  
 
   //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20 -t
-  char **count_args = (char **)malloc(COUNT_NARGS * sizeof(char *));
+  char **count_args = (char **)malloc((COUNT_NARGS+1)*sizeof(char *));
   char *count_executable = "count";
   SET(count_args[0], count_executable);
-  for (i = 1 ; i < COUNT_NARGS - 1 ; i+=2) {
+  for (i = 1 ; i < COUNT_NARGS ; i+=2) {
     count_args[i] = (char *)malloc(3*sizeof(char));
   }
   strcpy(count_args[1], "-f");
@@ -212,11 +231,11 @@ int main(int argc, char **argv) {
 
   count_main(COUNT_NARGS, count_args);
 
-  /*
-  for (i = 0 ; i < COUNT_NARGS-1 ; i++) {
+  
+  for (i = 0 ; i < COUNT_NARGS ; i++) {
     free(count_args[i]);
   }  
   free(count_args);
-  */
 
+  freeArgs();
 }
