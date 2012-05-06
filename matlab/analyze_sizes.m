@@ -10,14 +10,13 @@ sizes = sizes*dx^2/s_min; % scale them
 
 
 %% eigenfunctions
-sizes = dlmread('../c/all_sizes.dat'); % they're already scaled
-sizes = sizes(:);
+sizes = dlmread('../c/all_sizes.txt'); % they're already scaled
 %%
 sizes = sizes(sizes > 1);
 
 %% general
 tau = 187/91;
-N=100000;
+N=100000; % number of buckets
 ds = (max(sizes)-min(sizes))/N;
 s = linspace(min(sizes), max(sizes), N);
 freqs = hist(sizes,s);
@@ -35,4 +34,5 @@ fontsize = 20;
 set(gca, 'FontSize', fontsize);
 xlabel('s/s_{min}');
 ylabel('n');
+
 print('-deps2c', '../documents/thesis/figs/results/sizes.eps');
