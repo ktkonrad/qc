@@ -8,17 +8,17 @@ import glob
 import sys
 from math import pi
 
-if len(sys.argv) < 2:
-    print 'usage: ./collect_sizes.py output_file'
+if len(sys.argv) < 3:
+    print 'usage: ./collect_sizes.py input_dir output_file'
     exit(-1)
 
 j1 = 2.404825557695773 # first zero of J_0 bessel function
 alpha = 0.5
 scale = alpha**2 / (pi * j1**2)
 
-with open(sys.argv[1], 'w') as outfile:
+with open(sys.argv[2], 'w') as outfile:
     first = True
-    for f in glob.glob('sizes_*.dat'):
+    for f in glob.glob('%s/sizes_*.dat' % sys.argv[1]):
         with open(f) as sizefile:
             if first:
                 first = False
