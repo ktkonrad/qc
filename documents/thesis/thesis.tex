@@ -5,6 +5,9 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{algorithm, algpseudocode}
+\usepackage{caption}
+\usepackage{url}
 
 \newcommand{\rr}[0]{\mathbf{r}}
 \newcommand{\xx}[0]{\mathbf{x}}
@@ -77,7 +80,7 @@ From this definition it follows that
 \[
 \vert f({\bf x_{0}}, t) - f({\bf x_{0}} + \boldsymbol\epsilon, t) \vert \approx e^{\lambda t} \vert \boldsymbol\epsilon \vert
 \]
-for small $\boldsymbol\epsilon$ and large $t$. Thus a tiny change $\boldsymbol\epsilon$ in initial conditions produces a change that grows exponentially over time with growth rate $\lambda$. Chaotic systems have a positive Lyapunov exponent and this fact makes it difficult to predict long-term behavior because arbitrarily small errors in measurements of initial conditions eventually become large. As these errors grow to the size of the domain, the position of approaches a uniform distribution over the entire billiard. The property that small subsets of $\Omega$ eventually map to all of $\Omega$ is known as ergodicity.
+for small $\boldsymbol\epsilon$ and large $t$. Thus a tiny change $\boldsymbol\epsilon$ in initial conditions produces a change that grows exponentially over time with growth rate $\lambda$. Chaotic systems have a positive Lyapunov exponent and this fact makes it difficult to predict long-term behavior because arbitrarily small errors in measurements of initial conditions eventually become large. As these errors grow to the size of the domain, the position of approaches a uniform distribution over the entire billiard. The property that small subsets of $\Omega$ eventually map to all of $\Omega$ is known as ergodicity (see appendix \ref{sec:ergodicity} for a formal definition).
 
 \section{Quantum Chaos in Billiards}
 \label{sec:billiards}
@@ -125,23 +128,22 @@ Bogomolny and Schmit \cite{bogomolny} have argued that nodal domains of random f
 
 Bogomolny and Schmit apply results from graph theory and statistical physics to compute the distribution of nodal domains in this percolation model. These results form the two primary conjectures we wish to test numerically.
 
-\newtheorem{mean_conj}{Conjecture}
-\begin{mean_conj}[Mean of Nodal Domain Count]
+\newtheorem{conj}{Conjecture}
+\begin{conj}[Mean of Nodal Domain Count]
   The number of nodal domains $\nu(E)$ in a quantum chaotic eigenfunction with energy $E$ is normally distributed with mean
   \begin{equation}
     \label{eq:mean_prediction}
     \frac{\bar{\nu}(E)}{\bar{N}(E)} = \frac{3 \sqrt{3} - 5}{\pi} \approx 0.0624
   \end{equation}
-\end{mean_conj}
+\end{conj}
 
-\newtheorem{var_conj}{Conjecture}
-\begin{var_conj}[Variance of Nodal Domain Count]
+\begin{conj}[Variance of Nodal Domain Count]
   The number of nodal domains $\nu(E)$ in a quantum chaotic eigenfunction with energy $E$ is normally distributed with variance
   \begin{equation}
     \label{eq:variance_prediction}
     \frac{\sigma^{2}(\nu(E))}{\bar{N}(E)} = \frac{18}{\pi^{2}} + \frac{4 \sqrt{3}}{\pi} - \frac{25}{2 \pi} \approx 0.0502
   \end{equation}
-\end{var_conj}  
+\end{conj}  
 
 In both conjectures, $\bar{N}(E)$ is the mean number of eigenfunctions with energy less than $E$ which is given by Weyl's law \cite{garabedian} to be
 \[
@@ -150,15 +152,14 @@ In both conjectures, $\bar{N}(E)$ is the mean number of eigenfunctions with ener
 
 Bogolmony and Schmit also obtain a prediction for the distribution of areas of nodal domains
 
-\newtheorem{area_conj}{Conjecture}
-\begin{area_conj}[Area of Nodal Domains]
+\begin{conj}[Area of Nodal Domains]
   The area $s$ of nodal domains in a quantum chaotic eigenfunction follows the distribution
   \begin{equation}
     \label{eq:area_prediction}
     f(s) \propto s^{-\tau}
   \end{equation}
   where $\tau = \frac{187}{91}$
-\end{area_conj}
+\end{conj}
 
 \chapter{Methods}
 \section{Scaling Method}
@@ -184,11 +185,11 @@ The scaling method only computes coefficients of basis functions, which must be 
     \hline
     Billiard & Ratio & $k_c$ \\ \hline
     \hline
-    Sinai & 40 & 2000 \\ \hline
-    Stadium & 20 & 100 \\
+    Sinai & 75 & 3860 \\ \hline
+    Stadium & 31 & 550 \\
     \hline
   \end{tabular}
-  \caption{Ratios of basis function evaluation to multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio and coefficient multiplications take as long as evaluating basis functions}
+  \caption{Ratios of basis function evaluation to coefficient multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio with $\Delta k = 0.1$ and coefficient multiplications take as long as evaluating basis functions}
   \label{tab:eval_ratios}
 \end{table}
 
@@ -202,7 +203,9 @@ n \approx \frac{\vert \Omega \vert}{4 \pi} ((k + \Delta k)^{2} - (k - \Delta k)^
 \]
 where $k = \sqrt{E}$ and $\Delta k = \sqrt{\Delta E}$.
 
-For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which scales like $\alpha^{-2}$) that determines the time to compute eigenfunctions. Additionally, we find that the time to evaluate eigenfunctions dominates total computation time (Fig. \ref{fig:timing}).
+We choose $\Delta E$ to be as large as possible while keeping errors small in order to maximize $n$, allowing more eigenfunctions to be computed from each evaluation of basis functions.
+
+For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which scales like $\alpha^{-2}$) that determines the time to compute eigenfunctions. Computation time is dominated by eigenfunction evaluation, which is dominated by basis function evaluations Additionally, we find that the time to evaluate eigenfunctions dominates total computation time (Fig. \ref{fig:timing}).
 
 \begin{figure}
   \begin{center}
@@ -216,10 +219,115 @@ For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $
 \section{Counting Nodal Domains}
 Eigenfunctions are sampled on a regular grid; each point in this grid will be referred to as a ``pixel.'' Nodal domains are counted by exploring domains pixel-by-pixel, marking each pixel as ``counted'' once it has been seen. The searching algorithm usded to explore each domain is a hybrid depth- and breadth-first method where for each pixel, the sign of each neighboring pixel is compared to the sign of the nodal domain and if the sign matches, the neighboring pixel is pushed onto a stack. Exploration then continues by popping a pixel off of the stack. This method was chosen so that the signs of all four neighbors (above, below, right, and left) are known when that pixel is being examined, which is necessary for the adaptive interpolation scheme described below.
 
+\begin{algorithm}
+  \caption{Nodal domain counting algorithm}
+  \begin{algorithmic}
+    \Require $grid$ is $ny$ by $nx$ matrix containing eigenfunction values on billiard
+    \Require $\alpha = k h$, $M$ is highest order Bessel function to interpolate with, $\rho$ is ratio to interpolate by
+
+    \item[]
+    \Function{CountNodalDomains}{$grid, \alpha, M, \rho$}
+        \For{$i \in 1 \ldots ny$}
+            \For{$j \in 1\ldots nx$}
+                \State $counted[i][j] \gets UNCOUNTED$
+            \EndFor
+        \EndFor
+        \State $interp \gets CreateInterpMatrix(\alpha, M, \rho)$
+        \State $i,j,domains \gets 0$
+        \While{$i, j \gets FindNextUnseen(counted, i, j)$}
+            \State $domains \gets domains + 1$
+            \State $FindDomain(grid, counted, i, j, domain\_num, interp)$
+        \EndWhile
+        \Return $domains$
+    \EndFunction
+
+    \item[]
+    \Function{FindNextUnseen}{$counted, y, x$}
+        \For{$i \in y \ldots ny$}
+            \For{$j \in 1\ldots nx$}
+                \If{$i=y$ and $j \leq x$}
+                    \State continue
+                \EndIf
+                \If{$counted[i][j] = UNCOUNTED$}
+                    \State \Return $i,j$
+                \EndIf
+            \EndFor
+        \EndFor
+        \State \Return $NULL$
+    \EndFunction
+    \algstore{count}
+  \end{algorithmic}
+\end{algorithm}
+
+\clearpage
+\begin{algorithm}
+  \ContinuedFloat
+  \caption{Nodal domain counting algorithm (continued)}
+  \begin{algorithmic}
+    \algrestore{count}
+
+    \Function{FindDomain}{$grid, counted, i, j, interp$}
+        \State $s.push(j,i)$
+        \Comment $s$ is a stack
+        \While{$x,y \gets s.pop()$}
+            \State $sign \gets sign(grid[y][x])$
+            \If{$InGrid(x-1,y)$}
+                \If{$sign(grid(x-1,y)) = sign$}
+                    \State $left \gets TRUE$
+                    \If{$counted[x-1][y] = UNCOUNTED$}
+                        \State $s.push(x-1,y)$
+                    \EndIf
+                \EndIf
+            \EndIf
+            \State $\ldots$ \Comment Same for $above$, $right$, and $below$
+
+%            \If{$InGrid(x,y-1)$}
+%                \If{$sign(grid(x,y-1)) = sign$}
+%                    \State $above \gets TRUE$
+%                    \If{$counted[x][y-1] = UNCOUNTED$}
+%                        \State $s.push(x,y-1)$
+%                    \EndIf
+%                \EndIf
+%            \EndIf
+%            \If{$InGrid(x+1,y)$}
+%                \If{$sign(grid(x+1,y)) = sign$}
+%                    \State $right \gets TRUE$
+%                    \If{$counted[x+1][y] = UNCOUNTED$}
+%                        \State $s.push(x+1,y)$
+%                    \EndIf
+%                \EndIf
+%            \EndIf
+%            \If{$InGrid(x,y+1)$}
+%                \If{$sign(grid(x,y+1)) = sign$}
+%                    \State $below \gets TRUE$
+%                    \If{$counted[x][y+1] = UNCOUNTED$}
+%                        \State $s.push(x,y+1)$
+%                    \EndIf
+%                \EndIf
+%            \EndIf
+
+            \If{$InGrid(x-1,y-1)$ and $above$ and $left$}
+                \If{$sign(grid(x-1,y-1)) = sign$}
+                  \If{not $IsInterpolated(counted, x-1,y-1)$}
+                      \State $Interpolate(grid, counted, x-1, y-1, interp)$
+                  \EndIf
+                  \If{$ConnectedAboveLeft(counted,x,y)$}
+                      $s.push(x-1,y-1)$
+                  \EndIf
+                \EndIf
+            \EndIf
+            \State $\ldots$ \Comment Same for $below$ and $left$, $below$ and $right$, and $above$ and $right$
+            \State $counted[y][x] = COUNTED$
+        \EndWhile
+    \EndFunction
+
+  \end{algorithmic}
+\end{algorithm}
+
 Letting $N$ be the number of points the eigenfunction is sampled at, this method has computational complexity $O(N)$. This is because the method performs a fixed number of comparisons for each pixel plus $O(N)$ total comparisons searching for an unseen nodal domain after a nodal domain has been explored. This algorithm uses an array of $N$ integers to store, for each pixel, whether it has been counted, which nodal domain it is in, whether or not it is within the boundary of the billiard, and additional information relating to the interpolation method described below. In addition, this method uses a dynamically sized array as a stack whose size is (loosely) bounded above by the number of pixels in the nodal domain being explored.
 
 \section{Interpolation}
-Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$ which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width and height of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
+Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$, which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width and height of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
 
 \begin{figure}
   \begin{center}
@@ -242,7 +350,7 @@ and
 \[
 J_{n}(k r) \cos(n \theta)
 \]
-where $J_{n}(r)$ is a regular Bessel function. These functions form a complete orthonormal basis for solutions of (\ref{eq:helmholtz}) (see \ref{sec:helmholtz_basis}). We fix a value $M$ to be the order of the highest order Bessel function, restricting our basis to the finite set
+where $J_{n}(r)$ is a regular Bessel function. These functions form a complete orthonormal basis for solutions of (\ref{eq:helmholtz}) (see appendix \ref{sec:helmholtz_basis}). We fix a value $M$ to be the order of the highest order Bessel function, restricting our basis to the finite set
 \begin{equation}
   \label{eq:interp_functions}
   \xi_{i}(r, \theta)=\begin{cases}
@@ -308,10 +416,33 @@ A region is interpolated if and only if, when counting nodal domains, we encount
   \end{center}
 \end{figure}
 
+\section{Code}
+Code implementing Vergini's scaling method to compute eigenfunctions was written by Alex Barnett. Code for counting nodal domains was written by the author. All code used herein is open source and available under the GPL license \cite{gpl} \cite{github}. Appendix \ref{sec:api} contains an overview of the functions provided by this library.
 
 \chapter{Results}
 
+\section{Data Collected}
+We computed approximately 100,000 eigenfunctions and counted half a billion nodal domains. This data was collected over several weeks running on the Dartmouth Mathematics Condor cluster.
+
+\begin{table}
+  \centering
+  \begin{tabular}{|r|c|c|}
+    \hline
+    Billiard & Eigenfucntions & Nodal Domains \\ \hline
+    \hline
+    Sinai & 3e4 & 1.5e8 \\ \hline
+    Stadium & 20 & 100 \\
+    \hline
+  \end{tabular}
+  \caption{Ratios of basis function evaluation to multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio and coefficient multiplications take as long as evaluating basis functions}
+  \label{tab:results_summary}
+\end{table}
+
 \section{Mean of number of nodal domains}
+We find the mean number of nodal domains to be in accordance with conjecture \ref{eq:mean_prediction}
+
+% TODO: t-test at high k
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/results/mean.eps}
@@ -330,13 +461,8 @@ A region is interpolated if and only if, when counting nodal domains, we encount
 \end{figure}
 
 \section{Interpolation frequency}
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/interp_counts.eps}
-    \caption{Number of interpolations per pixel}
-    \label{fig:interp_counts}
-  \end{center}
-\end{figure}
+At $\alpha = 0.5$ interpolation occured on average $0.1512$ times per nodal domain and $1.9e-4$ times per pixel.
+
 
 % TODO: time saved by interpolating
 
@@ -351,6 +477,49 @@ A region is interpolated if and only if, when counting nodal domains, we encount
 
 
 \appendix
+\chapter{Definition of Ergodicity}
+\label{sec:ergodicity}
+
+\newtheorem{dfn}{Definition}
+\begin{dfn}[$\sigma$-algebra]
+$\Sigma \subset 2^{\Omega}$ is a \emph{$\sigma$-algebra} over $\Omega$ if:
+\begin{enumerate}
+\item
+$\emptyset, \Omega \in \Sigma$
+\item
+$\Omega \backslash A \in \Sigma \; \forall A \in \Sigma$
+\item
+$\cup_{i=1}^{\infty}A_{i} \in \Sigma \; \forall \left\{A_{i}\right\}_{i=1}^{\infty}\text{ such that }A_{i} \in \Sigma \forall i$
+\end{enumerate}
+\end{dfn}
+
+\begin{dfn}[Measure]
+$\mu$: $\Sigma \rightarrow \mathbb{R}$ is a \emph{measure} on $\Sigma$ if:
+\begin{enumerate}
+\item
+$\mu(A) \ge 0 \; \forall A \in \Sigma$
+\item
+$\mu(\emptyset) = 0$
+\item
+\[
+\mu\left(\cup_{i=1}^{\infty} A_{i} \right) = \sum_{i=1}^{\infty} \mu(A_{i})
+\]
+\end{enumerate}
+\end{dfn}
+
+\begin{dfn}[Measure space]
+A \emph{measure space} is a triple $(\Omega, \Sigma, \mu)$ where $\Sigma$ is a $\sigma$-algebra over $\Omega$ and $\mu$ is a measure on $\Sigma$.
+\end{dfn}
+
+\begin{dfn}[Probability space]
+A \emph{probability space} is a measure space $(\Omega, \Sigma, \mu)$ where $\mu(\Omega) = 1$.
+\end{dfn}
+
+\begin{dfn}[Ergodicity]
+Let $(\Omega, \Sigma, \mu)$ be a probability space. A mapping $T$: $\Sigma \rightarrow \Sigma$ is \emph{ergodic} if $T(E) = E \implies \mu(E) = 0$ or $\mu(E) = 1$
+\end{dfn}
+  
+
 \chapter{General Solution of the Helmholtz Equation}
 \label{sec:helmholtz_basis}
 Here we show that the functions $J_{n}(k r) \sin(n \theta)$ and $J_{n}(k r) \cos(n \theta)$ form a complete orthonormal basis of solutions of (\ref{eq:helmholtz}).
@@ -422,6 +591,34 @@ The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must
     \label{fig:errors_all}
   \end{center}
 \end{figure}
+
+\chapter{Code Interface}
+\label{sec:api}
+\section{Command Line Interface}
+\subsection{Verg}
+\begin{verbatim}
+verg -l qust:2 -b 10 -s vepwoo:1.2:40:1.5 -k 200.01 -V 0.005 -f 0.001 -m
+verg -l qugrs:1:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k 200.1 -V 0.005 -f 0.001 -m
+\end{verbatim}
+
+\subsection{Count}
+\begin{verbatim}
+count -f t.sta_bin -m t.mask.sta_bin -l qust:2 -d .001 -k 200.01 -M 8 -u 20
+\end{verbatim}
+
+\subsection{Vc}
+\begin{verbatim}
+vc -n run_2018.450000 -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k 2018.450000 -V 0.050000 -d 0.000347 -M 9 -p 30
+\end{verbatim}
+
+\subsection{Perc}
+\begin{verbatim}
+perc -r 100:6:1000 -N 100
+\end{verbatim}
+
+
+\chapter{Code Notes}
+...
 
 
 \bibliographystyle{plain}

@@ -39,8 +39,8 @@ MATHLIBS_linux := -I/usr/include/atlas -L/usr/lib64/atlas -lgsl -llapack -lblas 
 # MATHLIBS_linux := $(ATLASlibinc) -llapack -lcblas -lf77blas -latlas -lg2c -lm
 #
 # add for debugging / profiling...     -ggdb -pg
-CXXFLAGS_linux = -ggdb -pg -v -Wall -pedantic
-#CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
+#CXXFLAGS_linux = -ggdb -pg -v -Wall -pedantic
+CXXFLAGS_linux = -O2 -funroll-loops -malign-double -fstrict-aliasing
 CXX_linux = g++
 
 # i386/linux with Intel compiler (on fricka)
