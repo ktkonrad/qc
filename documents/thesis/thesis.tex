@@ -431,7 +431,7 @@ We computed approximately 100,000 eigenfunctions and counted half a billion noda
     Billiard & Eigenfucntions & Nodal Domains \\ \hline
     \hline
     Sinai & 3e4 & 1.5e8 \\ \hline
-    Stadium & 20 & 100 \\
+    Stadium & 9e4 & 2.4e9 \\
     \hline
   \end{tabular}
   \caption{Ratios of basis function evaluation to multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio and coefficient multiplications take as long as evaluating basis functions}
@@ -445,36 +445,60 @@ We find the mean number of nodal domains to be in accordance with conjecture \re
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/mean.eps}
-    \caption{Mean number of nodal domains}
+    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_mean.eps}
+    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_mean.eps}
+
+    \caption{Mean number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
     \label{fig:mean}
   \end{center}
 \end{figure}
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_mean.eps}
+  \end{center}
+\end{figure}
+
+
 \section{Variance of number of nodal domains}
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/variance.eps}
-    \caption{Variance number of nodal domains}
+    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_variance.eps}
+    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_variance.eps}
+
+    \caption{variance of number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
     \label{fig:variance}
   \end{center}
 \end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_variance.eps}
+  \end{center}
+\end{figure}
+
+\section{Sizes of nodal domains}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_sizes.eps}
+    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_sizes_0.1_sampled.eps}
+    \caption{size of nodal domains. Above: Sinai; below: stadium}
+    \label{fig:size}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_sizes.eps}
+  \end{center}
+\end{figure}
+
 
 \section{Interpolation frequency}
 At $\alpha = 0.5$ interpolation occured on average $0.1512$ times per nodal domain and $1.9e-4$ times per pixel.
 
 
 % TODO: time saved by interpolating
-
-\section{Nodal Domain Size}
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/sizes.eps}
-    \caption{Size of nodal domains}
-    \label{fig:sizes}
-  \end{center}
-\end{figure}
-
 
 \appendix
 \chapter{Definition of Ergodicity}
