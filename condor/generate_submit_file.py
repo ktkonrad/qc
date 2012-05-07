@@ -13,7 +13,7 @@ def krange(k_low, k_high, delta_k):
     k = k_low
     while k < k_high:
         yield (k, k+2*delta_k)
-        k += delta_k
+        k += 2*delta_k
 
 def write_prelude(submit_file):
     submit_file.write("""
