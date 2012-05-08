@@ -5,6 +5,8 @@ import os
 
 alpha = 0.7 # k*dx
 
+MAX_GAP = 0.05
+
 def krange(k_low, k_high, delta_k):
     """
     yield pairs (k1, k2) partitioning the interval [k_low, k_high]
@@ -14,6 +16,23 @@ def krange(k_low, k_high, delta_k):
     while k < k_high:
         yield (k, k+2*delta_k)
         k += 2*delta_k
+
+def find_gaps(delta, counts_file):
+    """find k gaps in a file and yield k ranges of jobs to fill the gaps"""
+    last_k = float('inf') # start last k at infinity to guarantee gap < MAX_GAP on first iteration
+    with open(counts_file) as f:
+        for line in f:
+            k = float(line.split(',')[0])
+            gap = k - last_k
+            if gap > MAX_GAP:
+                start = last_k
+                while True:
+                    end = min(start + delta, k)
+                    yield (start, end)
+                    start = end
+                    if end == k:
+                        break
+            last_k = k
 
 def write_prelude(submit_file):
     submit_file.write("""
@@ -53,42 +72,51 @@ def write_job(submit_file, k1, k2, billiard):
     submit_file.write("Log = %s_%f.log\n" % (billiard, k))
     submit_file.write("Queue\n\n")
 
-def write_submit_file(k_low, k_high, delta_0, billiard):
+def write_submit_file(k_low, k_high, delta, billiard):
     with open("verg_and_count.submit", 'w') as submit_file:
         write_prelude(submit_file)
-        for (k1, k2) in krange(k_low, k_high, delta_0):
+        for (k1, k2) in krange(k_low, k_high, delta):
             write_job(submit_file, k1, k2, billiard)
 
-def write_filtered_submit_file(k_low, k_high, delta_0, billiard):
+def write_filtered_submit_file(k_low, k_high, delta, billiard):
     with open("verg_and_count.submit", 'w') as submit_file:
         write_prelude(submit_file)
-        for (k1, k2) in krange(k_low, k_high, delta_0):
+        for (k1, k2) in krange(k_low, k_high, delta):
             k = (k1+k2)/2
-            if not os.path.exists('run_%f.sta_bin' % k):
+            if not os.path.exists('%s_%f.sta_bin' % (billiard, k)):
                 write_job(submit_file, k1, k2, billiard)
+
+def write_gaps_submit_file(delta, billiard, counts_file):
+    with open("verg_and_count.submit", 'w') as submit_file:
+        write_prelude(submit_file)
+        for (k1, k2) in find_gaps(delta, counts_file):
+            write_job(submit_file, k1, k2, billiard)
 
 
 def usage():
-    print "usage: ./generate_submit_file.py k_low k_high delta_0 billiard [f]"
-
+    print "usage: ./generate_submit_file.py k_low k_high delta_0 billiard [f | g counts_file]"
+    print "f filters on existing *.sta_bin files in current directory"
+    print "g finds gaps in k in given counts_file"
 
 def main():
     if len(sys.argv) < 5:
         usage()
         exit(-1)
-    elif len(sys.argv) > 6:
-        usage()
-        exit(-1)
-    
+
     k_low = float(sys.argv[1])
     k_high = float(sys.argv[2])
     delta_k = float(sys.argv[3])
     billiard = sys.argv[4]
-    
-    if len(sys.argv) == 6 and sys.argv[5] == 'f':
-        write_filtered_submit_file(k_low, k_high, delta_k, billiard)
-    else:
+
+    if len(sys.argv) == 5:
         write_submit_file(k_low, k_high, delta_k, billiard)
+    elif len(sys.argv) == 6 and sys.argv[5] == 'f':
+            write_filtered_submit_file(k_low, k_high, delta_k, billiard)
+    elif len(sys.argv) == 7 and sys.argv[5] == 'g':
+            write_gaps_submit_file(delta_k, billiard, sys.argv[6])
+    else:
+        usage()
+        exit(-1)
 
 if __name__ == "__main__":
     main()
