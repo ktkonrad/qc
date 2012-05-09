@@ -1,5 +1,5 @@
 %% read data
-t = dlmread('../data/timing_data_parsed.dat');
+t = dlmread('../results/qust_700_to_900_timing.txt');
 ks = t(:,1);
 solve_t = t(:,2);
 verg_t = t(:,3);
@@ -26,7 +26,7 @@ fitted = coeffs(1)*ks.^2 + coeffs(2)*ks + coeffs(3);
 hold on;
 plot(ks, fitted, 'r');
 
-kmin = 1000;
-kmax = 1200;
+kmin = 700;
+kmax = 900;
 krange = kmin:kmax;
 hours = sum(coeffs(1)*krange.^2 + coeffs(2)*krange + coeffs(3)) / 3600

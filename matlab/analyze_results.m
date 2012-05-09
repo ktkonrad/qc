@@ -1,6 +1,6 @@
 %% read stats
-shape = 'perc';
-name = [shape '_100_to_2000'];
+shape = 'qugrs';
+name = [shape '_2000_to_2020'];
 filename = ['../results/' name '_counts.txt'];
 stats = dlmread(filename);
 ks = stats(:,1);
@@ -52,6 +52,7 @@ plot(ks, scaled_counts, '.');
 hold on;
 plot(k_windows, means, 'k-', 'LineWidth', 3);
 plot([min(ks), max(ks)], [mean_predicted, mean_predicted], 'r-', 'LineWidth', 3);
+plot(k_windows, mean_predicted + .5348./sqrt(k_windows.^2*area/(2*pi^2)),'g') % percolation 
 xlabel('k', 'FontSize', fontsize);
 ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
 legend('data', 'predicted mean', 'measured mean');
