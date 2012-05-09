@@ -1,4 +1,4 @@
-function [f x a] = rpw2dsample(n, ppws, e, opts)
+function [fs xs a] = rpw2dsample_multi(n0, ppws, e, opts)
 % RPW2DSAMPLE - gridded sample from distribution of 2D random plane waves
 %
 % [f x] = rpw2dsample(n, ppw) generates n-by-n array of function values f
@@ -41,39 +41,48 @@ function [f x a] = rpw2dsample(n, ppws, e, opts)
 % (C) 2006, 2009. Alex Barnett. Date 8/4/09
 % 
 % Adapted to sample on grids of various dx
-% Kyle Konrad 4/3/2011
+% Kyle Konrad 4/9/2012
 
-  if nargin<3 | isempty(e), e = 5; end   % default Gaussian tail conv param
+  if nargin<3 || isempty(e), e = 5; end   % default Gaussian tail conv param
   if nargin<4, opts = []; end
   real = 1; if isfield(opts, 'real'), real = opts.real; end; opts.real = real;
   expt = 'r'; if isfield(opts, 'expt'), expt = opts.expt; end
   
-  for ppw=ppws
+  fs = cell(1,numel(ppws));
+  xs = cell(1,numel(ppws));
+  i = 1;
+
+  N = 2*ceil(4*n0*pi/ppws(1));
+  if opts.real
+      a = randn(1,N/2); a = [a a];  % inv symm Re part
+      b = randn(1,N/2); b = [b -b]; % flip Im part for herm symm
+  else
+      a = randn(1,N); % complex case
+      b = randn(1,N); % complex case
+  end
   
-  n = 4*n;              % make computational grid 4 times in each direction
+  for ppw=ppws
+  n = n0*(ppw / ppws(1)); % scale number of points with ppw
+  n = round(4*n);              % make computational grid 4 times in each direction
   ns = ((1:n)-n/2-1);   % offset integer lattice
   dx = 2*pi/ppw; x = dx*ns;            % 1d position grid (same for both coords)
-  dk = ppw/n;    k =  dk*ns;           % 1d wavenumber grid
+  dk = ppw/n;    k = dk*ns;           % 1d wavenumber grid
+  N = 2*ceil(pi/dk); dt = 2*pi/N; t = ((1:N)-1/2)*dt;  % # samples around S^1
+  
   s = e*dk;   % gaussian width in wavenumber
   if (1+s)>ppw/2
-    warning(sprintf('gaussian tails overspill k domain! s=%g',s)); end
+    warning('gaussian tails overspill k domain! s=%g',s); end
 
   if expt=='c'
     F = circle_blobs(0, 1, 0, ppw, n, dk, e);   % F(k) = unit-strength delta
-    disp(sprintf('frac err in sum of F(k) = %g', sum(F(:))-1));
+    fprintf('frac err in sum of F(k) = %g', sum(F(:))-1);
   else
-    N = 2*ceil(pi/dk); dt = 2*pi/N; t = ((1:N)-1/2)*dt;  % # samples around S^1
     if expt=='b'        % usual (1/2pi) amplitude on S^1 for J_0 bessel
       F = circle_blobs(t, dt*ones(1,N) / (2*pi), 1, ppw, n, dk, e);
     else           % 'r': random plane waves: real-valued case
       R = 1;
-      if opts.real
-        a = randn(1,N/2); a = [a a]; % inv symm Re part
-      else a = randn(1,N); end             % complex case
       F = circle_blobs(t, dt*a, R, ppw, n, dk, e);
-      if opts.real, b = randn(1,N/2);
-      b = [b -b];                    % flip Im part for herm symm
-      else b = randn(1,N); end             % complex case
+
       G = circle_blobs(t, dt*b, R, ppw, n, dk, e);
       F = sqrt(N/2)/(2*pi) * (F + 1i*G); clear G; % cmplx F(k), for RMS f = 1
       a = a + 1i*b;
@@ -82,21 +91,23 @@ function [f x a] = rpw2dsample(n, ppws, e, opts)
   % Compute by inv FFT spatial function, f(x) := int F(k) e^{-ikx} dk
   if opts.real, tic;
     f = n*n*circshift(ifft2(circshift(F,[n/2 n/2]), 'symmetric'),[n/2 n/2]);
-    disp(sprintf('%dx%d 2D fft done in %g sec', n,n,toc));
-  else, tic; f = n*n*circshift(ifft2(circshift(F,[n/2 n/2])),[n/2 n/2]);
-    disp(sprintf('%dx%d 2D fft done in %g sec', n,n,toc));
+    fprintf('%dx%d 2D fft done in %g sec', n,n,toc);
+  else tic; f = n*n*circshift(ifft2(circshift(F,[n/2 n/2])),[n/2 n/2]);
+    fprintf('%dx%d 2D fft done in %g sec', n,n,toc);
   end
+
   % truncate to useful region... central 1/4 is good (err<3e-4 for e=5)
   j = 1+3*n/8:5*n/8; tn = numel(j); tf = f(j,j); x = x(j); % x overwritten
   % undo k-space convolution by x-space division by gaussian...
   xx = repmat(x, [tn 1]); xx2 = xx.^2; f = tf .* exp(s*s*(xx2+xx2')/2);
-
+  fs{i} = f;
+  xs{i} = x;
   % Calc is done; now do various calibration outputs...
   if expt=='c'   % show spatial plot of errors... will show error size in RPWs
     figure; imagesc(x,x,log10(abs(1-f))');set(gca, 'ydir', 'normal');
     axis equal; caxis([-10 0]); colorbar; xlabel('x_1'); ylabel('x_2');
     title(sprintf('expt=c: log10(f(x)-1), n=%d ppw=%g e=%g',n,ppw,e));
-    disp(sprintf('error in f val in middle = %g', f(1+tn/2,1+tn/2)-1));
+    fprintf('error in f val in middle = %g', f(1+tn/2,1+tn/2)-1);
   
   elseif expt=='b'  % remember J0 dies like |x|^{-1/2} so are smaller at edge
     figure; imagesc(x,x,log10(abs(besselj(0,sqrt(xx2+xx2')) - f))');
@@ -108,7 +119,7 @@ function [f x a] = rpw2dsample(n, ppws, e, opts)
     figure; imagesc(x,x,f'); axis equal; caxis([-3 3]); colorbar;
     set(gca, 'ydir', 'normal'); xlabel('x_1'); ylabel('x_2'); axis tight;
     title(sprintf('expt=p: f(x), n=%d ppw=%g e=%g',n,ppw,e));
-    disp(sprintf('RMS of sample = %g', norm(f(:))/tn));
+    fprintf('RMS of sample = %g', norm(f(:))/tn);
   end
-
+  i = i+1;
   end
