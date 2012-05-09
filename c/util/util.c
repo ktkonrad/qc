@@ -15,6 +15,8 @@
 #include <wait.h>
 #include <limits.h>
 
+extern int verb;
+
 /*
   create a matrix to do interpolation based on bessel functions
   

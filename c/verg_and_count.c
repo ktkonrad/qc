@@ -21,6 +21,9 @@
 #define COUNT_NARGS 14
 #define VERG_NARGS 16
 
+// global verbosity
+int verb = 1;
+
 // options specified by command line arguments
 char *name; // base name of verg output
 char *billiard; // billiard shape string

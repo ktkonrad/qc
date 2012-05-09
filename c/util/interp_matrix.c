@@ -19,6 +19,7 @@
 #define THETA(x,y) atan2(y,x)
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
+extern int verb;
 
 /*
   input: alpha:   k*dx (wavenumber * grid spacing)

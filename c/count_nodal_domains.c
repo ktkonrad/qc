@@ -79,6 +79,8 @@ Kyle Konrad
 #define IS_MASKED(c) (c == MASKED)
 #define IS_INTERPOLATED(c) (c >= BL_DISCONNECTED && c != UNCOUNTED)
 
+extern int verb;
+
 /*
 count the number of nodal domains in grid
 precondition: grid must be ny x nx
@@ -468,7 +470,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   int currentSign;
   gsl_vector *interp_input, *interp_output;
   int tl_br_connected = 0; // flag indicated whether (x,y) is connected to (x+1,y+1)
-  int **interp_counted = imatrix(ny, nx);
+  int **interp_counted = imatrix(n, n);
   stack *s = newStack();
 
 

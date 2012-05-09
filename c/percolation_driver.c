@@ -208,11 +208,10 @@ int main(int argc, char **argv) {
     case 1:
       break;
     }
-
-    if (sizefile) {
-      fclose(sizefile);
-    }
-    
   } 
+
+  if (sizefile) {
+    fclose(sizefile);
+  }
   exit(0);
 }
