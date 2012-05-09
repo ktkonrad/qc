@@ -422,24 +422,27 @@ Code implementing Vergini's scaling method to compute eigenfunctions was written
 \chapter{Results}
 
 \section{Data Collected}
-We computed approximately 100,000 eigenfunctions and counted half a billion nodal domains. This data was collected over several weeks running on the Dartmouth Mathematics Condor cluster.
+We computed approximately 100,000 eigenfunctions and counted half a billion nodal domains. This data was collected over several weeks running on the Dartmouth Mathematics Condor cluster. Table \ref{tab:data_collected} shows the number of eigenfunctions and nodal domains which were computed and counted in various k ranges.
 
 \begin{table}
   \centering
   \begin{tabular}{|r|c|c|}
     \hline
-    Billiard & Eigenfucntions & Nodal Domains \\ \hline
+    Billiard & $k_{low}$ & $k_high$ & Eigenfucntions & Nodal Domains & $\alpha$ & data size\\ \hline
     \hline
-    Sinai & 3e4 & 1.5e8 \\ \hline
-    Stadium & 9e4 & 2.4e9 \\
-    \hline
+    Sinai       & 1000 & 1200 & 2.11e4 & 3.97e8 & 0.5 & 385GB \\ \hline
+    Sinai       & 2000 & 2020 & 3.90e3 & ?      & 0.7 & 120GB \\ \hline
+    Stadium     & 700  & 900  & 4.55e4 & 1.2e9  & 0.7 & 221GB \\ \hline
+    Percolation & 100  & 2000 & 
   \end{tabular}
-  \caption{Ratios of basis function evaluation to multiplication for various billiards. Column $k_c$ contains the value of $k$ for which $n$ is equal to the given ratio and coefficient multiplications take as long as evaluating basis functions}
-  \label{tab:results_summary}
+  \caption{Data collected}
+  \label{tab:data_collected}
 \end{table}
 
+
+
 \section{Mean of number of nodal domains}
-We find the mean number of nodal domains to be in accordance with conjecture \ref{eq:mean_prediction}
+We find the mean number of nodal domains to be in accordance with conjecture \ref{eq:mean_prediction} for the Sinai billiard
 
 % TODO: t-test at high k
 
@@ -461,12 +464,14 @@ We find the mean number of nodal domains to be in accordance with conjecture \re
 
 
 \section{Variance of number of nodal domains}
+The variance of number of nodal domains in quantum chaotic eigenfunctions does not agree with \ref{eq:variance_prediction} for either billiard shape.
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_variance.eps}
     \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_variance.eps}
 
-    \caption{variance of number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
+    \caption{Variance of number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
     \label{fig:variance}
   \end{center}
 \end{figure}
@@ -477,13 +482,14 @@ We find the mean number of nodal domains to be in accordance with conjecture \re
   \end{center}
 \end{figure}
 
-\section{Sizes of nodal domains}
+\section{Areas of nodal domains}
+The distribution of area of nodal domains agrees 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_sizes.eps}
     \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_sizes_0.1_sampled.eps}
-    \caption{size of nodal domains. Above: Sinai; below: stadium}
-    \label{fig:size}
+    \caption{area of nodal domains. Above: Sinai; below: stadium}
+    \label{fig:area}
   \end{center}
 \end{figure}
 

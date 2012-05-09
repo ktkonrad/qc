@@ -4,7 +4,7 @@
 #include <gsl/gsl_matrix.h>
 #include <stdio.h>
 
-#define SMALL_DOMAIN_SIZE 20
+#define SMALL_DOMAIN_SIZE 5
 
 typedef struct {
   int small_domain_count;

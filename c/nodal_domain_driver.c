@@ -262,12 +262,17 @@ int main(int argc, char **argv) {
       }
 
       count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample, &stats);
-      // wtm = wingTipMass(grid, mask, ny, nx);
-      
+      if (bil.type == QU_STADIUM) {
+        wtm = wingTipMass(grid, mask, ny, nx);
+      }
+      else {
+        wtm = 0;
+      }
+
       destroyMask(mask);
       destroyGrid(grid);
 
-      printf("%f, %d, %d, %d, %d, %d\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
+      printf("%f, %d, %d, %d, %d, %d, %f\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count, wtm);
 
       if (oneFlag)
 	break;

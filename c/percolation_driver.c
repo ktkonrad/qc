@@ -191,20 +191,15 @@ int main(int argc, char **argv) {
       }
       mean += counts[trial];
     }
-    if (sizefile) {
-      fclose(sizefile);
-    }
     destroyGrid(grid);
-    mean /= trials;
-
-    // calculate variance of counts
-    for (i = 0 ; i < trials ; i++) {
-      variance += (counts[i] - mean) * (counts[i] - mean);
-    }
-    variance /= trials;
-
     switch (mode) {
     case 0:
+      mean /= trials;
+      // calculate variance of counts
+      for (i = 0 ; i < trials ; i++) {
+        variance += (counts[i] - mean) * (counts[i] - mean);
+      }
+      variance /= trials;
       // printf("mean: %f\n", mean);
       // printf("variance: %f\n", variance);
       printf("scaled mean: %f\n", mean / (ny * nx / 4) * 2 / M_PI);
@@ -212,6 +207,10 @@ int main(int argc, char **argv) {
       break;
     case 1:
       break;
+    }
+
+    if (sizefile) {
+      fclose(sizefile);
     }
     
   } 

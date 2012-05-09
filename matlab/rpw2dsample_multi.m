@@ -1,4 +1,4 @@
-function [f x a] = rpw2dsample(n, ppw, e, opts)
+function [f x a] = rpw2dsample(n, ppws, e, opts)
 % RPW2DSAMPLE - gridded sample from distribution of 2D random plane waves
 %
 % [f x] = rpw2dsample(n, ppw) generates n-by-n array of function values f
@@ -47,6 +47,8 @@ function [f x a] = rpw2dsample(n, ppw, e, opts)
   if nargin<4, opts = []; end
   real = 1; if isfield(opts, 'real'), real = opts.real; end; opts.real = real;
   expt = 'r'; if isfield(opts, 'expt'), expt = opts.expt; end
+  
+  for ppw=ppws
   
   n = 4*n;              % make computational grid 4 times in each direction
   ns = ((1:n)-n/2-1);   % offset integer lattice
@@ -109,3 +111,4 @@ function [f x a] = rpw2dsample(n, ppw, e, opts)
     disp(sprintf('RMS of sample = %g', norm(f(:))/tn));
   end
 
+  end
