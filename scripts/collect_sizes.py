@@ -13,7 +13,7 @@ if len(sys.argv) < 3:
     exit(-1)
 
 j1 = 2.404825557695773 # first zero of J_0 bessel function
-alpha = 0.5
+alpha = 0.7
 scale = alpha**2 / (pi * j1**2)
 
 with open(sys.argv[2], 'w') as outfile:
