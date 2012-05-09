@@ -16,6 +16,9 @@ Kyle Konrad
 #include <string.h>
 #include <unistd.h> // for command line parsing with getopt
 
+// global verbosity variable
+int verb = 1;
+
 // options specified by command line arguments
 int showTime = 0; // flag: print time it takes for countNodalDomains to run
 int gridSize = -1; // size of grid in x and y dimensions

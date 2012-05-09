@@ -15,6 +15,8 @@ perc: percolation_driver.o $(objects)
 	$(CC) -o perc percolation_driver.o $(objects) $(CFLAGS)
 
 vc: verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(dependencies)
+	./update_no_main.sh
+	cd ../vergini; ./update_no_main.sh; cd ../c
 	$(CC) $(CFLAGS) -o vc verg_and_count.o nodal_domain_driver_no_main.o ../vergini/verg_no_main.o $(objects) $(VERG) $(MATHLIBS)
 
 nodal_domain_driver.o: nodal_domain_driver.c

@@ -30,7 +30,7 @@
    flags: 0x02 - generally more
           0x80 - cmd line parsing
 */ 
-int verb = 1;
+extern int verb;
 
 // tasks...
 #define NO_TASK -1

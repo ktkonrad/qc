@@ -19,7 +19,7 @@ Kyle Konrad
 
 // vergini code dependencies
 #include "../vergini/billiard.h"
-;
+extern int verb;
 
 // options specified by command line arguments
 int showTime = 0; // flag: print time it takes for countNodalDomains to run
@@ -29,6 +29,7 @@ int mode = -1; // 0 - generate random_percolation grid; 1 - read grid from sta_b
 int maskFlag = 0; // flag: use a mask file
 char *maskFile; // use mask from this file
 int oneFlag = 0; // flag: only count one eigenfunction
+int sizeFlag = 0; // flag: write domain sizes to file
 
 Billiard bil; // Billiard shape we are using - defined in vergini code
 double dx = -1; // grid spacing
@@ -42,11 +43,13 @@ int interp = 1; // boolean whether or not to interpolate
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1] [-n]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
   fprintf(stderr, "-n: do not use interpolation\n");
+  fprintf(stderr, "-q: quiet\n");
+  fprintf(stderr, "-s: output nodal domain sizes to file\n");
 }
 
 /*
@@ -63,16 +66,14 @@ void count_processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1n")) != -1) {
+  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1nqs")) != -1) {
     switch (c) {
     case 'f':
-      file = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(file, optarg);
+      SET(file, optarg);
       mode = 1;
       break;
     case 'm':
-      maskFile = (char *)malloc(strlen(optarg)*sizeof(char));
-      strcpy(maskFile, optarg);
+      SET(maskFile, optarg);
       maskFlag = 1;
       break;
     case 'l':
@@ -106,6 +107,12 @@ void count_processArgs(int argc, char **argv) {
       break;
     case 'n':
       interp = 0;
+      break;
+    case 'q':
+      verb = 0;
+      break;
+    case 's':
+      sizeFlag = 1;
       break;
     case '?':
       switch (optopt) {
@@ -162,8 +169,11 @@ output:
 */
 int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample, interp_stats *stats) {
   char sizefilename[50];
-  sprintf(sizefilename, "sizes_%f_%f.dat", k, dx);
-  FILE *sizefile = fopen(sizefilename, "w");
+  FILE *sizefile = NULL;
+  if (sizeFlag) {
+    sprintf(sizefilename, "sizes_%f_%f.dat", k, dx);
+    sizefile = fopen(sizefilename, "w");
+  }
   int nd;
   if (interp) {
     nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats, sizefile);
@@ -171,7 +181,9 @@ int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int
   else {
     nd = countNodalDomainsNoInterp(grid, mask, ny, nx, sizefile);
   }
-  fclose(sizefile);
+  if (sizeFlag) {
+    fclose(sizefile);
+  }
   return nd;
 }
 
@@ -215,8 +227,7 @@ int count_main(int argc, char **argv) {
       free(maskFile);
     }
 
-    printf("%s\t%s\t%s\t%s\t%s\n", "k", "count", "small domains", "interp count", "boundary trouble count", "edge trouble count");
-    printf("%f\t%d\t%d\t%d\t%d\n", k_0, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
+    printf("%f,%f,%d,%d,%d,%d\n", k_0, dx, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
 
   }
 
