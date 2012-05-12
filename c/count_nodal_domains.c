@@ -114,8 +114,10 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
     applyMask(grid, counted, mask, ny, nx);
   }
 
-  //array2file(grid, ny, nx, "../data/masked.dat");
-
+  #ifdef DEBUG
+    array2file(grid, ny, nx, "../data/masked.dat");
+  #endif
+  
   int nd = 0; // count of nodal domains
   int size; // area of last nodal domain (in pixels)
 
@@ -130,9 +132,10 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
 
   }
 
-  // TODO: verbosity global to control this output
-  intArray2file(counted, ny, nx, "../data/counted.dat");
-			       
+  #ifdef DEBUG
+    intArray2file(counted, ny, nx, "../data/counted.dat");
+  #endif
+  
   free_imatrix(counted);
 
   gsl_matrix_free(interp);
@@ -167,8 +170,10 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *
     applyMask(grid, counted, mask, ny, nx);
   }
 
-  // array2file(grid, ny, nx, "../data/masked.dat");
-
+  #ifdef DEBUG
+    array2file(grid, ny, nx, "../data/masked.dat");
+  #endif
+  
   int nd = 0; // count of nodal domains
   int size; // area of last nodal domain (in pixels)
 
@@ -182,9 +187,10 @@ int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *
     }
   }
 
-  // TODO: verbosity global to control this output
-  // intArray2file(counted, ny, nx, "../data/counted.dat");
-			       
+  #ifdef DEBUG
+    intArray2file(counted, ny, nx, "../data/counted.dat");
+  #endif
+  
   free_imatrix(counted);
 
   return nd;
@@ -591,15 +597,15 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
       }
     }
 
-    /*
-    // debug output
-    char filename[50];
-    sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
-    FILE *outfile = fopen(filename, "w");
-    gsl_vector_fprintf(outfile, interp_output, "%.16g");
-    fclose(outfile);
-    */
-
+    #ifdef DEBUG
+      // debug output
+      char filename[50];
+      sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
+      FILE *outfile = fopen(filename, "w");
+      gsl_vector_fprintf(outfile, interp_output, "%.16g");
+      fclose(outfile);
+    #endif
+    
     // cleanup
     destroyStack(s);
     gsl_vector_free(interp_input);
