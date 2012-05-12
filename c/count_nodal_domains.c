@@ -561,7 +561,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     currentSign = SIGN(gsl_vector_get(interp_output, 0));
 
     while (pop(s, &x, &y)) {
-      if (x == n && y == n) { // we got to the bottom right
+      if (x == n-1 && y == n-1) { // we got to the bottom right
         tl_br_connected = 1;
         break;
       }
