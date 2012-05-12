@@ -34,6 +34,7 @@ int sizeFlag = 0; // flag: write domain sizes to file
 Billiard bil; // Billiard shape we are using - defined in vergini code
 double dx = -1; // grid spacing
 double k_0 = -1; // k_0 value from vergini
+double alpha = -1; // k_0 * dx
 
 int besselOrder = -1; // highest order bessel function to use for interpolation
 int upsample = -1; // upsampling ratio to use for interpolation
@@ -43,7 +44,7 @@ int interp = 1; // boolean whether or not to interpolate
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -d dx [-k k_0] -M besselOrder -u upsample}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -k k_0 {-d dx | -a alpha } -M besselOrder -u upsample}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
@@ -65,7 +66,7 @@ void processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "f:m:l:d:k:M:u:to1nqs")) != -1) {
+  while ((c = getopt(argc, argv, "f:m:l:d:a:k:M:u:to1nqs")) != -1) {
     switch (c) {
     case 'f':
       SET(file, optarg);
@@ -91,6 +92,9 @@ void processArgs(int argc, char **argv) {
       break;
     case 'd':
       dx = (double)atof(optarg);
+      break;
+    case 'a':
+      alpha = (double)atof(optarg);
       break;
     case 'k':
       k_0 = (double)atof(optarg);
@@ -138,15 +142,18 @@ void processArgs(int argc, char **argv) {
   }
 
   if (mode == 2) {
-    if (dx <= 0) {
-      ERROR("dx not specified or invalid");
-      usage();
-      exit(CMD_LINE_ARG_ERR);
-    }
     if (k_0 <= 0) {
       ERROR("k_0 not specified or invalid");
       usage();
       exit(CMD_LINE_ARG_ERR);
+    }
+    if (dx <= 0) {
+      if (alpha <= 0) {
+        ERROR("dx and alpha not specified or invalid");
+        usage();
+        exit(CMD_LINE_ARG_ERR);
+      }
+      dx = alpha / k_0;
     }
     if (besselOrder <= 0) {
       ERROR("besselOrder not specified or invalid");

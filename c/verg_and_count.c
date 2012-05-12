@@ -30,6 +30,7 @@ char *billiard; // billiard shape string
 char *basis; // basis set string
 char *vc_dx; // grid spacing
 char *k; // k_0 value from vergini
+double vc_alpha = -1; // k * vc_dx (not passed as arg, just used to compute dx from k)
 char *window; // window size on either size of k
 char *fourth_order_coeff; // fourth order vergini coefficient
 char *bessel_order; // highest order bessel function to use for interpolation
@@ -53,10 +54,10 @@ void freeArgs() {
   free(bessel_order);
   free(vc_upsample);
   free(window);
-  free(fourth_order_coeff); // may not be malloc'd
+  free(fourth_order_coeff);
   free(vc_dx);
   free(k);
-  free(remove_spurious); // may not be malloc'd
+  free(remove_spurious);
 }
 
 /*
@@ -76,7 +77,7 @@ void processArgs(int argc, char **argv) {
   SET(fourth_order_coeff, "4");
   SET(remove_spurious, "");
 
-  while ((c = getopt(argc, argv, "n:l:s:d:k:V:4:M:p:u")) != -1) {
+  while ((c = getopt(argc, argv, "n:l:s:d:a:k:V:4:M:p:u")) != -1) {
     switch (c) {
     case 'n':
       SET(name, optarg);
@@ -101,6 +102,9 @@ void processArgs(int argc, char **argv) {
       break;
     case 'd':
       SET(vc_dx, optarg);
+      break;
+    case 'a':
+      vc_alpha = (double)atof(optarg);
       break;
     case 'k':
       SET(k, optarg);
@@ -147,14 +151,17 @@ void processArgs(int argc, char **argv) {
     ERROR("no window was given");
     exit(CMD_LINE_ARG_ERR);
   }
-
-  if (vc_dx == NULL) {
-    ERROR("dx not specified or invalid");
-    exit(CMD_LINE_ARG_ERR);
-  }
   if (k == NULL) {
     ERROR("k not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
+  }
+  if (vc_dx == NULL) {
+    if (vc_alpha <= 0) {
+      ERROR("dx and alpha not specified or invalid");
+      exit(CMD_LINE_ARG_ERR);
+    }
+    vc_dx = (char *)malloc(9*sizeof(char)); //0.dddddd
+    sprintf(vc_dx, "%.6f", vc_alpha/atof(k));
   }
   if (bessel_order == NULL) {
     ERROR("bessel_order not specified or invalid");
