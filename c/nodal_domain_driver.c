@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
       free(maskFile);
     }
 
-    printf("%f,%f,%d,%d,%d,%d\n", k_0, dx, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
+    printf("%f,%f,%d,%d,%d,%d,%d\n", k_0, dx, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count);
 
   }
 
