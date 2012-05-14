@@ -2,12 +2,14 @@
 shape = 'qugrs';
 name = [shape '_2000_to_2020'];
 filename = ['../results/' name '_counts.txt'];
+%filename = '../c/qugrs_1000.1_counts.txt';
 stats = dlmread(filename);
+%%
 ks = stats(:,1);
 counts = stats(:,2);
 
 % constants
-alpha = 0.5;
+alpha = 0.7;
 fontsize = 20;
 
 % qugrs shape
@@ -35,7 +37,7 @@ mean_predicted = (3*sqrt(3) - 5)/pi;
 
 
 scaled_counts = 4*pi*counts./(area*ks.^2);
-ws = 100; %window size
+ws = 1000; %window size
 means = [];
 k_windows = [];
 for i=1:ws:length(counts)
@@ -52,10 +54,12 @@ plot(ks, scaled_counts, '.');
 hold on;
 plot(k_windows, means, 'k-', 'LineWidth', 3);
 plot([min(ks), max(ks)], [mean_predicted, mean_predicted], 'r-', 'LineWidth', 3);
-plot(k_windows, mean_predicted + .5348./sqrt(k_windows.^2*area/(2*pi^2)),'g') % percolation 
+if strcmp(shape, 'perc')
+    plot(k_windows, mean_predicted + .5348./sqrt(k_windows.^2*area/(2*pi^2)),'g') % percolation 
+end
 xlabel('k', 'FontSize', fontsize);
 ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
-legend('data', 'predicted mean', 'measured mean');
+legend('data', 'measured mean', 'predicted mean');
 set(gca, 'FontSize', fontsize);
 print('-deps2c', ['../documents/thesis/figs/results/' name '_mean.eps']);
 
@@ -76,12 +80,12 @@ for i=1:ws:length(counts)
 end
 
 figure;
-plot(k_windows, vars, 'k-', 'LineWidth', 3);
+semilogy(k_windows, vars, 'k-', 'LineWidth', 3);
 hold on;
-plot([min(ks), max(ks)], [variance_predicted, variance_predicted], 'r-', 'LineWidth', 3);
+semilogy([min(ks), max(ks)], [variance_predicted, variance_predicted], 'r-', 'LineWidth', 3);
 xlabel('k', 'FontSize', fontsize);
 ylabel('\sigma^{2}(k)/N(k)', 'FontSize', fontsize);
-legend('predicted variance', 'measured variance');
+legend('measured variance', 'predicted variance');
 set(gca, 'FontSize', fontsize);
 print('-deps2c', ['../documents/thesis/figs/results/' name '_variance.eps']);
 
@@ -90,6 +94,7 @@ interp_counts = stats(:,4);
 
 % interpolations per domain
 figure; plot(interp_counts./counts);
+
 
 % interpolations per pixel
 dxs = alpha ./ ks;
@@ -103,3 +108,8 @@ ylabel('interpolations per pixel', 'FontSize', fontsize);
 legend('data', 'mean'); 
 set(gca, 'FontSize', fontsize);
 %print('-deps2c', '../documents/thesis/figs/results/interp_counts.eps');
+
+%% check wtms
+wtms = stats(:,7);
+figure;
+plot(wtms, scaled_counts, '.');

@@ -1,5 +1,5 @@
 %% read data
-name = 'qugrs_1000_to_1200_sizes';
+name = 'perc_100_to_2000_sizes';
 sizes = dlmread(['../results/' name '.txt']);
 %% scaling for percolation
 k = 115;
