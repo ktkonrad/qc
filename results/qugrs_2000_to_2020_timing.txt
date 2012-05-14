@@ -1,0 +1,314 @@
+vergini found 38 states in k=[2000.000000,2000.200000]; (38 after clipping)
+solving took 162.350006 seconds
+evaluating took 17106.240234 seconds
+counting took 502.050000 seconds
+vergini found 39 states in k=[2000.200000,2000.400000]; (39 after clipping)
+solving took 156.250000 seconds
+evaluating took 16780.869141 seconds
+counting took 531.720000 seconds
+vergini found 39 states in k=[2000.400000,2000.600000]; (39 after clipping)
+solving took 164.929993 seconds
+evaluating took 16800.810547 seconds
+counting took 542.120000 seconds
+vergini found 42 states in k=[2000.600000,2000.800000]; (42 after clipping)
+solving took 189.149994 seconds
+evaluating took 16811.718750 seconds
+counting took 576.200000 seconds
+vergini found 38 states in k=[2000.800000,2001.000000]; (38 after clipping)
+solving took 183.610001 seconds
+evaluating took 16928.029297 seconds
+counting took 501.920000 seconds
+vergini found 39 states in k=[2001.000000,2001.200000]; (39 after clipping)
+solving took 178.919998 seconds
+evaluating took 17293.419922 seconds
+counting took 525.200000 seconds
+vergini found 38 states in k=[2001.200000,2001.400000]; (38 after clipping)
+solving took 174.020004 seconds
+evaluating took 16815.500000 seconds
+counting took 506.710000 seconds
+vergini found 40 states in k=[2001.400000,2001.600000]; (40 after clipping)
+solving took 194.259995 seconds
+evaluating took 17385.500000 seconds
+counting took 558.380000 seconds
+vergini found 39 states in k=[2001.600000,2001.800000]; (39 after clipping)
+solving took 190.570007 seconds
+evaluating took 16991.529297 seconds
+counting took 524.750000 seconds
+vergini found 38 states in k=[2001.800000,2002.000000]; (38 after clipping)
+solving took 179.360001 seconds
+evaluating took 16944.160156 seconds
+counting took 504.890000 seconds
+vergini found 40 states in k=[2002.000000,2002.200000]; (40 after clipping)
+solving took 95.180000 seconds
+evaluating took 11027.450195 seconds
+counting took 424.400000 seconds
+vergini found 40 states in k=[2002.200000,2002.400000]; (40 after clipping)
+solving took 144.869995 seconds
+evaluating took 16751.669922 seconds
+counting took 523.800000 seconds
+vergini found 39 states in k=[2002.400000,2002.600000]; (39 after clipping)
+solving took 143.289993 seconds
+vergini found 39 states in k=[2002.600000,2002.800000]; (39 after clipping)
+solving took 96.000000 seconds
+evaluating took 11023.879883 seconds
+counting took 415.910000 seconds
+vergini found 40 states in k=[2002.800000,2003.000000]; (40 after clipping)
+solving took 145.550003 seconds
+evaluating took 16982.279297 seconds
+counting took 531.580000 seconds
+vergini found 39 states in k=[2003.000000,2003.200000]; (39 after clipping)
+solving took 159.520004 seconds
+evaluating took 17504.550781 seconds
+counting took 527.360000 seconds
+vergini found 39 states in k=[2003.200000,2003.400000]; (39 after clipping)
+solving took 157.639999 seconds
+evaluating took 12363.150391 seconds
+counting took 631.690000 seconds
+vergini found 39 states in k=[2003.400000,2003.600000]; (39 after clipping)
+solving took 159.850006 seconds
+evaluating took 12284.949219 seconds
+counting took 626.710000 seconds
+vergini found 39 states in k=[2003.600000,2003.800000]; (39 after clipping)
+solving took 197.259995 seconds
+evaluating took 21442.560547 seconds
+counting took 457.590000 seconds
+vergini found 40 states in k=[2004.000000,2004.200000]; (40 after clipping)
+solving took 196.869995 seconds
+evaluating took 21544.210938 seconds
+counting took 453.920000 seconds
+vergini found 39 states in k=[2004.400000,2004.600000]; (39 after clipping)
+solving took 191.919998 seconds
+evaluating took 21404.679688 seconds
+counting took 454.100000 seconds
+vergini found 37 states in k=[2004.600000,2004.800000]; (37 after clipping)
+solving took 190.610001 seconds
+evaluating took 21203.939453 seconds
+counting took 411.310000 seconds
+vergini found 39 states in k=[2004.800000,2005.000000]; (39 after clipping)
+solving took 193.630005 seconds
+evaluating took 21314.980469 seconds
+counting took 456.530000 seconds
+vergini found 41 states in k=[2005.200000,2005.400000]; (41 after clipping)
+solving took 141.800003 seconds
+evaluating took 11346.669922 seconds
+counting took 553.210000 seconds
+vergini found 39 states in k=[2005.400000,2005.600000]; (39 after clipping)
+solving took 144.990005 seconds
+evaluating took 17060.451172 seconds
+counting took 528.380000 seconds
+vergini found 39 states in k=[2005.600000,2005.800000]; (39 after clipping)
+solving took 144.630005 seconds
+evaluating took 11272.280273 seconds
+counting took 462.390000 seconds
+vergini found 39 states in k=[2005.800000,2006.000000]; (39 after clipping)
+solving took 148.479996 seconds
+evaluating took 16995.929688 seconds
+counting took 503.870000 seconds
+vergini found 40 states in k=[2006.000000,2006.200000]; (40 after clipping)
+solving took 136.419998 seconds
+evaluating took 17367.119141 seconds
+counting took 551.410000 seconds
+vergini found 39 states in k=[2006.200000,2006.400000]; (39 after clipping)
+solving took 133.410004 seconds
+evaluating took 16855.320312 seconds
+counting took 504.210000 seconds
+vergini found 41 states in k=[2006.400000,2006.600000]; (41 after clipping)
+solving took 147.199997 seconds
+evaluating took 16978.980469 seconds
+counting took 553.140000 seconds
+vergini found 40 states in k=[2006.600000,2006.800000]; (40 after clipping)
+solving took 148.720001 seconds
+evaluating took 17083.240234 seconds
+counting took 552.230000 seconds
+vergini found 40 states in k=[2006.800000,2007.000000]; (40 after clipping)
+solving took 154.619995 seconds
+vergini found 39 states in k=[2007.000000,2007.200000]; (39 after clipping)
+solving took 143.979996 seconds
+vergini found 38 states in k=[2007.200000,2007.400000]; (38 after clipping)
+solving took 142.130005 seconds
+vergini found 39 states in k=[2007.400000,2007.600000]; (39 after clipping)
+solving took 104.680000 seconds
+evaluating took 11428.139648 seconds
+counting took 492.200000 seconds
+vergini found 40 states in k=[2007.600000,2007.800000]; (40 after clipping)
+solving took 146.059998 seconds
+vergini found 40 states in k=[2007.800000,2008.000000]; (40 after clipping)
+solving took 153.440002 seconds
+vergini found 38 states in k=[2008.000000,2008.200000]; (38 after clipping)
+solving took 148.880005 seconds
+evaluating took 12326.809570 seconds
+counting took 580.460000 seconds
+vergini found 41 states in k=[2008.200000,2008.400000]; (41 after clipping)
+solving took 134.330002 seconds
+evaluating took 16914.378906 seconds
+counting took 554.470000 seconds
+vergini found 38 states in k=[2008.400000,2008.600000]; (38 after clipping)
+solving took 161.669998 seconds
+evaluating took 16801.929688 seconds
+counting took 502.930000 seconds
+vergini found 40 states in k=[2008.600000,2008.800000]; (40 after clipping)
+solving took 153.210007 seconds
+evaluating took 17056.830078 seconds
+counting took 559.470000 seconds
+vergini found 41 states in k=[2008.800000,2009.000000]; (41 after clipping)
+solving took 156.960007 seconds
+vergini found 39 states in k=[2009.000000,2009.200000]; (39 after clipping)
+solving took 142.399994 seconds
+evaluating took 17468.378906 seconds
+counting took 530.930000 seconds
+vergini found 40 states in k=[2009.200000,2009.400000]; (40 after clipping)
+solving took 151.610001 seconds
+evaluating took 17173.929688 seconds
+counting took 538.480000 seconds
+vergini found 37 states in k=[2009.600000,2009.800000]; (37 after clipping)
+solving took 137.149994 seconds
+evaluating took 17056.878906 seconds
+counting took 481.750000 seconds
+vergini found 40 states in k=[2009.800000,2010.000000]; (40 after clipping)
+solving took 155.860001 seconds
+vergini found 41 states in k=[2010.000000,2010.200000]; (41 after clipping)
+solving took 150.100006 seconds
+evaluating took 17164.679688 seconds
+counting took 562.480000 seconds
+vergini found 41 states in k=[2010.200000,2010.400000]; (41 after clipping)
+solving took 149.100006 seconds
+evaluating took 17193.839844 seconds
+counting took 555.390000 seconds
+vergini found 38 states in k=[2010.400000,2010.600000]; (38 after clipping)
+solving took 133.000000 seconds
+evaluating took 17064.419922 seconds
+counting took 512.250000 seconds
+vergini found 41 states in k=[2010.600000,2010.800000]; (41 after clipping)
+solving took 142.050003 seconds
+vergini found 39 states in k=[2010.800000,2011.000000]; (39 after clipping)
+solving took 143.289993 seconds
+vergini found 40 states in k=[2011.000000,2011.200000]; (40 after clipping)
+solving took 152.669998 seconds
+vergini found 37 states in k=[2011.200000,2011.400000]; (37 after clipping)
+solving took 153.220001 seconds
+vergini found 41 states in k=[2011.400000,2011.600000]; (41 after clipping)
+solving took 142.000000 seconds
+vergini found 40 states in k=[2011.600000,2011.800000]; (40 after clipping)
+solving took 151.570007 seconds
+vergini found 40 states in k=[2011.800000,2012.000000]; (40 after clipping)
+solving took 152.199997 seconds
+vergini found 37 states in k=[2012.000000,2012.200000]; (37 after clipping)
+solving took 147.380005 seconds
+evaluating took 21495.689453 seconds
+counting took 423.630000 seconds
+vergini found 37 states in k=[2012.400000,2012.600000]; (37 after clipping)
+solving took 153.839996 seconds
+evaluating took 21464.759766 seconds
+counting took 432.350000 seconds
+vergini found 40 states in k=[2012.600000,2012.800000]; (40 after clipping)
+solving took 151.470001 seconds
+evaluating took 21620.250000 seconds
+counting took 470.690000 seconds
+vergini found 40 states in k=[2013.000000,2013.200000]; (40 after clipping)
+solving took 133.050003 seconds
+evaluating took 17272.298828 seconds
+counting took 554.840000 seconds
+vergini found 38 states in k=[2013.200000,2013.400000]; (38 after clipping)
+solving took 148.050003 seconds
+evaluating took 21701.169922 seconds
+counting took 443.860000 seconds
+vergini found 37 states in k=[2013.600000,2013.800000]; (37 after clipping)
+solving took 153.330002 seconds
+evaluating took 21345.230469 seconds
+counting took 416.920000 seconds
+vergini found 41 states in k=[2013.800000,2014.000000]; (41 after clipping)
+solving took 156.789993 seconds
+vergini found 39 states in k=[2014.000000,2014.200000]; (39 after clipping)
+solving took 104.760002 seconds
+evaluating took 11462.339844 seconds
+counting took 530.340000 seconds
+vergini found 39 states in k=[2014.200000,2014.400000]; (39 after clipping)
+solving took 150.669998 seconds
+evaluating took 12457.250000 seconds
+counting took 624.760000 seconds
+vergini found 40 states in k=[2014.400000,2014.600000]; (40 after clipping)
+solving took 149.360001 seconds
+evaluating took 17277.939453 seconds
+counting took 541.550000 seconds
+vergini found 39 states in k=[2014.800000,2015.000000]; (39 after clipping)
+solving took 248.639999 seconds
+evaluating took 36629.777344 seconds
+counting took 661.140000 seconds
+vergini found 39 states in k=[2015.000000,2015.200000]; (39 after clipping)
+solving took 139.559998 seconds
+evaluating took 17361.150391 seconds
+counting took 510.190000 seconds
+vergini found 40 states in k=[2015.200000,2015.400000]; (40 after clipping)
+solving took 141.190002 seconds
+evaluating took 17408.478516 seconds
+counting took 567.780000 seconds
+vergini found 40 states in k=[2015.400000,2015.600000]; (40 after clipping)
+solving took 142.789993 seconds
+evaluating took 17337.009766 seconds
+counting took 559.590000 seconds
+vergini found 40 states in k=[2015.600000,2015.800000]; (40 after clipping)
+solving took 151.550003 seconds
+evaluating took 17320.769531 seconds
+counting took 540.450000 seconds
+vergini found 38 states in k=[2015.800000,2016.000000]; (38 after clipping)
+solving took 140.779999 seconds
+evaluating took 17182.931641 seconds
+counting took 511.290000 seconds
+vergini found 41 states in k=[2016.000000,2016.200000]; (41 after clipping)
+solving took 143.460007 seconds
+evaluating took 17277.990234 seconds
+counting took 583.720000 seconds
+vergini found 39 states in k=[2016.200000,2016.400000]; (39 after clipping)
+solving took 96.809998 seconds
+evaluating took 10994.719727 seconds
+counting took 405.060000 seconds
+vergini found 39 states in k=[2016.400000,2016.600000]; (39 after clipping)
+solving took 149.570007 seconds
+vergini found 38 states in k=[2016.800000,2017.000000]; (38 after clipping)
+solving took 155.160004 seconds
+vergini found 40 states in k=[2017.000000,2017.200000]; (40 after clipping)
+solving took 98.580002 seconds
+evaluating took 11180.099609 seconds
+counting took 426.720000 seconds
+vergini found 39 states in k=[2017.200000,2017.400000]; (39 after clipping)
+solving took 154.320007 seconds
+evaluating took 21598.509766 seconds
+counting took 464.580000 seconds
+vergini found 39 states in k=[2017.400000,2017.600000]; (39 after clipping)
+solving took 144.449997 seconds
+vergini found 40 states in k=[2017.600000,2017.800000]; (40 after clipping)
+solving took 144.550003 seconds
+vergini found 40 states in k=[2017.800000,2018.000000]; (40 after clipping)
+solving took 145.509995 seconds
+vergini found 40 states in k=[2018.000000,2018.200000]; (40 after clipping)
+solving took 102.300003 seconds
+evaluating took 11507.490234 seconds
+counting took 525.140000 seconds
+vergini found 39 states in k=[2018.200000,2018.400000]; (39 after clipping)
+solving took 158.440002 seconds
+vergini found 41 states in k=[2018.400000,2018.600000]; (41 after clipping)
+solving took 148.919998 seconds
+vergini found 40 states in k=[2018.600000,2018.800000]; (40 after clipping)
+solving took 148.089996 seconds
+vergini found 40 states in k=[2018.800000,2019.000000]; (40 after clipping)
+solving took 145.399994 seconds
+vergini found 39 states in k=[2019.000000,2019.200000]; (39 after clipping)
+solving took 246.309998 seconds
+evaluating took 37556.511719 seconds
+counting took 608.720000 seconds
+vergini found 40 states in k=[2019.200000,2019.400000]; (40 after clipping)
+solving took 145.440002 seconds
+evaluating took 22169.621094 seconds
+counting took 544.140000 seconds
+vergini found 40 states in k=[2019.400000,2019.600000]; (40 after clipping)
+solving took 148.429993 seconds
+evaluating took 21747.470703 seconds
+counting took 527.590000 seconds
+vergini found 39 states in k=[2019.600000,2019.800000]; (39 after clipping)
+solving took 153.419998 seconds
+evaluating took 21632.810547 seconds
+counting took 530.670000 seconds
+vergini found 40 states in k=[2019.800000,2020.000000]; (40 after clipping)
+solving took 155.850006 seconds
+evaluating took 21664.291016 seconds
+counting took 504.280000 seconds
