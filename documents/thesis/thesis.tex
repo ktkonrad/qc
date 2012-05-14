@@ -222,7 +222,7 @@ $\Delta E$ is chosen such that $t \lesssim 10^{-4}$. Using Weyl's law we can obt
 \[
 n \approx \frac{\vert \Omega \vert}{4 \pi} ((k + \Delta k)^{2} - (k - \Delta k)^{2}) = \frac{\vert \Omega \vert}{\pi} k \Delta k
 \]
-where $k = \sqrt{E}$ and $\Delta k = \sqrt{\Delta E}$.
+where $k = \sqrt{E}$ and $2 k \Delta k = \Delta E$.
 
 We choose $\Delta E$ to be as large as possible while keeping errors small in order to maximize $n$, allowing more eigenfunctions to be computed from each evaluation of basis functions.
 
@@ -388,7 +388,55 @@ We construct a surrogate function
 \]
 as a local approximation to the eigenfunction $u(\rr)$ by fitting the coeffiecients $c_{i} \in \mathbb{R}$ to minimize the error $\Vert u - \tilde{u} \Vert_{2}$. This function can then be sampled at a higher resolution within the region in question. We define the sampling ratio of this surrogate function to the original eigenfunction to be $\rho$.
 
-Interpolation occurs only between the central four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. After testing various stencil shapes we selected one using 24 points consisting of a four by four square with two additional points on each side of the square. See appendix \ref{sec:params} for a discussion of the choice of stencil, $M$, and $h$.
+\chapter{Parameter Selection}
+\label{sec:params}
+Interpolation occurs only between the central four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. Only stencil shapes that which are symmetric about the four central points were considered. The four shapes considered are shown in figure \ref{fig:stencils}. The most important consideration in choosing a stencil was the accuracy of the interpolation. The size of the stencil affects the computational cost of interpolation but this difference is trivial.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_no_corners_centered.eps}
+    \hspace{1.5 cm}
+    \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_centered.eps}
+    \linebreak
+    \linebreak
+    \includegraphics[width=0.3\textwidth]{figs/stencils/4x4+2_centered.eps}
+    \hspace{0.4 cm}
+    \includegraphics[width=0.3\textwidth]{figs/stencils/6x6_no_corners_centered.eps}
+    \caption{The four stencil shapes considered for interpolation}
+    \label{fig:stencils}
+  \end{center}
+\end{figure}
+
+The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must be considered simultaneously with the choice of stencil. Figure \ref{fig:errors_all} shows a comparison of the infinity norm of the interpolation error over various values of $M$ and $\alpha$ for each of the stencils shown above.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{figs/interpolation/error_norms_1.eps}
+    \linebreak
+    \includegraphics[width=0.8\textwidth]{figs/interpolation/error_norms_2.eps}
+    \caption{Comparison of interpolation error norms over $M$ and $\alpha$ for each stencil.}
+    \label{fig:errors_all}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{figs/interpolation/error_norms_3.eps}
+    \linebreak
+    \includegraphics[width=0.8\textwidth]{figs/interpolation/error_norms_4.eps}
+  \end{center}
+\end{figure}
+
+Based on these data, we chose to use the 24-point stencil with $M=9$ and $alpha \in [0.5, 0.7]$ for interpolation. For this choice of parameters we expect errors in interpolated eigenfunction values of order $10^{-6}$
+ Figure \ref{fig:rpw_count_errors} shows the error in nodal domain counts for random plane waves with and without interpolation using these parameters.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/interpolation/rpw_errors.eps}
+    \caption{Error in nodal domain count for random plane waves}
+    \label{fig:rpw_count_errors}
+  \end{center}
+\end{figure}
 
 \subsection{Numerical Implementation}
 We construct a matrix to transform values on a stencil to interpolated values in the center of the stencil, performing the process described above with a single matrix multiplication. We construct the interpolation matrix as
@@ -576,9 +624,7 @@ We computed approximately 100,000 eigenfunctions and counted 1.5 billion nodal d
 
 
 \section{Mean of number of nodal domains}
-We find the mean number of nodal domains to be in accordance with conjecture \ref{conj:mean_prediction} for the both the Sinai and stadium billiards. In both cases, there is a slow convergence toward the prediction from above \ref{fig:mean}.
-
-% TODO: t-test at high k
+We reject conjecture \ref{conj:mean_prediction} for the both the Sinai and stadium billiards. In both cases, there is a slow convergence from above to a mean that differs from the predicted value \ref{fig:mean}. The rate of convergence (agrees/disagrees) with the percolation model.
 
 \begin{figure}
   \begin{center}
@@ -617,7 +663,7 @@ The variance of number of nodal domains in quantum chaotic eigenfunctions does n
 \end{figure}
 
 \section{Areas of nodal domains}
-The distribution of area of nodal domains agrees 
+The distribution of area of nodal domains is slightly different. TODO: confidence that slopes differ
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_sizes.eps}
@@ -639,6 +685,9 @@ At $\alpha = 0.5$ interpolation occured on average $0.1512$ times per nodal doma
 At $\alpha = 0.7$ interpolation occured on average $0.3838$ times per nodal domain and $9.1e-4$ times per pixel.
 
 % TODO: time saved by interpolating
+
+\chapter{Conclusion}
+By combining the scaling method of Vergini and Saraceno \cite{vergini} with adaptive interpolation, we have obtained nodal domain data at energies much higher than any previous work. Comparing this data to the predictions of Bogomolny and Schmidt \cite{bogomolny} from the percolation model, we find different values for the mean and variance of nodal domain counts as well as the distribution of sizes of nodal domains.
 
 \appendix
 \chapter{Definition of Ergodicity}
@@ -722,7 +771,7 @@ The radial differential equation is known as Bessel's equation and has solutions
 \[
 R(r) = J_{n}(k r)
 \]
-where $k \in \mathbb{R}$ is allowed to take discrete values determined by boundary conditions.
+where $J_{n}$ is a regular Bessel function and $k \in \mathbb{R}$ is allowed to take discrete values determined by boundary conditions.
 
 Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of the form
 
@@ -731,46 +780,6 @@ Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of 
   b_{0} J_{0}(kr) + \sum_{n = 1}^{\infty}{a_{n} J_n(kr) \sin{n \theta} + b_{n} J_n{kr} \cos{n \theta}}
 \end{equation}
 
-\chapter{Interpolation Parameter Selection}
-\label{sec:params}
-In this section, we discuss the various stencils, $M$, and $\alpha$ values that were considered and how we picked our particular values.
-Only stencil shapes that which are symmetric about the four central points were considered. The four shapes considered are shown in figure \ref{fig:stencils}. The most important consideration in choosing a stencil was the accuracy of the interpolation. The size of the stencil affects the computational cost of interpolation but this difference is trivial.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_no_corners_centered.eps}
-    \hspace{1.5 cm}
-    \includegraphics[width=0.2\textwidth]{figs/stencils/4x4_centered.eps}
-    \linebreak
-    \linebreak
-    \includegraphics[width=0.3\textwidth]{figs/stencils/4x4+2_centered.eps}
-    \hspace{0.4 cm}
-    \includegraphics[width=0.3\textwidth]{figs/stencils/6x6_no_corners_centered.eps}
-    \caption{The four stencil shapes considered for interpolation}
-    \label{fig:stencils}
-  \end{center}
-\end{figure}
-
-The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must be considered simultaneously with the choice of stencil. Figure \ref{fig:errors_all} shows a comparison of the infinity norm of the interpolation error over various values of $M$ and $\alpha$ for each of the stencils shown above.
-
-%TODO: 4 separate figures
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=1.2\textwidth]{figs/interpolation/error_norms_all.eps}
-    \caption{Comparison of interpolation error norms over $M$ and $\alpha$ for each stencil.}
-    \label{fig:errors_all}
-  \end{center}
-\end{figure}
-
-Based on these data, we chose to use $M=9$ and $alpha \in [0.5, 0.7]$ for interpolation. Figure \ref{fig:rpw_count_errors} shows the error in nodal domain counts for random plane waves with and without interpolation.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{figs/interpolation/rpw_errors.eps}
-    \caption{Error in nodal domain count for random plane waves}
-    \label{fig:rpw_count_errors}
-  \end{center}
-\end{figure}
 
 
 \chapter{Code Interface}
@@ -802,10 +811,6 @@ The vc program combines verg and count to compute eigenfunctions and count their
 perc -r 100:6:1000 -N 100
 \end{verbatim}
 The perc program generates random grids using the percolation model described in \ref{sec:percolation} and counts the nodal domains in the generated grids.
-
-\chapter{Code Notes}
-...
-
 
 \bibliographystyle{plain}
 \bibliography{thesis}
