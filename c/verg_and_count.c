@@ -160,8 +160,8 @@ void processArgs(int argc, char **argv) {
       ERROR("dx and alpha not specified or invalid");
       exit(CMD_LINE_ARG_ERR);
     }
-    vc_dx = (char *)malloc(9*sizeof(char)); //0.dddddd
-    sprintf(vc_dx, "%.6f", vc_alpha/atof(k));
+    vc_dx = (char *)malloc(19*sizeof(char)); // 19 for: 0.\d{16}\0
+    sprintf(vc_dx, "%.16f", vc_alpha/atof(k));
   }
   if (bessel_order == NULL) {
     ERROR("bessel_order not specified or invalid");
