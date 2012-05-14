@@ -4,7 +4,6 @@ ns = [3.5,4,4.5,5.5];
 upsample = 10;
 Ms = 6:11;
 
-figure;
 j = 1;
 [s, names] = all_stencils();
 
@@ -20,14 +19,17 @@ for dx = dxs
     i = i+1;
 end
 
-subplot(2,2,j);
+figure;
 
 %%% plot error_norms vs k*dx at each M %%%
 loglog(k*dxs, error_norms);
 legend(arrayfun(@(x) strcat('M = ', num2str(x)), Ms, 'UniformOutput', false));
+set(gca, 'FontSize', 20);
 xlabel('\alpha', 'FontSize', 20);
 ylabel('||errors||_{\infty}', 'FontSize', 20);
 title(names{j+1}, 'FontSize', 26);
+
+print('-deps2c', ['../documents/thesis/figs/interpolation/error_norms_' num2str(j) '.eps']);
 
 %%% 3d plot error_norms vs k*dx vs M %%%
 %figure;surf(log10(k*dxs), Ms, log10(error_norms));xlabel('log(k*dx)');ylabel('M'),zlabel('log(error)');
