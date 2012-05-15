@@ -19,7 +19,7 @@ k = 2*pi*n./(L.*ppw);  % should all be 1.0
 %% specify ppw
 ppw = [2:10 12:2:18 20:6:44 50:10:90 100:20:160];
 %ppw = [2 200 260];
-n0 = 20;
+n0 = 100;
 n = n0 .* ppw ./ ppw(1);
 L = 2*pi./ppw .* n; % width of window
 dx = L./n;
