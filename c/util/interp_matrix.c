@@ -215,7 +215,7 @@ gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
 
   i = 0;
   for (x = -0.5 ; x < 0.5+step/2 ; x += step) {
-    for (y = -0.5 ; y < 0.5+step/2 ; y += step) {
+    for (y = 0.5 ; y > -0.5-step/2 ; y -= step) {
       points_out[i].x = x;
       points_out[i++].y = y;
     }

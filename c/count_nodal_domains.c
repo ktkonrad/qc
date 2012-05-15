@@ -115,7 +115,9 @@ int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k
   }
 
   #ifdef DEBUG
-    array2file(grid, ny, nx, "../data/masked.dat");
+  char outfile[100];
+  sprintf(outfile, "../data/masked_%f.dat", k);
+  array2file(grid, ny, nx, outfile);
   #endif
   
   int nd = 0; // count of nodal domains
@@ -475,7 +477,7 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
   int rc;
   int currentSign;
   gsl_vector *interp_input, *interp_output;
-  int tl_br_connected = 0; // flag indicated whether (x,y) is connected to (x+1,y+1)
+  int tl_br_connected = 0; // flag indicated whether (j,i) is connected to (j+1,i+1)
   int **interp_counted = imatrix(n, n);
   stack *s = newStack();
 
@@ -540,8 +542,9 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     gsl_vector_set(interp_input, 22, grid[i+3][j]);
     gsl_vector_set(interp_input, 23, grid[i+3][j+1]);
   
-    // check that we are not near the boundary
-    // TODO: figure out what to do if we are near the boundary
+    // check if we are near the boundary
+    // if we are near the boundary we can still interpolate
+    //   be there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
     for (k = 0 ; k < interp_input->size ; k++) {
       if (IS_MASKED(gsl_vector_get(interp_input, k))) {
         ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
@@ -599,11 +602,13 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
 
     #ifdef DEBUG
       // debug output
-      char filename[50];
+    char filename[50];
+    if (verb) {
       sprintf(filename, "../data/interpolated_%d_%d.dat", j, i);
       FILE *outfile = fopen(filename, "w");
       gsl_vector_fprintf(outfile, interp_output, "%.16g");
       fclose(outfile);
+    }
     #endif
     
     // cleanup
@@ -613,6 +618,14 @@ void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int
     free_imatrix(interp_counted);
 
   }
+
+  #ifdef DEBUG
+  // debug output
+  if (verb) {
+    printf("(%d, %d): tl_br_connected = %d\n", j, i, tl_br_connected);
+  }
+  #endif
+  
 
   // set appropriate values in counted
   if (tl_br_connected) {
