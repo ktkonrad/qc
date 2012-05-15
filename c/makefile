@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -O2 -m64 -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
+CFLAGS = -m64 -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
 
 objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util/util_verg.o
@@ -10,8 +10,13 @@ MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -L/usr/lib64/lapack -L/usr/li
 
 all: count perc vc
 
+# make with debug flags
 debug: CC += -DDEBUG -g
 debug: all
+
+# make with optimization flags
+opt: CFLAGS += -O2
+opt: all
 
 count: nodal_domain_driver.o $(objects) $(dependencies)
 	$(CC) -o count nodal_domain_driver.o $(objects) $(dependencies) $(CFLAGS)
