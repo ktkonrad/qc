@@ -112,7 +112,15 @@ We focus our investigation on two billard shapes: the generalized rectangular Si
 
 The Sinai billiard is constructed from circular arcs that meet at $(1,1)$ and is parameterized by two angles, $\theta_{1}$ and $\theta_{2}$, the angles from horizonal and vertical, respectively, of the arcs at $(1,1)$. The Sinai billiard is said to demonstrate ``hard chaos'' becase there are no stable orbits.
 
-The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. The stadium billiard contians neutrally stable orbits, specifically those with vertical momentum in the rectangular region. Neutrally stable orbits have zero Lyapunov exponent but any perturbation will cause them to have positive Lyapunov exponenet. The existence of such orbits implies that the stadium does not demonstrate hard chaos but because these orbits occupy a measure zero subset of phase space, the stadium still demonstrates chaotic properties.
+The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. The stadium billiard contians neutrally stable orbits, specifically those with vertical momentum in the rectangular region. Neutrally stable orbits have zero Lyapunov exponent but any perturbation will cause them to have positive Lyapunov exponenet. The existence of such orbits implies that the stadium does not demonstrate hard chaos but because these orbits occupy a measure zero subset of phase space, the stadium still demonstrates chaotic properties. These classical orbits are manifest in quantum eigenfunctions as so-called ``bouncing-ball'' modes \ref{fig:bouncing_ball_mode}.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.3\textwidth]{figs/domains/qugrs_fig.eps}
+    \caption{A bouncing ball mode in the stadium billiard with $k = 500.0739$}
+    \label{fig:bouncing_ball_mode}
+  \end{center}
+\end{figure}
 
 \section{Percolation Model}
 \label{sec:percolation}
@@ -628,10 +636,9 @@ We reject conjecture \ref{conj:mean_prediction} for the both the Sinai and stadi
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_mean.eps}
+    \includegraphics[width=\textwidth]{figs/results/qugrs_all_mean.eps}
     \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_mean.eps}
-
-    \caption{Mean number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
+    \caption{Mean number of nodal domains. Above: Sinai; below: stadium}
     \label{fig:mean}
   \end{center}
 \end{figure}
@@ -639,9 +646,10 @@ We reject conjecture \ref{conj:mean_prediction} for the both the Sinai and stadi
 \begin{figure}
   \begin{center}
     \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_mean.eps}
+    \includegraphics[width=\textwidth]{figs/results/rpw_all_mean.eps}
+    \caption{Mean number of nodal domains. Above: Percolation; below: random plane waves}
   \end{center}
 \end{figure}
-
 
 \section{Variance of number of nodal domains}
 The variance of number of nodal domains in quantum chaotic eigenfunctions does not agree with \ref{conj:variance_prediction} for either billiard shape.
@@ -661,6 +669,19 @@ The variance of number of nodal domains in quantum chaotic eigenfunctions does n
     \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_variance.eps}
   \end{center}
 \end{figure}
+
+\section{Distribution of number of nodal domains}
+The number of nodal domains for the Sinai billiard has a slight left skew \ref{fig:qugrs_hist}. This skew can be attributed to the fact that the nodal domain count is still converging to its asymptotic mean at the values of $k$ examined.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/results/qugrs_2000_to_2020_count_histogram.eps}
+    \caption{Histogram of scaled nodal domain counts for the Sinai billiard with $k \in [2000, 2020]$.}
+    \label{fig:qugrs_hist}
+  \end{center}
+\end{figure}
+
+There is a strong left skew in the distribution of nodal domain counts in the stadium billiard. This is thought to be due to bouncing ball modes.
 
 \section{Areas of nodal domains}
 The distribution of area of nodal domains is slightly different. TODO: confidence that slopes differ
