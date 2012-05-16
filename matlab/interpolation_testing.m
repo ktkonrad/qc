@@ -4,7 +4,7 @@ dx = 1 / n; % for coarse grid
 ppw = 5; % for coarse grid
 k = 2*pi / (ppw * dx);
 
-M = 8; % bessel function order
+M = 9; % bessel function order
 
 % k = 2*pi / lambda
 % ppw = lambda / dx = 2*pi / k*dx
@@ -19,12 +19,12 @@ figure; imagesc(g>0);
 
 
 %% output rpw to text files
-dlmwrite('../data/rpw.dat', g, 'precision', '%.16g');
-dlmwrite('../data/rpw_hi.dat', f, 'precision', '%.16g');
+dlmwrite('../data/rpw.dat', lo_res, 'precision', '%.16g');
+dlmwrite('../data/rpw_hi.dat', hi_res, 'precision', '%.16g');
 
 %% output rpw to sta
 sta=zeros(1,n,n);
-sta(1,:,:) = g;
+sta(1,:,:) = lo_res;
 addpath('../vergini/');
 save_sta(sta, k, '../data/rpw');
 
@@ -109,7 +109,7 @@ figure; imagesc(hi_res>0);
 
 %% compare interpolated with fine grid
 sub = hi_res(260:280, 160:180);
-interp = fliplr(read_dumped('../data/interpolated_12_7.dat', upsample+1, upsample+1));
+interp = read_dumped('../data/interpolated_12_7.dat', upsample+1, upsample+1);
 figure; imagesc(interp); title('interpolated');
 figure; imagesc(sub); title('high resolution');
 figure; imagesc(interp>0); title('interpolated');
@@ -129,3 +129,18 @@ for r=3:n-3
     end
 end
 figure; imagesc(interpolated_all);
+hold on;
+plot([60.5,361.5,361.5,60.5,60.5],[60.5,60.5,361.5,361.5,60.5],'k');
+axis off;
+rectangle('Position', trouble_rect*upsample, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+print('-deps2c', '../documents/thesis/figs/interpolation/interp_sample_interpolated_all.eps');
+
+
+figure; imagesc(interpolated_all>0);
+hold on;
+plot([60.5,361.5,361.5,60.5,60.5],[60.5,60.5,361.5,361.5,60.5],'k');
+axis off;
+rectangle('Position', trouble_rect*upsample, 'EdgeColor', 'red', 'LineWidth', 3);
+daspect([1,1,1]);
+print('-deps2c', '../documents/thesis/figs/interpolation/interp_sample_interpolated_all_nodal_domains.eps');

@@ -1,10 +1,12 @@
 %% read all qugrs
 shape = 'qugrs'
-stats=[dlmread('../c/qugrs_600.1_counts.txt'); dlmread('../c/qugrs_800.1_counts.txt'); dlmread('../c/qugrs_1000.1_counts.txt'); dlmread('../c/qugrs_1500.1_counts.txt'); dlmread('../results/qugrs_2000_to_2020_counts.txt')];
+name = [shape '_all'];
+stats=[dlmread('../results/qugrs_all_counts.txt')];
 
 %% read all qust
 shape = 'qust'
-stats=[dlmread('../results/qust_300_to_400_counts.txt'); dlmread('../results/qust_700_to_900_counts.txt'); dlmread('../results/qust_1400_to_1420_counts.txt')];
+name = [shape '_all'];
+stats=dlmread('../results/qust_all_counts.txt');
 %% read single stats file
 shape = 'perc';
 name = [shape '_100_to_2000'];
@@ -56,7 +58,7 @@ scaled_counts = 4*pi*counts./(area*ks.^2);
 %end
 
 k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
-k_width = 50;
+k_width = 3;
 
 for k=k_jumps
     idx = (ks > k - k_width) & (ks <= k);
@@ -73,16 +75,16 @@ plot(k_windows, means, 'k-', 'LineWidth', 3);
 plot([min(ks), max(ks)], [mean_predicted, mean_predicted], 'r-', 'LineWidth', 3);
 
 % fit A + B/sqrt(N)
-p = polyfit(alpha/(k*sqrt(area)), scaled_counts) % theory is [~.5348 .0624]
+p = polyfit(1./ks, scaled_counts, 1) % theory is [~.5348 .0624]
     
-plot(k_windows, p(1)*alpha/(k*sqrt(area)) + p(2),'g') % percolation 
+plot(ks, p(1)*1./ks + p(2),'g') % percolation 
 
     
 xlabel('k', 'FontSize', fontsize);
 ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
-legend('data', 'measured mean', 'predicted mean');
+legend('data', 'measured mean', 'predicted mean', sprintf('%.4f + %.4f/k', p(2), p(1)));
 set(gca, 'FontSize', fontsize);
-%print('-deps2c', ['../documents/thesis/figs/results/' name '_mean.eps']);
+print('-deps2c', ['../documents/thesis/figs/results/' name '_mean.eps']);
 
 %% compute variance
 variance_predicted = 18/pi^2 + 4*sqrt(3)/pi - 25/(2*pi);
@@ -101,7 +103,7 @@ k_windows = [];
 %end
 
 k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
-k_width = 50;
+k_width = 3;
 
 for k=k_jumps
     idx = (ks > k - k_width) & (ks <= k);
@@ -110,14 +112,14 @@ for k=k_jumps
 end
 
 figure;
-semilogy(k_windows, vars, 'k-', 'LineWidth', 3);
+plot(k_windows, vars, 'k-', 'LineWidth', 3);
 hold on;
-semilogy([min(ks), max(ks)], [variance_predicted, variance_predicted], 'r-', 'LineWidth', 3);
+plot([min(ks), max(ks)], [variance_predicted, variance_predicted], 'r-', 'LineWidth', 3);
 xlabel('k', 'FontSize', fontsize);
 ylabel('\sigma^{2}(k)/N(k)', 'FontSize', fontsize);
 legend('measured variance', 'predicted variance');
 set(gca, 'FontSize', fontsize);
-%print('-deps2c', ['../documents/thesis/figs/results/' name '_variance.eps']);
+print('-deps2c', ['../documents/thesis/figs/results/' name '_variance.eps']);
 
 %% check interp counts
 interp_counts = stats(:,4);

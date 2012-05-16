@@ -3,15 +3,24 @@ alpha = 0.5;
 
 N = 100; % number of repetitions
 
-n = numel(L);
+n = numel(k);
+%%
 counts = zeros(n,N);
 scaled_counts = zeros(n,N);
-
-for i=1:n
+%%
+for i=11
     for j=1:N
         [counts(i,j), scaled_counts(i,j)] = count_rpw(alpha, k(i));
     end
 end
 
-figure;
-plot(L, mean(scaled_counts));
+save('rpw_counts.mat', 'counts', 'scaled_counts')
+%% reshape for plotting with analyze_results script
+
+t=repmat(k,N,1);
+t(:);
+ks = t(:);
+c=counts';
+counts = c(:);
+s=scaled_counts';
+scaled_counts = s(:);

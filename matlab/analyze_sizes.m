@@ -1,5 +1,5 @@
 %% read data
-name = 'perc_100_to_2000_sizes';
+name = 'qugrs_all_sizes';
 sizes = dlmread(['../results/' name '.txt']);
 %% scaling for percolation
 k = 115;
@@ -36,13 +36,15 @@ loglog(s,f, 'LineWidth', 3);
 fit_range = [10^1 10^3];
 fit_idx = s > fit_range(1) & s < fit_range(2);
 %p = polyfit(log(s),log(freqs),1);
-p = lsqlin(log(s(fit_idx))', log(freqs(fit_idx)), [], [], 0, 0); % same as above but force zero intercept
-fit = s.^p(1);
+%p = lsqlin(log(s(fit_idx))', log(freqs(fit_idx)), [], [], 0, 0); % same as above but force zero intercept
+[b, b_int] = regress(log(freqs(fit_idx))', log(s(fit_idx))', .01); % same as above but also give confidence interval for slope
+fit = s.^b;
 loglog(s, fit, 'r-.', 'LineWidth', 3);
 
 fontsize = 20;
 set(gca, 'FontSize', fontsize);
 xlabel('s/s_{min}');
 ylabel('n');
+legend('data', 'predicted', sprintf('s^{%.4f}', p(1)));
 
 print('-deps2c', ['../documents/thesis/figs/results/' name '.eps']);
