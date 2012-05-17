@@ -41,7 +41,7 @@ char *remove_spurious; // -u flag to verg
   print a usage statement
 */
 void vc_usage() {
-  fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n");
+  fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n [-q]");
 }
 
 /*
@@ -77,7 +77,7 @@ void processArgs(int argc, char **argv) {
   SET(fourth_order_coeff, "4");
   SET(remove_spurious, "");
 
-  while ((c = getopt(argc, argv, "n:l:s:d:a:k:V:4:M:p:u")) != -1) {
+  while ((c = getopt(argc, argv, "n:l:s:d:a:k:V:4:M:p:uq")) != -1) {
     switch (c) {
     case 'n':
       SET(name, optarg);
@@ -111,6 +111,9 @@ void processArgs(int argc, char **argv) {
       break;
     case 'u':
       RESET(remove_spurious, "-u");
+      break;
+    case 'q':
+      verb = 0;
       break;
     case '?':
       switch (optopt) {

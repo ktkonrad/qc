@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
     double mean = 0.0, variance = 0.0;
 
     int i;
-    grid = createGrid(ny, nx);
+    grid = dmatrix(ny, nx);
     if (!grid) {
       exit(OUT_OF_MEMORY_ERR);
     }
@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
       }
       mean += counts[trial];
     }
-    destroyGrid(grid);
+    free_dmatrix(grid);
     switch (mode) {
     case 0:
       mean /= trials;

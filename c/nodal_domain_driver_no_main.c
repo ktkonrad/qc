@@ -226,11 +226,11 @@ int count_main(int argc, char **argv) {
     bzero(&stats, sizeof(stats));
     count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample, &stats);
 
-    destroyGrid(grid);
+    free_dmatrix(grid);
     free(file);
 
     if (maskFlag) {
-      destroyMask(mask);
+      free_cmatrix(mask);
       free(maskFile);
     }
 
@@ -288,8 +288,8 @@ int count_main(int argc, char **argv) {
         wtm = 0;
       }
 
-      destroyMask(mask);
-      destroyGrid(grid);
+      free_cmatrix(mask);
+      free_dmatrix(grid);
 
       printf("%f, %d, %d, %d, %d, %d, %f\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count, wtm);
 

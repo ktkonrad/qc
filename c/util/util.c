@@ -156,7 +156,7 @@ double **readOneSta(char *file, int *m, int *n) {
     return NULL;
   }
 
-  double **grid = createGrid(ny, nx);
+  double **grid = dmatrix(ny, nx);
   *m = ny;
   *n = nx;
 
@@ -277,7 +277,7 @@ double **readSta(char *file, int *ne, int *m, int *n, double *k, int l) {
     return NULL;
   }
 
-  double **grid = createGrid(ny, nx);
+  double **grid = dmatrix(ny, nx);
   *ne = n_e;
   *m = ny;
   *n = nx;
@@ -377,7 +377,7 @@ char **readMask(char *file, int *m, int *n) {
     return NULL;
   }
 
-  char **mask = createMask(ny, nx);
+  char **mask = cmatrix(ny, nx);
   *m = ny;
   *n = nx;
 
@@ -405,7 +405,7 @@ input:
        ny   - y dimension of array
        nx   - x dimension of array
 */
-double **createGrid(int ny, int nx) {
+double **dmatrix(int ny, int nx) {
   double **grid;
   int i;
   grid = (double **)calloc(ny, sizeof(double *));
@@ -432,7 +432,7 @@ input:
 output:
        returns - uninitialized 2d array
 */
-char **createMask(int ny, int nx) {
+char **cmatrix(int ny, int nx) {
   char **mask;
   int i;
   mask = (char **)calloc(ny, sizeof(char *));
@@ -458,7 +458,7 @@ char **createMask(int ny, int nx) {
          grid - array to be freed
          ny - y dimension of grid
 */
-void destroyGrid(double **grid) {
+void free_dmatrix(double **grid) {
   free(grid[0]);
   free(grid);
 }
@@ -469,7 +469,7 @@ void destroyGrid(double **grid) {
   input:
          mask - array to be freed
 */
-void destroyMask(char **mask) {
+void free_cmatrix(char **mask) {
   free(mask[0]);
   free(mask);
 }

@@ -20,7 +20,7 @@ output:
 char **createMaskFromBilliard(Billiard b, double dx, int *ny, int *nx) {
   *ny = ceil((b.yh - b.yl) / dx) + 1;
   *nx = ceil((b.xh - b.xl) / dx) + 1;
-  char **mask = createMask(*ny, *nx);
+  char **mask = cmatrix(*ny, *nx);
 
   int i, j;
   for (int i = 0 ; i < *ny ; i++)
@@ -44,7 +44,7 @@ output:
 char **createScaledMaskFromBilliard(Billiard b, double dx, int *ny, int *nx, double scale) {
   *ny = ceil((b.yh - b.yl) / dx) + 1;
   *nx = ceil((b.xh - b.xl) / dx) + 1;
-  char **mask = createMask(*ny, *nx);
+  char **mask = cmatrix(*ny, *nx);
 
   int i, j;
   for (i = 0 ; i < *ny ; i++)

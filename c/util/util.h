@@ -11,10 +11,6 @@
 double **readOneSta(char *file, int *m, int *n);
 double **readSta(char *file, int *ne, int *m, int *n, double *k, int l);
 char **readMask(char *file, int *m, int *n);
-double **createGrid(int ny, int nx);
-char **createMask(int ny, int nx);
-void destroyGrid(double **grid);
-void destroyMask(char **mask);
 int array2file(double **array, int m, int n, char *file);
 int intArray2file(int **array, int m, int n, char *file);
 int charArray2file(char **array, int m, int n, char *file);
@@ -23,5 +19,9 @@ double wingTipMass(double **grid, char **mask, int ny, int nx);
 int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m);
 int **imatrix(int rows, int cols);
 void free_imatrix(int **m);
+char **cmatrix(int rows, int cols);
+void free_cmatrix(char **m);
+double **dmatrix(int ny, int nx);
+void free_dmatrix(double **grid);
 
 #endif
