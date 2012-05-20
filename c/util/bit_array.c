@@ -34,17 +34,17 @@ bit_array_t *new_bit_array(int ny, int nx) {
 }
 
 int bit_array_get(bit_array_t *arr, int x, int y) {
-  return (arr->data[y][x/8] & (1 << (x & 7))) > 0 ;
+  return (arr->data[y][x>>3] & (1 << (x & 7))) > 0 ;
 }
 
 void bit_array_set(bit_array_t *arr, int x, int y) {
   // no validation of indicies
-  arr->data[y][x/8] |= 1 << (x & 7); // x & 7 == x % 8
+  arr->data[y][x>>3] |= 1 << (x & 7); // x & 7 == x % 8
 }
 
 void bit_array_reset(bit_array_t *arr, int x, int y) {
   // no validation indicies
-  arr->data[y][x/8] &= ~(1 << (x & 7));
+  arr->data[y][x>>3] &= ~(1 << (x & 7));
 }
 
 void free_bit_array(bit_array_t *arr) {

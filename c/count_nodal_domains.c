@@ -390,7 +390,7 @@ bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha
 
   for (r = 0 ; r < ny - 1 ; r++) {
     for (c = 0 ; c < nx - 1 ; c++) {
-      if (SIGN(grid[r][c]) == SIGN(grid[r][c+1]) == SIGN(grid[r+1][c]) == SIGN(grid[r+1][c+1])) {
+      if (SIGN(grid[r][c]) == SIGN(grid[r][c+1]) && SIGN(grid[r][c+1]) == SIGN(grid[r+1][c]) && SIGN(grid[r+1][c]) == SIGN(grid[r+1][c+1])) {
         bit_array_update_fn = grid[r][c] > 0 ? &bit_array_set : &bit_array_reset;
         for (y = r*upsample_ratio ; y <= (r+1)*upsample_ratio ; y++) {
           for (x = c*upsample_ratio ; x <= (c+1)*upsample_ratio ; x++) {
@@ -427,80 +427,130 @@ bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha
         stores upsampled function value signs in upsampled
 */
 #define IDX(x, y) ((x)*n+(y))
-#define Y_REFLECT_IDX
-#define X_REFLECT_IDX
 void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats, interp_workspace *w) {
   int k;
-  int x, y;
+  int x, y, l;
   int n = upsample + 1;
   int rc;
   int currentSign;
-  
+  int refl_i[STENCIL_WIDTH], refl_j[STENCIL_WIDTH], refl_i_sign[STENCIL_WIDTH], refl_j_sign[STENCIL_WIDTH];
+
   // validate size of interp matrix
   if (interp->size1 != n*n || interp->size2 != NUM_STENCIL_POINTS) {
     ERROR("invalid size for interpolation matrix");
     exit(INTERP_ERR);
   }
 
+  stats->interp_count++;
+
   // check we're not too close to the edge
   // TODO: interpolate on edges by reflecting
   if (i < 2 || i >= ny - 3 || j < 2 || j >= nx - 3) {
     ERROR("trouble spot near edge: (x,y) = (%d,%d)", j, i);
     stats->edge_trouble_count++;
-    return;
-  }
-  stats->interp_count++;
-
-  /*
-    populate the vector of stencil points
-    stencil points are laid out as follows:
-
-
-    y\x  -2  -1   0   1   2   3
-    +--------------------------
-    -2 |          00  01
-    -1 |      02  03  04  05
-    0 |  06  07  08  09  10  11
-    1 |  12  13  14  15  16  17
-    2 |      18  19  20  21
-    3 |          22  23
-  
-    point 8, the top left point of the inner square, is at (x,y)=(0,0)
-  */
-  gsl_vector_set(w->input, 0 , grid[Y_REFLECT_IDX(i-2)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 1 , grid[Y_REFLECT_IDX(i-2)][X_REFLECT_IDX(j+1)]);
-  gsl_vector_set(w->input, 2 , grid[Y_REFLECT_IDX(i-1)][X_REFLECT_IDX(j-1)]);
-  gsl_vector_set(w->input, 3 , grid[Y_REFLECT_IDX(i-1)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 4 , grid[Y_REFLECT_IDX(i-1)][X_REFLECT_IDX(j+1)]);
-  gsl_vector_set(w->input, 5 , grid[Y_REFLECT_IDX(i-1)][X_REFLECT_IDX(j+2)]);
-  gsl_vector_set(w->input, 6 , grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j-2)]);
-  gsl_vector_set(w->input, 7 , grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j-1)]);
-  gsl_vector_set(w->input, 8 , grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 9 , grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j+1)]);
-  gsl_vector_set(w->input, 10, grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j+2)]);
-  gsl_vector_set(w->input, 11, grid[Y_REFLECT_IDX(i)][X_REFLECT_IDX(j+3)]);
-  gsl_vector_set(w->input, 12, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j-2)]);
-  gsl_vector_set(w->input, 13, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j-1)]);
-  gsl_vector_set(w->input, 14, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 15, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j+1)]);
-  gsl_vector_set(w->input, 16, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j+2)]);
-  gsl_vector_set(w->input, 17, grid[Y_REFLECT_IDX(i+1)][X_REFLECT_IDX(j+3)]);
-  gsl_vector_set(w->input, 18, grid[Y_REFLECT_IDX(i+2)][X_REFLECT_IDX(j-1)]);
-  gsl_vector_set(w->input, 19, grid[Y_REFLECT_IDX(i+2)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 20, grid[Y_REFLECT_IDX(i+2)][X_REFLECT_IDX(j+1)]);
-  gsl_vector_set(w->input, 21, grid[Y_REFLECT_IDX(i+2)][X_REFLECT_IDX(j+2)]);
-  gsl_vector_set(w->input, 22, grid[Y_REFLECT_IDX(i+3)][X_REFLECT_IDX(j)]);
-  gsl_vector_set(w->input, 23, grid[Y_REFLECT_IDX(i+3)][X_REFLECT_IDX(j+1)]);
-  
-  // check if we are near the boundary
-  // if we are near the boundary we can still interpolate
-  //   be there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
-  for (k = 0 ; k < w->input->size ; k++) {
-    if (IS_MASKED(gsl_vector_get(w->input, k))) {
-      ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-      stats->boundary_trouble_count++;
-      break;
+    
+    for (l = 0 ; l < STENCIL_WIDTH ; l++) {
+      refl_i_sign[l] = 1;
+      refl_i[l] = i - 2 + l;
+      if (refl_i[l] < 0) {
+        refl_i_sign[l] *= -1;
+        refl_i[l] *= -1;
+      }
+      else if (refl_i[l] > ny - 1) {
+        refl_i_sign[l] = -1;
+        refl_i[l] = 2*ny - refl_i[l] - 1;
+      }
+      refl_j_sign[l] = 1;
+      refl_j[l] = j - 2 + l;
+      if (refl_j[l] < 0) {
+        refl_j_sign[l] = -1;
+        refl_j[l] *= -1;
+      }
+      else if (refl_j[l] > nx - 1) {
+        refl_j_sign[l] *= -1;
+        refl_j[l] = 2*nx - refl_j[l] - 1;
+      }
     }
+    gsl_vector_set(w->input, 0 , refl_i_sign[0]*refl_j_sign[2]*grid[refl_i[0]][refl_j[2]]);
+    gsl_vector_set(w->input, 1 , refl_i_sign[0]*refl_j_sign[3]*grid[refl_i[0]][refl_j[3]]);
+    gsl_vector_set(w->input, 2 , refl_i_sign[1]*refl_j_sign[1]*grid[refl_i[1]][refl_j[1]]);
+    gsl_vector_set(w->input, 3 , refl_i_sign[1]*refl_j_sign[2]*grid[refl_i[1]][refl_j[2]]);
+    gsl_vector_set(w->input, 4 , refl_i_sign[1]*refl_j_sign[3]*grid[refl_i[1]][refl_j[3]]);
+    gsl_vector_set(w->input, 5 , refl_i_sign[1]*refl_j_sign[4]*grid[refl_i[1]][refl_j[4]]);
+    gsl_vector_set(w->input, 6 , refl_i_sign[2]*refl_j_sign[0]*grid[refl_i[2]][refl_j[0]]);
+    gsl_vector_set(w->input, 7 , refl_i_sign[2]*refl_j_sign[1]*grid[refl_i[2]][refl_j[1]]);
+    gsl_vector_set(w->input, 8 , refl_i_sign[2]*refl_j_sign[2]*grid[refl_i[2]][refl_j[2]]);
+    gsl_vector_set(w->input, 9 , refl_i_sign[2]*refl_j_sign[3]*grid[refl_i[2]][refl_j[3]]);
+    gsl_vector_set(w->input, 10, refl_i_sign[2]*refl_j_sign[4]*grid[refl_i[2]][refl_j[4]]);
+    gsl_vector_set(w->input, 11, refl_i_sign[2]*refl_j_sign[5]*grid[refl_i[2]][refl_j[5]]);
+    gsl_vector_set(w->input, 12, refl_i_sign[3]*refl_j_sign[0]*grid[refl_i[3]][refl_j[0]]);
+    gsl_vector_set(w->input, 13, refl_i_sign[3]*refl_j_sign[1]*grid[refl_i[3]][refl_j[1]]);
+    gsl_vector_set(w->input, 14, refl_i_sign[3]*refl_j_sign[2]*grid[refl_i[3]][refl_j[2]]);
+    gsl_vector_set(w->input, 15, refl_i_sign[3]*refl_j_sign[3]*grid[refl_i[3]][refl_j[3]]);
+    gsl_vector_set(w->input, 16, refl_i_sign[3]*refl_j_sign[4]*grid[refl_i[3]][refl_j[4]]);
+    gsl_vector_set(w->input, 17, refl_i_sign[3]*refl_j_sign[5]*grid[refl_i[3]][refl_j[5]]);
+    gsl_vector_set(w->input, 18, refl_i_sign[4]*refl_j_sign[1]*grid[refl_i[4]][refl_j[1]]);
+    gsl_vector_set(w->input, 19, refl_i_sign[4]*refl_j_sign[2]*grid[refl_i[4]][refl_j[2]]);
+    gsl_vector_set(w->input, 20, refl_i_sign[4]*refl_j_sign[3]*grid[refl_i[4]][refl_j[3]]);
+    gsl_vector_set(w->input, 21, refl_i_sign[4]*refl_j_sign[4]*grid[refl_i[4]][refl_j[4]]);
+    gsl_vector_set(w->input, 22, refl_i_sign[5]*refl_j_sign[2]*grid[refl_i[5]][refl_j[2]]);
+    gsl_vector_set(w->input, 23, refl_i_sign[5]*refl_j_sign[3]*grid[refl_i[5]][refl_j[3]]);
+  } else {
+
+    /*
+      populate the vector of stencil points
+      stencil points are laid out as follows:
+
+
+      y\x  -2  -1   0   1   2   3
+      +--------------------------
+      -2 |          00  01
+      -1 |      02  03  04  05
+      0 |  06  07  08  09  10  11
+      1 |  12  13  14  15  16  17
+      2 |      18  19  20  21
+      3 |          22  23
+  
+      point 8, the top left point of the inner square, is at (x,y)=(0,0)
+    */
+
+
+    gsl_vector_set(w->input, 0 , grid[i-2][j]);
+    gsl_vector_set(w->input, 1 , grid[i-2][j+1]);
+    gsl_vector_set(w->input, 2 , grid[i-1][j-1]);
+    gsl_vector_set(w->input, 3 , grid[i-1][j]);
+    gsl_vector_set(w->input, 4 , grid[i-1][j+1]);
+    gsl_vector_set(w->input, 5 , grid[i-1][j+2]);
+    gsl_vector_set(w->input, 6 , grid[i][j-2]);
+    gsl_vector_set(w->input, 7 , grid[i][j-1]);
+    gsl_vector_set(w->input, 8 , grid[i][j]);
+    gsl_vector_set(w->input, 9 , grid[i][j+1]);
+    gsl_vector_set(w->input, 10, grid[i][j+2]);
+    gsl_vector_set(w->input, 11, grid[i][j+3]);
+    gsl_vector_set(w->input, 12, grid[i+1][j-2]);
+    gsl_vector_set(w->input, 13, grid[i+1][j-1]);
+    gsl_vector_set(w->input, 14, grid[i+1][j]);
+    gsl_vector_set(w->input, 15, grid[i+1][j+1]);
+    gsl_vector_set(w->input, 16, grid[i+1][j+2]);
+    gsl_vector_set(w->input, 17, grid[i+1][j+3]);
+    gsl_vector_set(w->input, 18, grid[i+2][j-1]);
+    gsl_vector_set(w->input, 19, grid[i+2][j]);
+    gsl_vector_set(w->input, 20, grid[i+2][j+1]);
+    gsl_vector_set(w->input, 21, grid[i+2][j+2]);
+    gsl_vector_set(w->input, 22, grid[i+3][j]);
+    gsl_vector_set(w->input, 23, grid[i+3][j+1]);
+  
+    // check if we are near the boundary
+    // if we are near the boundary we can still interpolate
+    //   be there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
+    for (k = 0 ; k < w->input->size ; k++) {
+      if (IS_MASKED(gsl_vector_get(w->input, k))) {
+        ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
+        stats->boundary_trouble_count++;
+        break;
+      }
+    }
+
   }
 
   // interp_output = interp * w->input
