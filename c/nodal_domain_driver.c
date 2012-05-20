@@ -9,7 +9,9 @@ Kyle Konrad
 #include "count_nodal_domains.h"
 #include "random_percolation.h"
 #include "util/util.h"
+#include "util/count_util.h"
 #include "util/util_verg.h"
+#include "util/bit_array.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,14 +39,14 @@ double k_0 = -1; // k_0 value from vergini
 double alpha = -1; // k_0 * dx
 
 int besselOrder = -1; // highest order bessel function to use for interpolation
-int upsample = -1; // upsampling ratio to use for interpolation
+int upsample_ratio = -1; // upsampling ratio to use for interpolation
 int interp = 1; // boolean whether or not to interpolate
 
 /*
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -k k_0 {-d dx | -a alpha } -M besselOrder -u upsample}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -k k_0 {-d dx | -a alpha } -M besselOrder -u upsample_ratio}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
@@ -88,7 +90,7 @@ void processArgs(int argc, char **argv) {
       besselOrder = atoi(optarg);
       break;
     case 'u':
-      upsample = atoi(optarg);
+      upsample_ratio = atoi(optarg);
       break;
     case 'd':
       dx = (double)atof(optarg);
@@ -160,8 +162,8 @@ void processArgs(int argc, char **argv) {
       usage();
       exit(CMD_LINE_ARG_ERR);
     }
-    if (upsample <= 0) {
-      ERROR("upsample not specified or invalid");
+    if (upsample_ratio <= 0) {
+      ERROR("upsample_ratio not specified or invalid");
       usage();
       exit(CMD_LINE_ARG_ERR);
     }
@@ -173,7 +175,7 @@ void processArgs(int argc, char **argv) {
 output:
         return value: number of nodal domains
 */
-int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int besselOrder, int upsample, interp_stats *stats) {
+int runTest(double **grid, int **counted, int ny, int nx, double k, double dx, int besselOrder, int upsample_ratio, interp_stats *stats) {
   char sizefilename[50];
   FILE *sizefile = NULL;
   if (sizeFlag) {
@@ -182,10 +184,10 @@ int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int
   }
   int nd;
   if (interp) {
-    nd = countNodalDomainsInterp(grid, mask, ny, nx, k, dx, besselOrder, upsample, stats, sizefile);
+    nd = countNodalDomainsInterp(grid, counted, ny, nx, k*dx, besselOrder, upsample_ratio, stats, sizefile);
   }
   else {
-    nd = countNodalDomainsNoInterp(grid, mask, ny, nx, sizefile);
+    nd = countNodalDomainsNoInterp(grid, counted, ny, nx, sizefile);
   }
   if (sizeFlag) {
     fclose(sizefile);
@@ -197,16 +199,16 @@ int runTest(double **grid, char **mask, int ny, int nx, double k, double dx, int
 
 int main(int argc, char **argv) {
   processArgs(argc, argv);
-  int ny, nx;
+  int ny, nx, counted_y, counted_x;
+  int i, j;
   double **grid;
+  int **counted;
   interp_stats stats;
 
   clock_t start = clock();
 
   if (mode == 1) {
     int count;
-    int masky, maskx;
-    char **mask = NULL;
     grid = readOneSta(file, &ny, &nx);
     
     if (grid == NULL) {
@@ -215,21 +217,30 @@ int main(int argc, char **argv) {
     }
 
     if (maskFlag) {
-      mask = readMask(maskFile, &masky, &maskx);
+      counted = createMaskFromFile(maskFile, &counted_y, &counted_x);
      
-      if (maskx != nx || masky != ny) {
+      if (counted_x != nx || counted_y != ny) {
 	ERROR("mask dimensions do not match grid dimensions");
 	exit(DIMENSION_ERR);
       }
     }
+    else {
+      counted = imatrix(ny, nx);
+      MALLOC_CHECK(counted);
+      for (i = 0 ; i < ny ; i ++) { 
+        for (j = 0 ; j < nx ; j++) {
+          counted[i][j] = UNCOUNTED;
+        }
+      }
+    }
     bzero(&stats, sizeof(stats));
-    count = runTest(grid, mask, ny, nx, k_0, dx, besselOrder, upsample, &stats);
+    count = runTest(grid, counted, ny, nx, k_0, dx, besselOrder, upsample_ratio, &stats);
 
     free_dmatrix(grid);
+    free_imatrix(counted);
     free(file);
 
     if (maskFlag) {
-      free_cmatrix(mask);
       free(maskFile);
     }
 
@@ -241,11 +252,8 @@ int main(int argc, char **argv) {
     int rc;
     int count;
     int k_base = 20; // to be passed to build_billiard
-    int masky, maskx;
-    char **mask = NULL;
     double k, wtm;
     int ne;
-
 
     rc = build_billiard(&bil, k_base);
     if (rc != 0) {
@@ -269,26 +277,26 @@ int main(int argc, char **argv) {
 	exit(IO_ERR);
       }
     
-      mask = createScaledMaskFromBilliard(bil, dx, &masky, &maskx, k/k_0);
+      counted = createScaledMaskFromBilliard(bil, dx/upsample_ratio, k/k_0, &counted_y, &counted_x); 
 
-      if (maskx != nx || masky != ny) {
+      if (counted_x != ((nx-1)*upsample_ratio)+1 || counted_y != ((ny-1)*upsample_ratio)+1) {
 	ERROR("mask dimensions do not match grid dimensions\n \
 	       ny\tnx\tmasky\tmaskx\n \
 	       %d\t%d\t%d\t%d",
-	      ny,nx,masky,maskx);
+	      ((ny-1)*upsample_ratio)+1,((nx-1)*upsample_ratio)+1,counted_y,counted_x);
 	exit(DIMENSION_ERR);
       }
 
-      count = runTest(grid, mask, ny, nx, k, dx, besselOrder, upsample, &stats);
+      count = runTest(grid, counted, ny, nx, k, dx, besselOrder, upsample_ratio, &stats);
       if (bil.type == QU_STADIUM) {
-        wtm = wingTipMass(grid, mask, ny, nx);
+        wtm = wingTipMass(grid, ny, nx);
       }
       else {
         wtm = 0;
       }
 
-      free_cmatrix(mask);
       free_dmatrix(grid);
+      free_imatrix(counted);
 
       printf("%f, %d, %d, %d, %d, %d, %f\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count, wtm);
 

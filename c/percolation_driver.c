@@ -9,6 +9,7 @@ Kyle Konrad
 #include "count_nodal_domains.h"
 #include "random_percolation.h"
 #include "util/util.h"
+#include "util/count_util.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,8 +141,18 @@ output:
         return value: number of nodal domains
 */
 int runTest(double **grid, int ny, int nx) {   
+  int i, j;
+  int **counted = imatrix(ny, nx);
+  MALLOC_CHECK(counted);
+  for (i = 0 ; i < ny ; i ++) { 
+    for (j = 0 ; j < nx ; j++) {
+      counted[i][j] = UNCOUNTED;
+    }
+  }
+
+
   clock_t start = clock();
-  int nd = countNodalDomainsNoInterp(grid, NULL, ny, nx, sizefile);
+  int nd = countNodalDomainsNoInterp(grid, counted, ny, nx, sizefile);
   clock_t end = clock();
 
   if (showTime) {

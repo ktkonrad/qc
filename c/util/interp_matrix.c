@@ -14,6 +14,7 @@
 
 #include "interp_matrix.h"
 #include "util.h"
+#include "exit_codes.h"
 
 #define R(x,y) sqrt((x)*(x)+(y)*(y))
 #define THETA(x,y) atan2(y,x)

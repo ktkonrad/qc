@@ -3,6 +3,7 @@
 
 #include <gsl/gsl_matrix.h>
 #include <stdio.h>
+#include "util/bit_array.h"
 
 #define SMALL_DOMAIN_SIZE 5
 
@@ -13,12 +14,20 @@ typedef struct {
   int edge_trouble_count;
 } interp_stats;
 
-int countNodalDomainsInterp(double **grid, char **mask, int ny, int nx, double k, double dx, int M, int upsample, interp_stats *status, FILE *sizefile);
-int countNodalDomainsNoInterp(double **grid, char **mask, int ny, int nx, FILE *sizefile);
-int findNextUnseen(int **counted, int *i, int *j, int ny, int nx);
-int findDomainInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats);
-int findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx);
-void interpolate(double **grid, int **counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats);
+typedef struct {
+  gsl_vector *input;
+  gsl_vector *output;
+} interp_workspace;
 
+int countNodalDomainsInterp(double **grid, int **counted, int ny, int nx, double alpha, int M, int upsample, interp_stats *stats, FILE *sizefile);
+int countNodalDomains(bit_array_t *signs, int **counted, FILE *sizefile);
+int countNodalDomainsNoInterp(double **grid, int **counted, int ny, int nx, FILE *sizefile);
+int findNextUnseen(int **counted, int *i, int *j, int ny, int nx);
+int findDomain(bit_array_t *signs, int **counted, int i, int j, int nd, int ny, int nx);
+int findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx);
+void interpolate(double **grid, bit_array_t *counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats, interp_workspace *w);
+bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha, int M, int upsample, interp_stats *stats);
+interp_workspace *new_interp_workspace(int upsample_ratio);
+void free_interp_workspace(interp_workspace *w);
 
 #endif

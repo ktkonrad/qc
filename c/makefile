@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -m64 -lgsl -lgslcblas -lm -funroll-loops -malign-double -fstrict-aliasing
 
-objects = count_nodal_domains.o random_percolation.o stack2.o util.o interp_matrix.o
+objects = count_nodal_domains.o random_percolation.o stack2.o bit_array.o util.o count_util.o interp_matrix.o
 dependencies = ../vergini/billiard.o ../vergini/useful.o ../vergini/nrutil.o util/util_verg.o
 
 
@@ -11,7 +11,7 @@ MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -L/usr/lib64/lapack -L/usr/li
 all: count perc vc
 
 # make with debug flags
-debug: CC += -DDEBUG -g
+debug: CC += -DDEBUG -g -pg
 debug: all
 
 # make with optimization flags
@@ -50,8 +50,14 @@ random_percolation.o: random_percolation.c random_percolation.h
 stack2.o: util/stack2.c util/stack2.h
 	$(CC) $(CFLAGS) -c util/stack2.c
 
+bit_array.o: util/bit_array.c util/bit_array.h
+	$(CC) $(CFLAGS) -c util/bit_array.c
+
 util.o: util/util.c util/util.h
 	$(CC) $(CFLAGS) -c util/util.c
+
+count_util.o: util/count_util.c util/count_util.h
+	$(CC) $(CFLAGS) -c util/count_util.c
 
 util_verg.o: util/util_verg.c util/util_verg.h util.o
 	$(CC) $(CFLAGS) -c util/util_verg.c

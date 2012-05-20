@@ -3,7 +3,7 @@
 
 #include "../../vergini/billiard.h" // for Billiard
 
-char **createMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx);
-char **createScaledMaskFromBilliard(Billiard b, double dx, int *masky, int *maskx, double scale);
+int **createScaledMaskFromBilliard(Billiard b, double dx, double scale, int *ny, int *nx);
+int **createMaskFromFile(char *file, int *ny, int *nx);
 
 #endif
