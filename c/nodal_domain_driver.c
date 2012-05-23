@@ -277,7 +277,7 @@ int main(int argc, char **argv) {
 	exit(IO_ERR);
       }
     
-      counted = createScaledMaskFromBilliard(bil, dx/upsample_ratio, k/k_0, &counted_y, &counted_x); 
+      counted = createScaledMaskFromBilliard(bil, 1.0/(((ny-1)*upsample_ratio)+0), k/k_0, &counted_y, &counted_x); 
 
       if (counted_x != ((nx-1)*upsample_ratio)+1 || counted_y != ((ny-1)*upsample_ratio)+1) {
 	ERROR("mask dimensions do not match grid dimensions\n \

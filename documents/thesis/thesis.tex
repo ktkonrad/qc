@@ -12,6 +12,7 @@
 \newcommand{\rr}[0]{\mathbf{r}}
 \newcommand{\xx}[0]{\mathbf{x}}
 \newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\comment}[1]{}
 
 \begin{document}
 \title{Asympototic Statistics of Nodal Domains in Quantum Chaotic Billiards in the Semiclassical Limit}
@@ -21,31 +22,17 @@
   Advisor: Alex Barnett}
 \date{\today}
 
+\maketitle
 
-\section*{Notation}
-$N :=$ number of points sampled
-
-$N \sim h^{-2}$
-
-$B :=$ number of basis functions used in vergini method
-
-$k :=$ wavenumber
-
-$E = k^{2} :=$ energy of eigenfunction
-
-$h :=$ orthogonal spacing between sampled points
-
-$\alpha := k h$
-
-$\Omega \in \mathbb{R}^2$ compact domain
-
-$\Gamma = \partial \Omega$ domain boundary
+\begin{abstract}
+  Nodal domains of quantum chaotic eigenfunctions have been conjectured to share certains statistical properties with a simple percolation model, where many interesting quantities can be computed analytically. We numerically test conjectures on the number and size of nodal domains of quantum chaotic eigenfunctions at previously unexplored energies. We use a highly efficient scaling method to compute eigenfunctions and an adaptive interpolation scheme for added accuracy. Our results disagree with the conjectures, indicating that the percolation model does not fully capture the nature of quantum chaos.
+\end{abstract}
 
 \chapter{Introduction}
 \label{chap:intro}
 \section{Motivation}
 \label{sec:motivation}
-Nodal domains characterize regions of a vibrational surface (e.g. a drum head) that move together. The boundaries between nodal domains, known as nodal line are the regions which do not vibrate at all (Fig. \ref{fig:drum}). Understanding the characteristics of nodal domains has potential applications in musical instruments, mechanical engineering, geophysics, astrophysics, and many other areas dealing with wave behavior \cite{wigman}.
+Nodal domains characterize regions of a vibrational surface (e.g. a drum head) that move together. The boundaries between nodal domains, known as nodal line are the regions which do not vibrate at all (fig. \ref{fig:drum}). Understanding the characteristics of nodal domains has potential applications in musical instruments, mechanical engineering, geophysics, astrophysics, and many other area dealing with wave behavior \cite{wigman}.
 
 \begin{figure}
   \begin{center}
@@ -62,12 +49,14 @@ The nodal domains studied herein are formulated in terms of quantum mechanical w
     \includegraphics[width=\textwidth]{figs/classical/stadium_orbit.eps}
     \linebreak
     \includegraphics[width=\textwidth]{figs/classical/stadium_eigenfunction.eps}
-    \caption{Top: A classical orbit in a billiard; bottom: a quantum eigenfunction in the same billiard}
+    \linebreak
+    \includegraphics[width=\textwidth]{figs/classical/stadium_eigenfunction_largest_nodal_domain.eps}
+    \caption{Above: A classical orbit in a billiard; center: a quantum eigenfunction in the same billiard; below: the largest nodal domain in the center eigenfunction.}
     \label{fig:classical_vs_quantum}
   \end{center}
 \end{figure}
 
-The goal of this project is to numerically test certain conjectures regarding properties of nodal domains in quantum chaotic eigenfunctions in the high energy, or semiclassical, limit. Efficiently testing these conjectures requires solving new computational challenges. We hope these results will enable further mathematical investigation of eigenfunctions and that the tools developed herein may be applied to related problems in experimental mathematics.
+The goal of this project is to numerically test conjectures on the mean and variance of the number and sizes of nodal domains in quantum chaotic eigenfunctions in the high energy, or semiclassical, limit. Obtaining data at sufficiently high energies requires solving new computational challenges due to the high oscillatory nature of the eigenfunctions. We hope these results will enable further mathematical investigation of eigenfunctions and that the tools developed herein may be applied to related problems in quantum chaos.
 
 \section{Classical Chaos in Billiards}
 \label{sec:classical}
@@ -99,7 +88,7 @@ Where $\Delta = \nabla^{2} = \frac{\partial^{2}}{\partial x^{2}} + \frac{\partia
 \end{equation}
 where $k^{2} = E$ is the energy of the eigenfunction $u(\rr)$ and corresponds to the kinetic energy of the quantum wave-particle.
 
-We focus our investigation on two billard shapes: the generalized rectangular Sinai billiard and the Stadium billiard. In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as a function of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$. The desymmetrized billiards are shown in figure \ref{fig:billiards}
+We focus our investigation on two billard shapes: the generalized rectangular Sinai billiard and the Stadium billiard (fig. \ref{fig:billiards}). In both cases we desymmetrize the billard shapes by considering only a quarter of the full shape. This restricts our basis set to functions that are odd as functions of x and y, i.e., $f(-x,y) = f(x,-y) = -f(x,y)$.
 
 \begin{figure}
   \begin{center}
@@ -112,19 +101,19 @@ We focus our investigation on two billard shapes: the generalized rectangular Si
 
 The Sinai billiard is constructed from circular arcs that meet at $(1,1)$ and is parameterized by two angles, $\theta_{1}$ and $\theta_{2}$, the angles from horizonal and vertical, respectively, of the arcs at $(1,1)$. The Sinai billiard is said to demonstrate ``hard chaos'' becase there are no stable orbits.
 
-The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. The stadium billiard contians neutrally stable orbits, specifically those with vertical momentum in the rectangular region. Neutrally stable orbits have zero Lyapunov exponent but any perturbation will cause them to have positive Lyapunov exponenet. The existence of such orbits implies that the stadium does not demonstrate hard chaos but because these orbits occupy a measure zero subset of phase space, the stadium still demonstrates chaotic properties. These classical orbits are manifest in quantum eigenfunctions as so-called ``bouncing-ball'' modes \ref{fig:bouncing_ball_mode}.
+The stadium billiard is construced from a rectangular region and a quarter circle and is parameterized by the the horizontal length of the billiard $\alpha$. The stadium billiard contians neutrally stable orbits, specifically those with vertical momentum in the rectangular region. Neutrally stable orbits have zero Lyapunov exponent but any perturbation will cause them to have positive Lyapunov exponenet. The existence of such orbits implies that the stadium does not demonstrate hard chaos but because these orbits occupy a measure zero subset of phase space, the stadium still demonstrates chaotic properties. These classical orbits are manifest in quantum eigenfunctions as so-called ``bouncing-ball'' modes (fig. \ref{fig:bouncing_ball_mode}).
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=0.3\textwidth]{figs/domains/qugrs_fig.eps}
-    \caption{A bouncing ball mode in the stadium billiard with $k = 500.0739$}
+    \includegraphics[width=\textwidth]{figs/classical/stadium_eigenfunction_bouncing_ball_mode.eps}
+    \caption{A bouncing ball mode in the stadium billiard with $k = 500.3881$}
     \label{fig:bouncing_ball_mode}
   \end{center}
 \end{figure}
 
 \section{Percolation Model}
 \label{sec:percolation}
-Bogomolny and Schmit \cite{bogomolny} have argued that nodal domains of random functions (which are considered an accurate proxy for eigenfunctions of chaotic systems) can be modeled by nodal domains of a percolation model. Their percolation model is formed by creating a checkerboard of positive and negative regions with a grid size given by the average spacing of zeros of random functions along a particular axis. This checkerboard pattern can be realized as an eigenfunction $\bar{u}(x,y) = sin(\frac{kx}{\sqrt{2}})sin(\frac{ky}{\sqrt{2}})$ of a square billiard $\Omega = [0,1]^{2}$. A random eigenfunction can be modelled as this mean eigenfunction $\bar{u}(x,y)$ plus another term representing deviation from the mean $u(x,y) = \bar u(x,y) + \delta u(x,y)$. The deviation term $\delta u(x,y)$ is modelled by perturbing each nodal line crossing by connecting two diagonal regions (Fig. \ref{fig:percolation}). The decision of which nodal domains to connect is made randomly with equal probability for either possibility.
+Bogomolny and Schmit \cite{bogomolny} have argued that nodal domains of random functions (which are considered an accurate proxy for eigenfunctions of chaotic systems) can be modeled by nodal domains of a percolation model. Their percolation model is formed by creating a checkerboard of positive and negative regions with a grid size given by the average spacing of zeros of random functions along a particular axis. This checkerboard pattern can be realized as an eigenfunction $\bar{u}(x,y) = sin(\frac{kx}{\sqrt{2}})sin(\frac{ky}{\sqrt{2}})$ of a square billiard $\Omega = [0,1]^{2}$. A random eigenfunction can be modelled as this mean eigenfunction $\bar{u}(x,y)$ plus another term representing deviation from the mean $u(x,y) = \bar u(x,y) + \delta u(x,y)$. The deviation term $\delta u(x,y)$ is modelled by perturbing each nodal line crossing by connecting two diagonal regions (fig. \ref{fig:percolation}). The decision of which nodal domains to connect is made randomly with equal probability for either possibility.
 
 \begin{figure}
   \begin{center}
@@ -203,9 +192,32 @@ where $\omega_{i} = k - k_i$. This scaling causes all eigenfunctions to fall app
 \]
 where $\epsilon_{i}(\rr) \ll 1$ for sufficiently large $B$, the number of basis functions used. Values of $B$ of approximately $1.5 \frac{k \vert \Gamma \vert}{\pi}$ have been shown to produce $\epsilon < 10^{-4}$. This single basis set provides a significant efficiency gain over prior methods because many eigenfunctions can be found by solving a single linear system and evaluating a single basis set on the domain.
 
-The choice of basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle. The scaling method runs in $O(B^{3}) = O(k^{3})$ time. \cite{barnett}
+The choice of basis functions $\xi_{l}(k, \rr)$ depend on the billiard shape being used. For the quarter generalized rectangular Sinai billiard the basis set consists of irregular Bessel functions (which satisfy $(\Delta + k^2)\xi_{l}(k, \rr) = 0$) placed along $\Gamma^{+}$, the set of points ouside $\Omega$ whose nearest distance to $\Gamma$ is $D$ where $kD$ is taken to be $7$ so that $D$ is appriximately one wavelength. For the quarter stadium, the basis set is plane waves with orientations evently spaced around the circle.
 
-\subsection{Run Time}
+The numerical implementation of the scaling method is based on solving a generalized eigenvalue problem from which one can reconstruct eigenvalues and eigenfunctions of the original Dirchlet boundary value problem. The basic approach is to construct matrices ${\bf F}$ and ${\bf G}$ where
+\[
+{\bf F}_{ij} = \langle \xi_{i}, \xi_{j} \rangle
+\] 
+and
+\[
+{\bf G}_{ij} = \left( \langle \xi_{i}, x \cdot \nabla \xi_{j} \rangle + \langle x \cdot \nabla \xi_{i}, \xi_{j} \rangle \right) / k_{*}
+\]
+and $k_{*}$ is the central $k$ value that eigenfunctions are being dilated to. By solving the generalized eigenvalue problem
+\[
+{\bf F} h = \mu {\bf G} h
+\]
+one obtains approximations of the eigenvalues of the original problem with
+\[
+\hat{k} = k_{*} - 2/\mu
+\]
+and approximate eigenfunctions by ``undilating'' the generalized eigenvectors
+\[
+\hat{u}(\rr) = \sum_{i=1}^{B} h_{i} \xi_{i}(k, \rr)
+\]
+
+The scaling method runs in $O(B^{3}) = O(k^{3})$ time \cite{barnett} and approximates eigenvalues and eigenfunctions with error $O(\Delta E)$ \cite[p. 32]{barnett_hassell}.
+
+\subsection{Eigenfunction evaluation}
 The scaling method only computes coefficients of basis functions, which must be evaluated in order to obtain eigenfunction values at arbitrary $\rr \in \Omega$. However, because all eigenfunctions in the energy window use the same basis functions, each basis function only needs to be evaluated once at each point, regardless of the number $n$ of eigenfunctions in the energy window. Thus $NB$ basis function evaluations are required. Computing eigenfunctions is then just a matter of multiplying the basis function values at each point by the coefficients for that eigenfunction, which requires a total of $nNB$ multiplications. Basis evaluation are much more expensive than multiplications however. Table \ref{tab:eval_ratios} summarizes the ratios of these costs.
 
 \begin{table}
@@ -222,19 +234,18 @@ The scaling method only computes coefficients of basis functions, which must be 
   \label{tab:eval_ratios}
 \end{table}
 
-Errors in eigenfunctions produced by the scaling method scale like $O({\Delta E}^{3})$ \cite{barnett_hassell} and are independent of $E$ so we use a constant $\Delta E$. We estimate errors by calculating the tension
+As noted above, errors in eigenfunctions produced by the scaling method scale like $O({\Delta E}^{3})$ and are independent of $E$ so we use a constant $\Delta E$. We estimate errors by calculating the tension
 \[
 t = \left( \int_{\Gamma} u(\rr)^{2} d\rr \right)^{\frac{1}{2}}
 \]
 $\Delta E$ is chosen such that $t \lesssim 10^{-4}$. Using Weyl's law we can obtain an estimate of the number of eigenfunctions in an energy window to be
 \[
-n \approx \frac{\vert \Omega \vert}{4 \pi} ((k + \Delta k)^{2} - (k - \Delta k)^{2}) = \frac{\vert \Omega \vert}{\pi} k \Delta k
+n \approx \frac{\vert \Omega \vert}{4 \pi} ((E + \Delta E) - (E - \Delta E)) = \frac{\vert \Omega \vert}{2 \pi} \Delta E
 \]
-where $k = \sqrt{E}$ and $2 k \Delta k = \Delta E$.
 
 We choose $\Delta E$ to be as large as possible while keeping errors small in order to maximize $n$, allowing more eigenfunctions to be computed from each evaluation of basis functions.
 
-For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which scales like $\alpha^{-2}$) that determines the time to compute eigenfunctions. Computation time is dominated by eigenfunction evaluation, which is dominated by basis function evaluations Additionally, we find that the time to evaluate eigenfunctions dominates total computation time (Fig. \ref{fig:timing}).
+For both billiards considered here $B \sim k$. Thus, in practice $N \gg n$ and $N \gg B$ so it is primarily $N$ (which scales like $\alpha^{-2}$) that determines the time to compute eigenfunctions. Computation time is dominated by eigenfunction evaluation, which is dominated by basis function evaluations (fig. \ref{fig:timing}).
 
 \begin{figure}
   \begin{center}
@@ -358,7 +369,7 @@ Letting $N$ be the number of points the eigenfunction is sampled at, this method
 
 \section{Interpolation}
 \label{sec:interpolation}
-Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) basis functions), we are limited by the total number of pixels $N$, which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width (and height) of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (Fig. \ref{fig:interpolation_sample}).
+Because sampling eigenfunctions is expensive (requiring $O(k^{3})$ basis function evaluations), we are limited by the total number of pixels $N$, which scales like $h^{-2}$ where $h$ is the distance between adjacent sample points, or the width (and height) of a pixel. As a consequence, we must work with relatively coarsely sampled eigenfunctions, causing us to encounter scenarios where the connectivity of nodal domains is ambiguous (fig. \ref{fig:interpolation_sample}).
 
 \begin{figure}
   \begin{center}
@@ -367,8 +378,10 @@ Because sampling eigenfunctions is expensive (requiring evaluation of B = O(k) b
     \linebreak
     \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_low_res.eps}
     \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_low_res_domains.eps}
-
-    \caption{An ambiguity in nodal domain connectivity due to coarse sampling. The ambiguous region is shown with a red box. Top left: high resolution image of an eigenfunction; top right: nodal domains of the same eigenfunction; bottom left: low resolution image of the same eigenfunction; bottom right: nodal domains of low resolution eigenfunction}
+    \linebreak
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_interpolated_all.eps}
+    \includegraphics[width=0.49\textwidth]{figs/interpolation/interp_sample_interpolated_all_domains.eps}
+    \caption{An ambiguity in nodal domain connectivity due to coarse sampling. The ambiguous region is shown with a red box. Images on the left show function values and images on the right show function signs to illustrate nodal domains. Above: high resolution sampling of random plane wave; center: low resolution sampling of the same random plane wave; below: result of interpolating the low resolution sampling.}
     \label{fig:interpolation_sample}
   \end{center}
 \end{figure}
@@ -381,7 +394,7 @@ and
 \[
 J_{n}(k r) \cos(n \theta)
 \]
-where $J_{n}(r)$ is a regular Bessel function. These functions form a complete orthonormal basis for solutions of (\ref{eq:helmholtz}) (see appendix \ref{sec:helmholtz_basis}). We fix a value $M$ to be the order of the highest order Bessel function, restricting our basis to the finite set
+where $J_{n}$ is a regular Bessel function. These functions form a complete orthonormal basis for solutions of (\ref{eq:helmholtz}) (see appendix \ref{sec:helmholtz_basis}). We fix a value $M$ to be the order of the highest order Bessel function, restricting our basis to the finite set
 \begin{equation}
   \label{eq:interp_functions}
   \xi_{i}(r, \theta)=\begin{cases}
@@ -396,9 +409,9 @@ We construct a surrogate function
 \]
 as a local approximation to the eigenfunction $u(\rr)$ by fitting the coeffiecients $c_{i} \in \mathbb{R}$ to minimize the error $\Vert u - \tilde{u} \Vert_{2}$. This function can then be sampled at a higher resolution within the region in question. We define the sampling ratio of this surrogate function to the original eigenfunction to be $\rho$.
 
-\chapter{Parameter Selection}
+\subsection{Parameter Selection}
 \label{sec:params}
-Interpolation occurs only between the central four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. Only stencil shapes that which are symmetric about the four central points were considered. The four shapes considered are shown in figure \ref{fig:stencils}. The most important consideration in choosing a stencil was the accuracy of the interpolation. The size of the stencil affects the computational cost of interpolation but this difference is trivial.
+Interpolation occurs only between the central four pixels but uses surrounding values to fit the coefficients $c_i$. The selection of which surrounding values to use is termed a stencil. Only stencil shapes that are symmetric about the four central points were considered. The four shapes considered are shown in figure \ref{fig:stencils}. The most important consideration in choosing a stencil was the accuracy of the interpolation. The size of the stencil affects the computational cost of interpolation but this difference is trivial.
 
 \begin{figure}
   \begin{center}
@@ -435,21 +448,22 @@ The accuracy of interpolation also depends on $M$ and $\alpha = k h$, which must
   \end{center}
 \end{figure}
 
-Based on these data, we chose to use the 24-point stencil with $M=9$ and $alpha \in [0.5, 0.7]$ for interpolation. For this choice of parameters we expect errors in interpolated eigenfunction values of order $10^{-6}$
- Figure \ref{fig:rpw_count_errors} shows the error in nodal domain counts for random plane waves with and without interpolation using these parameters.
+Based on these data, we chose to use the 24-point stencil with $M=9$ and $\alpha \in [0.5, 0.7]$ for interpolation. For this choice of parameters we expect errors in interpolated eigenfunction values of order $10^{-6}$.
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{figs/interpolation/rpw_errors.eps}
-    \caption{Error in nodal domain count for random plane waves}
-    \label{fig:rpw_count_errors}
-  \end{center}
-\end{figure}
+% Figure \ref{fig:rpw_count_errors} shows the error in nodal domain counts for random plane waves with and without interpolation using these parameters.
+%
+%\begin{figure}
+%  \begin{center}
+%    \includegraphics[width=\textwidth]{figs/interpolation/rpw_errors.eps}
+%    \caption{Error in nodal domain count for random plane waves}
+%    \label{fig:rpw_count_errors}
+%  \end{center}
+%\end{figure}
 
 \subsection{Numerical Implementation}
 We construct a matrix to transform values on a stencil to interpolated values in the center of the stencil, performing the process described above with a single matrix multiplication. We construct the interpolation matrix as
 \[
-U = L H^{+}
+P = L H^{+}
 \]
 Where $L$ is a matrix which contains evaluations of Bessel functions at low resolution, $H$ contains evalutions of Bessel functions at high resolution and $^{+}$ denotes the pseudoinverse. Specifically,
 \[
@@ -469,6 +483,16 @@ J_{j-M}(\tilde{r}_{i}) \cos{((j-M) \tilde{\theta}_{i})} & \text{for } M+1 \le j 
 \]
 where $T$ is the number of points in the stencil, $\gamma = (\rho + 1)^{2}$ and $(r_{i},\theta_{i})$ and $(\tilde{r}_{i},\tilde{\theta}_{i})$ are points in the stencil and inner square, respectively, expressed in polar coordinates.
 
+$P$ acts on a vector of eigenfunction values on a stencil and produces interpolated values in the center square of the stencil (fig. \ref{fig:upsample_action}).
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{figs/stencils/upsample_action.eps}
+    \caption{Visualization of the action of $P$ as a mapping.}
+    \label{fig:upsample_action}
+  \end{center}
+\end{figure}
+
 The pseudoinverse $H^{+}$ is computed using a singular value decomposition as follows,
 \[
 H^{+} = V \Sigma^{+} U^{*}
@@ -480,10 +504,10 @@ where $H = U^{*} \Sigma V$ is a singular value decompostion of $H$ and
 \Sigma_{ii} & \text{otherwise}
 \end{cases}
 \]
-where $\epsilon = \gamma \epsilon_{double} \Sigma_{11}$ where $\epsilon_{double}$ is the difference between one and the smallest IEEE double precision floating point number greater than one. Singular values less than $\epsilon$ are considered to be zero within working precision.
+where $\epsilon = \gamma \epsilon_{double} \Sigma_{11}$ where $\epsilon_{double} = 1.11e{-16}$ is the difference between one and the smallest IEEE double precision floating point number greater than one. Singular values less than $\epsilon$ are considered to be zero within working precision.
 
 \subsection{Implementation}
-A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (Fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = U {\bf v}$ where $U$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
+A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = P {\bf v}$ where $P$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
 
 \begin{figure}
   \begin{center}
@@ -495,8 +519,6 @@ A region is interpolated if and only if, when counting nodal domains, we encount
   \end{center}
 \end{figure}
 
-Code implementing Vergini's scaling method to compute eigenfunctions was written by Alex Barnett. Code for counting nodal domains was written by the author. All code used herein is open source and available under the GPL license \cite{gpl} \cite{github}. Appendix \ref{sec:api} contains an overview of the functions provided by this library.
-
 \section{Analysis}
 
 \subsection{Probability of ambiguous region}
@@ -504,36 +526,36 @@ Code implementing Vergini's scaling method to compute eigenfunctions was written
 \subsubsection{Theory}
 Here we derive an upper bound on the probability of a trouble region using random plane waves. A random plane wave is simply a sum of plane waves travelling in all directions:
 \[
-u(\rr) = \Re \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \exp{\left\{\mathrm{i} k \hat{n}_{n} \cdot \rr \right\}}
+u(\rr) = \Re \left[ \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \exp{\left\{\mathrm{i} k \hat{n}_{n} \cdot \rr \right\}} \right]
 \]
-where $\omega_{n} \sim \mathcal{N}(0,1)$ are independent and identicially distributed and $\hat{n}_{n} = (\cos \frac {2 \pi n}{N}, \sin \frac {2 \pi n}{N})$. Applying the Jacobi-Anger expansion
+where $\omega_{n} \sim \mathcal{N}(0,1)$ are independent and identicially distributed and $\hat{n}_{n} = (\cos \frac {2 \pi n}{N}, \sin \frac {2 \pi n}{N})$. Applying the Jacobi-Anger expansion \cite{abramowitz}
 \[
 \exp(\mathrm{i} k r \cos \theta) = \sum_{l \in \mathbb{Z}} \mathrm{i}^{l} \exp{\left\{\mathrm{i} l \theta \right\}} J_{l}(kr)
 \]
-and the fact that $\hat{n}_{n} \cdot \rr = r \cos{\theta - \frac{2 \pi n}{N}}$ produces
+and the fact that $\hat{n}_{n} \cdot \rr = r \cos{ \left( \theta - \frac{2 \pi n}{N} \right) }$ produces
 \begin{equation}
   \label{eq:rpw_bessel_expansion}
-  u(\rr) = \Re \sum_{l \in \mathbb{Z}} \mathrm{i}^{l} \tilde{\omega}_{n} \exp{\left\{\mathrm{i} l \theta \right\}} J_{l}(kr)
+  u(\rr) = \Re \left[ \sum_{l \in \mathbb{Z}} \mathrm{i}^{l} \tilde{\omega}_{l} \exp{\left\{\mathrm{i} l \theta \right\}} J_{l}(kr) \right]
 \end{equation}
-where $\rr = (r, \theta)$ in polar coordinates and $\tilde{\omega}_{n}$ are given by
+where $\rr = (r, \theta)$ in polar coordinates and $\tilde{\omega}_{l}$ are given by
 \[
-\tilde{\omega}_{n} = \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \mathrm{i}^{l} \exp{\left\{-\mathrm{i} l \frac{2 \pi n}{N} \right\}}
+\tilde{\omega}_{l} = \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \mathrm{i}^{l} \exp{\left\{-\mathrm{i} l \frac{2 \pi n}{N} \right\}}
 \]
-Fixing $N$, we can express the transformation which takes $\omega_n$ to $\tilde{\omega}_n$ as a matrix
+Fixing $N$, we can express the transformation which takes $\overrightarrow{\omega}$ to $\overrightarrow{\tilde{\omega}}$ (as vectors) as a matrix
 \[
-\overrightarrow{\tilde{\omega}}_{n}^{(N)} = A^{(N)} \overrightarrow{\omega}_{n}^{(N)}
+\overrightarrow{\tilde{\omega}}^{(N)} = A^{(N)} \overrightarrow{\omega}^{(N)}
 \]
 where entries of $A^{(N)}$ are given by
 \[
 a_{mn} = \frac{1}{\sqrt{N}} \mathrm{i}^{m} \exp{\left\{-\mathrm{i} m \frac{2 \pi n}{N} \right\}} = \frac{1}{\sqrt{N}} \exp{\left\{-\mathrm{i} m \left(\frac{2 \pi n}{N} - \frac{\pi}{2}\right) \right\}} 
 \]
-The operator $A$ is simply a discrete fourier transform and therefore acts on $\omega{n} \sim \mathcal{N}(0,1)$ i.i.d. to produce $\tilde{\omega}_{n} \sim \mathcal{N}(0, 1)$ i.i.d.
+The operator $A$ is simply a discrete fourier transform and therefore acts on $\omega_{n} \sim \mathcal{N}(0,1)$ i.i.d. to produce $\tilde{\omega}_{n} \sim \mathcal{N}(0, 1)$ i.i.d.
 
 Expanding the first three terms of \ref{eq:rpw_bessel_expansion} gives
 \[
 u(\rr) = a_{0} J_{0}(kr) + J_{1}(kr) (a_{1} \cos{\theta} + b_{1} \cos{\theta}) + J_{2}(kr) (a_{2} \cos{\theta} + b_{2} \cos{\theta}) + \ldots
 \]
-where $a_{0} = \Re \tilde{\omega}_{0}$, $a_{1,2} = \Re \tilde{\omega_{1}} - \tilde{\omega_{-1}}$, and $b_{1,2} = \Im \tilde{\omega_{1}} - \tilde{\omega_{-1}}$. Note that $a_{0} \sim \mathcal{N}(0,1)$ and $a_{1}, b_{1}, a_{2} \sim \mathcal{N}(0,\sqrt{2})$
+where $a_{0} = \Re \left[ \tilde{\omega}_{0} \right]$, $a_{1,2} = \Re \left[ \tilde{\omega_{1}} - \tilde{\omega_{-1}} \right]$, and $b_{1,2} = \Im \left[ \tilde{\omega_{1}} - \tilde{\omega_{-1}} \right]$. Note that $a_{0} \sim \mathcal{N}(0,1)$ and $a_{1}, b_{1}, a_{2} \sim \mathcal{N}(0,\sqrt{2})$.
 
 \begin{figure}
   \begin{center}
@@ -557,7 +579,7 @@ where $\beta_{i} = J_{i} \left( k \frac{\alpha}{\sqrt{2}} \right)$. Interpolatio
   a_{0} \beta_{0} - a_{1} \beta_{1} + a_{2} \beta_{2} & < 0 \\
   a_{0} \beta_{0} - b_{1} \beta_{1} - a_{2} \beta_{2} & > 0
 \end{align*}
-which gives the constraints
+which is equivalent to
 \begin{align*}
   a_{2} & < 0 \\
   a_{1} & < a_{2} \frac{\beta_{2}}{\beta_{1}} \\
@@ -612,52 +634,35 @@ Using random plane waves we can empirically compute the frequency of interpolati
 \chapter{Results}
 
 \section{Data Collected}
-We computed approximately 100,000 eigenfunctions and counted 1.5 billion nodal domains. This data was collected over several weeks running on the Dartmouth Mathematics Condor cluster. Table \ref{tab:data_collected} shows the number of eigenfunctions and nodal domains which were computed and counted in various k ranges.
-
-\begin{table}
-  \centering
-  \begin{tabular}{|r|c|c|c|c|c|c|c|}
-    \hline
-    Billiard & $k_{low}$ & $k_{high}$ & Eigenfucntions & Nodal Domains & $\alpha$ & data size & CPU time \\ \hline
-    \hline
-    Sinai       & 1000 & 1200 & 2.11e4 & 3.97e8 & 0.5 & 385GB & TODO \\ \hline
-    Sinai       & 2000 & 2020 & 3.90e3 & ?      & 0.7 & 120GB & \\ \hline
-    Stadium     & 700  & 900  & 4.55e4 & 1.2e9  & 0.7 & 221GB & \\ \hline
-    Percolation & 100  & 2000 & 3.18e4 & 9.07e6 & N/A & N/A   & \\ \hline
-  \end{tabular}
-  \caption{Data collected}
-  \label{tab:data_collected}
-\end{table}
-
-
+We computed approximately 100,000 eigenfunctions amounting to over 800 GB of data and counted 1.5 billion nodal domains. This data was collected over several weeks running on the Dartmouth Mathematics Condor cluster.
 
 \section{Mean of number of nodal domains}
-We reject conjecture \ref{conj:mean_prediction} for the both the Sinai and stadium billiards. In both cases, there is a slow convergence from above to a mean that differs from the predicted value \ref{fig:mean}. The rate of convergence (agrees/disagrees) with the percolation model.
+We reject conjecture \ref{conj:mean_prediction} for the both the Sinai and stadium billiards. In both cases, there is a slow convergence from above to a mean that differs from the predicted value (fig. \ref{fig:mean}). In the Sinai billiard, scaled nodal counts approached a mean of $0.0596 \pm 1.724e{-5}$, a difference of $167 \sigma$, and a $4.61\%$ error from conjecture \ref{conj:mean_prediction}. Nodal counts in the stadium billiard approached scaled mean of $0.0535 \pm 3.991e{-5}$, a difference of $225 \sigma$ and $14.36\%$ error.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/qugrs_all_mean.eps}
-    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_mean.eps}
-    \caption{Mean number of nodal domains. Above: Sinai; below: stadium}
+    \includegraphics[width=0.9\textwidth]{figs/results/qugrs_all_mean.eps}
+    \includegraphics[width=0.9\textwidth]{figs/results/qust_all_mean.eps}
+    \caption{Mean number of nodal domains. Above: Sinai; below: stadium. The least-squares best fit of the form $A + B/k$ is shown in green.}
     \label{fig:mean}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_mean.eps}
-    \includegraphics[width=\textwidth]{figs/results/rpw_all_mean.eps}
-    \caption{Mean number of nodal domains. Above: Percolation; below: random plane waves}
+    \includegraphics[width=0.9\textwidth]{figs/results/perc_100_to_2000_mean.eps}
+    \includegraphics[width=0.9\textwidth]{figs/results/rpw_all_mean.eps}
+    \caption{Mean number of nodal domains. Above: percolation with $k \in \{100, 106, 112, \ldots, 1998\}$; below: random plane waves with $k \in \{100, 200, \ldots, 1100\}$ with 100 repetitions at each $k$.}
   \end{center}
 \end{figure}
 
 \section{Variance of number of nodal domains}
-The variance of number of nodal domains in quantum chaotic eigenfunctions does not agree with \ref{conj:variance_prediction} for either billiard shape.
+The variance of number of nodal domains in quantum chaotic eigenfunctions does not agree with conjecture \ref{conj:variance_prediction} for either billiard shape (fig. \ref{fig:variance}).
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_variance.eps}
-    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_variance.eps}
+    \includegraphics[width=0.9\textwidth]{figs/results/qugrs_1000_to_1200_variance.eps}
+    \includegraphics[width=0.9\textwidth]{figs/results/qust_700_to_900_variance.eps}
 
     \caption{Variance of number of nodal domains. Top: Sinai; middle: stadium; bottom: percolation}
     \label{fig:variance}
@@ -671,44 +676,46 @@ The variance of number of nodal domains in quantum chaotic eigenfunctions does n
 \end{figure}
 
 \section{Distribution of number of nodal domains}
-The number of nodal domains for the Sinai billiard has a slight left skew \ref{fig:qugrs_hist}. This skew can be attributed to the fact that the nodal domain count is still converging to its asymptotic mean at the values of $k$ examined.
+The number of nodal domains for the Sinai billiard has a slight left skew (fig. \ref{fig:histograms}). This skew can be attributed to the fact that the nodal domain count is still converging to its asymptotic mean at the values of $k$ examined.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/qugrs_2000_to_2020_count_histogram.eps}
-    \caption{Histogram of scaled nodal domain counts for the Sinai billiard with $k \in [2000, 2020]$.}
-    \label{fig:qugrs_hist}
+    \includegraphics[width=0.8\textwidth]{figs/results/qugrs_2000_to_2020_count_histogram.eps}
+    \linebreak
+    \includegraphics[width=0.8\textwidth]{figs/results/qust_700_to_900_count_histogram.eps}
+    \caption{Histogram of scaled nodal domain counts. Above: Sinai billiard with $k \in [2000, 2020]$; below: stadium billiard with $k \in [700, 900]$.}
+    \label{fig:histograms}
   \end{center}
 \end{figure}
 
-There is a strong left skew in the distribution of nodal domain counts in the stadium billiard. This is thought to be due to bouncing ball modes.
+There is a strong left skew in the distribution of nodal domain counts in the stadium billiard (fig. \ref{fig:histograms}). This is due to bouncing ball modes (fig. \ref{fig:bouncing_ball_mode}), which have much fewer nodal domains than general chaotic eigenfunctions (fig. \ref{fig:wtms}). Bouncing ball modes have a high concentration of probability mass in the central rectangular region. We can therefore identify bouncing ball modes by low probability mass in the quarter circle region. Specifically, we use the ``wing tip mass''
+\[
+w = \int_{W} u^{2}(\rr) d\rr
+\]
+where $W = \left\{ (x,y) \in \Omega \, \vert \, x \ge 1.1 \right\} $.
 
-\section{Areas of nodal domains}
-The distribution of area of nodal domains is slightly different. TODO: confidence that slopes differ
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/qugrs_1000_to_1200_sizes.eps}
-    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_sizes_0.1_sampled.eps}
-    \caption{area of nodal domains. Above: Sinai; below: stadium}
+    \includegraphics[width=\textwidth]{figs/results/qust_700_to_900_wtms.eps}
+    \caption{Wing tip masses of eigenfunctions of the stadium billiard with $k \in [700, 900]$. The low wing tip mass regions have low nodal counts and skew the overall distribution while lowering the mean.}
+    \label{fig:wtms}
+  \end{center}
+\end{figure}
+
+\section{Areas of nodal domains}
+The distribution of area of nodal domains all follow an exponential distribution. The value $\tau = 187/91 \approx 2.0549$ of conjecture \ref{conj:area_prediction} appears to hold for the stadium but not the Sinai billiard. Nodal domain areas are scaled by the area of the smallest possible nodal domain $s_min = \pi (j_{1} / k)^{2}$ where $j_{1} \approx 2.4048$ is the first zero of the Bessel function $J_{0}$. The best fit exponent for the Sinai billiard is $1.9496 \pm 7.046e{-4}$, which is a $5.12\%$ error and a difference of $149 \sigma$. For the stadium billiard, the best fit exponent is $2.0578 \pm 1.2e{-3}$, a $0.14\%$ error and a difference of $2.3 \sigma$. Exponents were fit by dividing sizes into $1e4$ bins and fitting on normalized frequencies in each bin for $s/s_{min} \in [10^{1}, 10^{3}]$.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{figs/results/qugrs_all_sizes.eps}
+    \includegraphics[width=0.8\textwidth]{figs/results/qust_700_to_900_sizes_0.1_sampled.eps}
+    \caption{Relative frequencies of normalized nodal domain areas. The dashed red line shows the least-squares best fit of the form $s^{-\tau}$. Above: Sinai; below: stadium}
     \label{fig:area}
   \end{center}
 \end{figure}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\textwidth]{figs/results/perc_100_to_2000_sizes.eps}
-  \end{center}
-\end{figure}
-
-
-\section{Interpolation frequency}
-At $\alpha = 0.5$ interpolation occured on average $0.1512$ times per nodal domain and $1.9e-4$ times per pixel.
-At $\alpha = 0.7$ interpolation occured on average $0.3838$ times per nodal domain and $9.1e-4$ times per pixel.
-
-% TODO: time saved by interpolating
-
 \chapter{Conclusion}
-By combining the scaling method of Vergini and Saraceno \cite{vergini} with adaptive interpolation, we have obtained nodal domain data at energies much higher than any previous work. Comparing this data to the predictions of Bogomolny and Schmidt \cite{bogomolny} from the percolation model, we find different values for the mean and variance of nodal domain counts as well as the distribution of sizes of nodal domains.
+By combining the scaling method of Vergini and Saraceno \cite{vergini} with adaptive interpolation, we have obtained nodal domain data at energies much higher than any previous work. Comparing this data to the predictions of Bogomolny and Schmidt \cite{bogomolny} from the percolation model, we find different values for the mean and variance of nodal domain counts as well as the distribution of sizes of nodal domains. The source code for tools developed here has been released under an open source license \cite{gpl} and is available for the community to modify and distribute \cite{github}.
 
 \appendix
 \chapter{Definition of Ergodicity}
@@ -725,7 +732,9 @@ $\emptyset, \Omega \in \Sigma$
 \item
 $\Omega \backslash A \in \Sigma \; \forall A \in \Sigma$
 \item
-$\cup_{i=1}^{\infty}A_{i} \in \Sigma \; \forall \left\{A_{i}\right\}_{i=1}^{\infty}\text{ such that }A_{i} \in \Sigma \forall i$
+\[
+\bigcup_{i=1}^{\infty}A_{i} \in \Sigma \; \forall \left\{A_{i}\right\}_{i=1}^{\infty}\text{ such that }A_{i} \in \Sigma \forall i
+\]
 \end{enumerate}
 \end{dfn}
 
@@ -738,7 +747,7 @@ $\mu(A) \ge 0 \; \forall A \in \Sigma$
 $\mu(\emptyset) = 0$
 \item
 \[
-\mu\left(\cup_{i=1}^{\infty} A_{i} \right) = \sum_{i=1}^{\infty} \mu(A_{i})
+\mu\left(\bigcup_{i=1}^{\infty} A_{i} \right) = \sum_{i=1}^{\infty} \mu(A_{i})
 \]
 \end{enumerate}
 \end{dfn}
@@ -802,9 +811,11 @@ Thus, the general solution of (\ref{eq:helmholtz}) can be expressed as a sum of 
 \end{equation}
 
 
-
+\comment{
 \chapter{Code Interface}
 \label{sec:api}
+Code implementing Vergini's scaling method to compute eigenfunctions was written by Alex Barnett. Code for counting nodal domains was written by the author. All code used herein is open source and available under the GPL license \cite{gpl} \cite{github}. Appendix \ref{sec:api} contains an overview of the functions provided by this library.
+
 \section{Command Line Interface}
 \subsection{Verg}
 The verg program uses the scaling method described in \ref{sec:scaling_method} to find eigenvalues and eigenfunctions of the Laplace operator on domains in $\mathbb{R}^{2}$.
@@ -832,6 +843,7 @@ The vc program combines verg and count to compute eigenfunctions and count their
 perc -r 100:6:1000 -N 100
 \end{verbatim}
 The perc program generates random grids using the percolation model described in \ref{sec:percolation} and counts the nodal domains in the generated grids.
+}
 
 \bibliographystyle{plain}
 \bibliography{thesis}

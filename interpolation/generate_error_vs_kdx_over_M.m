@@ -23,11 +23,13 @@ figure;
 
 %%% plot error_norms vs k*dx at each M %%%
 loglog(k*dxs, error_norms);
-legend(arrayfun(@(x) strcat('M = ', num2str(x)), Ms, 'UniformOutput', false));
+legend(arrayfun(@(x) strcat('M = ', num2str(x)), Ms, 'UniformOutput', false), 'Location', 'NorthWest');
 set(gca, 'FontSize', 20);
 xlabel('\alpha', 'FontSize', 20);
 ylabel('||errors||_{\infty}', 'FontSize', 20);
 title(names{j+1}, 'FontSize', 26);
+
+pause
 
 print('-deps2c', ['../documents/thesis/figs/interpolation/error_norms_' num2str(j) '.eps']);
 
