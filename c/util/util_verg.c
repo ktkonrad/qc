@@ -22,13 +22,24 @@ input:
        nx_p  - where to save number of columns
 output:
        returns counted array with values of MASKED or UNCOUNTED
-       *ny     - rows in array
-       *nx     - columns in array
+       ny   - rows in array
+       nx   - columns in array
 */
-int **createScaledMaskFromBilliard(Billiard b, double dx, double scale, int *ny_p, int *nx_p) {
-  int nx, ny;
-  *ny_p = ny = ceil((b.yh - b.yl) / dx) + 1;
-  *nx_p = nx = ceil((b.xh - b.xl) / dx) + 1;
+#define DIMENSION_ERROR_MARGIN 0.001
+int **createScaledMaskFromBilliard(Billiard *b, double xl, double xh, double yl, double yh, double dx, double upsample_ratio, double scale, int ny, int nx) {
+  int nx_should_be, ny_should_be;
+  if (xh - xl == 0.0) {
+    ny_should_be = ceil((b->yh - b->yl) / dx) * upsample_ratio + 1;
+    nx_should_be = ceil((b->xh - b->xl) / dx) * upsample_ratio + 1;
+  } else {
+    ny_should_be = ceil((yh - yl) / dx) * upsample_ratio + 1;
+    nx_should_be = ceil((xh - xl) / dx) * upsample_ratio + 1;
+  }
+  if ((float)abs(nx-nx_should_be)/nx_should_be > DIMENSION_ERROR_MARGIN || (float)abs(ny-ny_should_be)/ny_should_be > DIMENSION_ERROR_MARGIN) {
+    ERROR("Mask dimensions do not match expected dimesnions. Given %d x %d, expected %d x %d", ny, nx, ny_should_be, nx_should_be);
+    exit(DIMENSION_ERR);
+  }
+
 
   int **counted = imatrix(ny, nx);
   MALLOC_CHECK(counted);
@@ -36,7 +47,7 @@ int **createScaledMaskFromBilliard(Billiard b, double dx, double scale, int *ny_
   int i, j;
   for (i = 0 ; i < ny ; i++) {
     for (j = 0 ; j < nx ; j++) {
-      if (inside_billiard(j * dx / scale, i * dx / scale, &b)) {
+      if (inside_billiard(j * (dx / upsample_ratio) / scale, i * (dx / upsample_ratio) / scale, b)) {
         counted[i][j] = UNCOUNTED;
       } else {
         counted[i][j] = MASKED;
@@ -45,7 +56,7 @@ int **createScaledMaskFromBilliard(Billiard b, double dx, double scale, int *ny_
   }
     
   // special case for qugrs billiard: mask out the two points at the tip
-  if (b.type == QU_GEN_RECT_SINAI) {
+  if (b->type == QU_GEN_RECT_SINAI) {
     counted[ny-1][nx-1] = MASKED;
     counted[ny-2][nx-2] = MASKED;
   }

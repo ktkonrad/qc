@@ -37,7 +37,7 @@ Billiard bil; // Billiard shape we are using - defined in vergini code
 double dx = -1; // grid spacing
 double k_0 = -1; // k_0 value from vergini
 double alpha = -1; // k_0 * dx
-
+double xl = 0.0, xh = 0.0, yl = 0.0, yh = 0.0; // bounding box
 int besselOrder = -1; // highest order bessel function to use for interpolation
 int upsample_ratio = -1; // upsampling ratio to use for interpolation
 int interp = 1; // boolean whether or not to interpolate
@@ -46,13 +46,13 @@ int interp = 1; // boolean whether or not to interpolate
   print a usage statement
 */
 void usage() {
-  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -k k_0 {-d dx | -a alpha } -M besselOrder -u upsample_ratio}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
+  fprintf(stderr, "USAGE: count -f file [-m maskFile | {-l billiardType -k k_0 [-x xl:xh:yl:yh] {-d dx | -a alpha } -M besselOrder -u upsample_ratio}] [-t] [-o] [-1] [-n] [-q] [-s]\n");
   fprintf(stderr, "-t: show timing info\n");
   fprintf(stderr, "-o: output grid to file\n");
   fprintf(stderr, "-1: only count first eigenfunction\n");
   fprintf(stderr, "-n: do not use interpolation\n");
   fprintf(stderr, "-q: quiet\n");
-  fprintf(stderr, "-s: output nodal domain sizes to file\n");
+  fprintf(stderr, "-z: output nodal domain sizes to file\n");
 }
 
 /*
@@ -69,7 +69,7 @@ void count_processArgs(int argc, char **argv) {
     exit(CMD_LINE_ARG_ERR);
   }
 
-  while ((c = getopt(argc, argv, "f:m:l:d:a:k:M:u:to1nqs")) != -1) {
+  while ((c = getopt(argc, argv, "f:m:l:x:d:a:k:M:u:to1nqz")) != -1) {
     switch (c) {
     case 'f':
       SET(file, optarg);
@@ -86,6 +86,9 @@ void count_processArgs(int argc, char **argv) {
 	exit(CMD_LINE_ARG_ERR);
       }
       mode = 2;
+      break;
+    case 'x':
+      sscanf(optarg, "%lf:%lf:%lf:%lf", &xl, &xh, &yl, &yh);
       break;
     case 'M':
       besselOrder = atoi(optarg);
@@ -117,7 +120,7 @@ void count_processArgs(int argc, char **argv) {
     case 'q':
       verb = 0;
       break;
-    case 's':
+    case 'z':
       sizeFlag = 1;
       break;
     case '?':
@@ -267,7 +270,8 @@ int count_main(int argc, char **argv) {
     int i = 0;
     do {
       bzero(&stats, sizeof(stats));
-      grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at atime so we don't have to keep them all in memory at once
+      grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at a time so we don't have to keep them all in memory at once
+      printf("ny: %d, nx: %d\n", ny, nx);
 
       if (ne == 0) {
         break;
@@ -278,15 +282,7 @@ int count_main(int argc, char **argv) {
 	exit(IO_ERR);
       }
     
-      counted = createScaledMaskFromBilliard(bil, dx/upsample_ratio, k/k_0, &counted_y, &counted_x); 
-
-      if (counted_x != ((nx-1)*upsample_ratio)+1 || counted_y != ((ny-1)*upsample_ratio)+1) {
-	ERROR("mask dimensions do not match grid dimensions\n \
-	       ny\tnx\tmasky\tmaskx\n \
-	       %d\t%d\t%d\t%d",
-	      ((ny-1)*upsample_ratio)+1,((nx-1)*upsample_ratio)+1,counted_y,counted_x);
-	exit(DIMENSION_ERR);
-      }
+      counted = createScaledMaskFromBilliard(&bil, xl, xh, yl, yh, dx, upsample_ratio, k/k_0, ((ny-1)*upsample_ratio)+1, ((nx-1)*upsample_ratio)+1); 
 
       count = runTest(grid, counted, ny, nx, k, dx, besselOrder, upsample_ratio, &stats);
       if (bil.type == QU_STADIUM) {

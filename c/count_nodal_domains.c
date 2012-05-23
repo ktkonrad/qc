@@ -443,19 +443,57 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
 
   stats->interp_count++;
 
-  // check we're not too close to the edge
-  // TODO: interpolate on edges by reflecting
+  for (k = 0 ; k < w->input->size ; k++) {
+    if (IS_MASKED(gsl_vector_get(w->input, k))) {
+      ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
+      stats->boundary_trouble_count++;
+      break;
+    }
+  }
+  
+  fill_interp_input(grid, i, j, w, ny, nx, refl_i, refl_j, refl_i_sign, refl_j_sign);
+  
+  // interp_output = interp * w->input
+  rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, w->input, 0, w->output);
+  if (rc) {
+    ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
+    exit(INTERP_ERR);
+  }
+
+  // write signs into upsampled
+  for (y = 0 ; y <= upsample ; y++) {
+    for (x = 0 ; x <= upsample ; x++) {
+      if (gsl_vector_get(w->output, IDX(x,y)) > 0) {
+        bit_array_set(upsampled, j*upsample + x, i*upsample + y);
+      } else {
+        bit_array_reset(upsampled, j*upsample + x, i*upsample + y);
+      }
+    }
+  }
+}
+
+/*
+fill w->interp_input with grid values around (x,y)
+reflect eigenfunction across edge of data
+interpolate across domain boundary
+  because there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
+
+precondition: each int * argument is an array of length STENCIL_WIDTH
+*/
+// TODO: move all these params into interp_workspace struct
+//         also move interp_stats to workspace
+void fill_interp_input(double **grid, int i, int j, interp_workspace *w, int ny, int nx, int *refl_i, int *refl_j, int *refl_i_sign, int *refl_j_sign) {
+  int l;
   if (i < 2 || i >= ny - 3 || j < 2 || j >= nx - 3) {
-    ERROR("trouble spot near edge: (x,y) = (%d,%d)", j, i);
-    stats->edge_trouble_count++;
-    
     for (l = 0 ; l < STENCIL_WIDTH ; l++) {
       refl_i_sign[l] = 1;
       refl_i[l] = i - 2 + l;
+      // across
       if (refl_i[l] < 0) {
         refl_i_sign[l] *= -1;
         refl_i[l] *= -1;
       }
+      //
       else if (refl_i[l] > ny - 1) {
         refl_i_sign[l] = -1;
         refl_i[l] = 2*ny - refl_i[l] - 1;
@@ -539,39 +577,10 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
     gsl_vector_set(w->input, 21, grid[i+2][j+2]);
     gsl_vector_set(w->input, 22, grid[i+3][j]);
     gsl_vector_set(w->input, 23, grid[i+3][j+1]);
-  
-    // check if we are near the boundary
-    // if we are near the boundary we can still interpolate
-    //   be there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
-    for (k = 0 ; k < w->input->size ; k++) {
-      if (IS_MASKED(gsl_vector_get(w->input, k))) {
-        ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-        stats->boundary_trouble_count++;
-        break;
-      }
-    }
-
-  }
-
-  // interp_output = interp * w->input
-  rc = gsl_blas_dgemv(CblasNoTrans, 1, interp, w->input, 0, w->output);
-  if (rc) {
-    ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
-    exit(INTERP_ERR);
-  }
-
-  // write signs into upsampled
-  for (y = 0 ; y <= upsample ; y++) {
-    for (x = 0 ; x <= upsample ; x++) {
-      if (gsl_vector_get(w->output, IDX(x,y)) > 0) {
-        bit_array_set(upsampled, j*upsample + x, i*upsample + y);
-      } else {
-        bit_array_reset(upsampled, j*upsample + x, i*upsample + y);
-      }
-    }
   }
 }
-
+    
+// TODO: move to util
 interp_workspace *new_interp_workspace(int upsample_ratio) {
   interp_workspace *w = (interp_workspace *)malloc(sizeof(interp_workspace));
   MALLOC_CHECK(w);

@@ -14,34 +14,38 @@
 #include "util/exit_codes.h"
 #include "nodal_domain_driver_no_main.h"
 #include "../vergini/verg_no_main.h"
+#include "../vergini/billiard.h"
 
-#define SET(loc, val) do {loc = (char *)malloc((strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
-#define RESET(loc, val) do {loc = (char *)realloc(loc, (strlen(val)+1)*sizeof(char)); MALLOC_CHECK(loc); strcpy(loc, val);} while (0)
-
-#define COUNT_NARGS 14
-#define VERG_NARGS 16
+#define COUNT_NARGS 17
+#define VERG_NARGS 18
 
 // global verbosity
 int verb = 1;
 
-// options specified by command line arguments
+// options specified by command line arguments (passed to verg and count)
 char *name; // base name of verg output
 char *billiard; // billiard shape string
 char *basis; // basis set string
 char *vc_dx; // grid spacing
 char *k; // k_0 value from vergini
-double vc_alpha = -1; // k * vc_dx (not passed as arg, just used to compute dx from k)
 char *window; // window size on either size of k
 char *fourth_order_coeff; // fourth order vergini coefficient
 char *bessel_order; // highest order bessel function to use for interpolation
 char *vc_upsample; // upsampling ratio to use for interpolation
 char *remove_spurious; // -u flag to verg
+char *output_sizes; // -z flag to count
+char *output_box; // vergini output box
+
+// other things specifed by command line args (not passed directly)
+double vc_alpha = -1; // k * vc_dx (not passed as arg, just used to compute dx from k)
+int expand_output = 0; // number of pixels to expand output by
+Billiard vc_bil;
 
 /*
   print a usage statement
 */
 void vc_usage() {
-  fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n [-q]");
+  fprintf(stderr, "VC_USAGE: verg_and_count -n name -l billiardType -s basisSet -d vc_dx -k k -V verginiWidth -M besselOrder -p vc_upsample\n [-u] [-z] [-q]");
 }
 
 /*
@@ -58,6 +62,7 @@ void freeArgs() {
   free(vc_dx);
   free(k);
   free(remove_spurious);
+  free(output_sizes);
 }
 
 /*
@@ -76,14 +81,28 @@ void processArgs(int argc, char **argv) {
   // set default values
   SET(fourth_order_coeff, "4");
   SET(remove_spurious, "");
+  SET(output_sizes, "");
+  SET(output_box, "0.0:0.0:0.0:0.0");
 
-  while ((c = getopt(argc, argv, "n:l:s:d:a:k:V:4:M:p:uq")) != -1) {
+  while ((c = getopt(argc, argv, "n:l:s:d:a:k:V:4:M:p:x:uqz")) != -1) {
     switch (c) {
     case 'n':
       SET(name, optarg);
       break;
     case 'l':
       SET(billiard, optarg);
+      if (parse_billiard(optarg, &vc_bil) == -1) {
+	fprintf(stderr, "Error: failed to parse billiard args\n");
+	vc_usage();
+	exit(CMD_LINE_ARG_ERR);
+      }
+      if (build_billiard(&vc_bil, 0) != 0) { // second argument is only used for radial billiard
+        ERROR("failed to build billiard");
+        exit(VERGINI_ERR);
+      }
+      break;
+    case 'x':
+      expand_output = atoi(optarg);
       break;
     case 's':
       SET(basis, optarg);
@@ -111,6 +130,9 @@ void processArgs(int argc, char **argv) {
       break;
     case 'u':
       RESET(remove_spurious, "-u");
+      break;
+    case 'z':
+      RESET(output_sizes, "-z");
       break;
     case 'q':
       verb = 0;
@@ -174,6 +196,10 @@ void processArgs(int argc, char **argv) {
     ERROR("vc_upsample not specified or invalid");
     exit(CMD_LINE_ARG_ERR);
   }
+
+  output_box = (char *)malloc(50*sizeof(char));
+  sprintf(output_box, "%.8f:%.8f:%.8f:%.8f", vc_bil.xl, vc_bil.xh + expand_output * atof(vc_dx), vc_bil.yl, vc_bil.yh + expand_output * atof(vc_dx));
+
 }
 
 int main(int argc, char **argv) {
@@ -188,59 +214,55 @@ int main(int argc, char **argv) {
   char **verg_args = (char **)malloc((VERG_NARGS+1)*sizeof(char *));
   char *verg_executable = "verg";
   SET(verg_args[0], verg_executable);
-  for (i = 1 ; i < VERG_NARGS ; i+=2) {
-    verg_args[i] = (char *)malloc(3*sizeof(char));
-  }
-  strcpy(verg_args[1], "-o");
+  SET(verg_args[1], "-o");
   SET(verg_args[2], name);
-  strcpy(verg_args[3], "-l");
+  SET(verg_args[3], "-l");
   SET(verg_args[4], billiard);
-  strcpy(verg_args[5], "-s");
-  SET(verg_args[6], basis);
-  strcpy(verg_args[7], "-4");
-  SET(verg_args[8], fourth_order_coeff);
-  strcpy(verg_args[9], "-k");
-  SET(verg_args[10], k);
-  strcpy(verg_args[11], "-V");
-  SET(verg_args[12], window);
-  strcpy(verg_args[13], "-f");
-  SET(verg_args[14], vc_dx);
-  strcpy(verg_args[15], remove_spurious);
-  verg_args[16] = NULL;
-  
+  SET(verg_args[5], "-x");
+  SET(verg_args[6], output_box);
+  SET(verg_args[7], "-s");
+  SET(verg_args[8], basis);
+  SET(verg_args[9], "-4");
+  SET(verg_args[10], fourth_order_coeff);
+  SET(verg_args[11], "-k");
+  SET(verg_args[12], k);
+  SET(verg_args[13], "-V");
+  SET(verg_args[14], window);
+  SET(verg_args[15], "-f");
+  SET(verg_args[16], vc_dx);
+  SET(verg_args[17], remove_spurious);
+  verg_args[18] = NULL;  
 
   verg_main(VERG_NARGS, verg_args);
 
-  
   for (i = 0 ; i < VERG_NARGS ; i++) {
     free(verg_args[i]);
   }  
   free(verg_args);
   
-
   //   ./count -f test.sta_bin -l qugrs:1.0:0.4:0.7 -d 0.001000 -k 200.100000 -M 9 -u 20 -t
   char **count_args = (char **)malloc((COUNT_NARGS+1)*sizeof(char *));
   char *count_executable = "count";
   SET(count_args[0], count_executable);
-  for (i = 1 ; i < COUNT_NARGS ; i+=2) {
-    count_args[i] = (char *)malloc(3*sizeof(char));
-  }
-  strcpy(count_args[1], "-f");
-  count_args[2] = (char *)malloc((strlen(name) + 9)*sizeof(char)); // + 8 for .sta_bin
+  SET(count_args[1], "-f");
+  count_args[2] = (char *)malloc((strlen(name) + 9)*sizeof(char)); // + 8 for ".sta_bin"
   strcpy(count_args[2], name);
   strcat(count_args[2], ".sta_bin");
-  strcpy(count_args[3], "-l");
+  SET(count_args[3], "-l");
   SET(count_args[4], billiard);
-  strcpy(count_args[5], "-d");
-  SET(count_args[6], vc_dx);
-  strcpy(count_args[7], "-k");
-  SET(count_args[8], k);
-  strcpy(count_args[9], "-M");
-  SET(count_args[10], bessel_order);
-  strcpy(count_args[11], "-u");
-  SET(count_args[12], vc_upsample);
-  strcpy(count_args[13], "-t");
-  count_args[14] = NULL;
+  SET(count_args[5], "-x");
+  SET(count_args[6], output_box);
+  SET(count_args[7], "-d");
+  SET(count_args[8], vc_dx);
+  SET(count_args[9], "-k");
+  SET(count_args[10], k);
+  SET(count_args[11], "-M");
+  SET(count_args[12], bessel_order);
+  SET(count_args[13], "-u");
+  SET(count_args[14], vc_upsample);
+  SET(count_args[15], "-t");
+  SET(count_args[16], output_sizes);
+  count_args[17] = NULL;
 
   count_main(COUNT_NARGS, count_args);
 

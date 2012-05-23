@@ -27,6 +27,7 @@ int findDomain(bit_array_t *signs, int **counted, int i, int j, int nd, int ny, 
 int findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int ny, int nx);
 void interpolate(double **grid, bit_array_t *counted, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats, interp_workspace *w);
 bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha, int M, int upsample, interp_stats *stats);
+void fill_interp_input(double **grid, int i, int j, interp_workspace *w, int ny, int nx, int *refl_i, int *refl_j, int *refl_i_sign, int *refl_j_sign);
 interp_workspace *new_interp_workspace(int upsample_ratio);
 void free_interp_workspace(interp_workspace *w);
 
