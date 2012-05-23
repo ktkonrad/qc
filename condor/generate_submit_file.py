@@ -77,9 +77,9 @@ def write_job(submit_file, k1, k2, billiard):
     k = (k1+k2)/2
     delta_k = k - k1 # = k2 - k
     if billiard == 'qugrs':
-        args = "-n qugrs_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -u -4 1 -k %f -V %f -a %f -M 9 -p 30" % (k, k, delta_k, alpha)
+        args = "-n qugrs_%f -l qugrs:1.0:0.4:0.7 -s oyooo:1.5:7:1 -x 5 -u -4 1 -k %f -V %f -a %f -M 9 -p 30" % (k, k, delta_k, alpha)
     elif billiard == 'qust':
-        args = "-n qust_%f -l qust:2 -s vepwoo:1.2:40:1.5 -u -k %f -V %f -a %f -M 9 -p 30" % (k, k, delta_k, alpha)
+        args = "-n qust_%f -l qust:2 -s vepwoo:1.2:40:1.5 -x 5 -u -k %f -V %f -a %f -M 9 -p 30" % (k, k, delta_k, alpha)
     else:
         raise ValueError('unknown billiard: %s' % billiard);
     submit_file.write("Arguments = %s\n" % args)
