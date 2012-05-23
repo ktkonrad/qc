@@ -17,7 +17,7 @@ Kyle Konrad
 #include <limits.h>
 #include <gsl/gsl_blas.h>
 
-#define SIGN(x) fabs(x)
+#define SIGN(x) (((x)>0)-((x)<0))
 
 // orthogonal connection directions
 #define LEFT 1
@@ -384,7 +384,6 @@ bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha
   gsl_matrix *interp = create_interp_matrix(alpha, M, upsample_ratio);
   bit_array_t *upsampled = new_bit_array((ny-1)*upsample_ratio+1, (nx-1)*upsample_ratio+1);
   MALLOC_CHECK(upsampled);
-  void (*bit_array_update_fn)(bit_array_t *, int, int); // function pointer
   int r,c,x,y;
   interp_workspace *w = new_interp_workspace(upsample_ratio);
 
@@ -450,7 +449,7 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
     ERROR("interpolation failed. gsl_blas_dgemv returned %d", rc);
     exit(INTERP_ERR);
   }
-
+  
   // write signs into upsampled
   for (y = 0 ; y <= upsample ; y++) {
     for (x = 0 ; x <= upsample ; x++) {
