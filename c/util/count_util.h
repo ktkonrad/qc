@@ -1,7 +1,6 @@
 #ifndef _COUNT_UTIL_H_
 #define _COUNT_UTIL_H_
 
-#include <gsl/gsl_matrix.h> // for gsl_matrix
 #include "exit_codes.h"
 #include <limits.h>
 
@@ -18,6 +17,5 @@ int array2file(double **array, int m, int n, char *file);
 int intArray2file(int **array, int m, int n, char *file);
 int charArray2file(char **array, int m, int n, char *file);
 double wingTipMass(double **grid, int ny, int nx);
-int fillInterpMatrix(double k, double dx, int M, int upsample, gsl_matrix *m);
 
 #endif

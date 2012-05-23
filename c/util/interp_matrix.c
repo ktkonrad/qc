@@ -44,7 +44,7 @@ gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M, doubl
   int i,j;
   double x, y, r, theta;
 
-  double column_scale;
+  double scaled_bessel_val;
 
   for (i = 0 ; i < npoints ; i++) { // loop over rows
     x = points[i].x;
@@ -53,11 +53,11 @@ gsl_matrix *bessel_matrix(double alpha, point *points, int npoints, int M, doubl
     theta = THETA(x,y);
 
     // loops over columns
-    gsl_matrix_set(out, i, 0, gsl_sf_bessel_J0(alpha * r) / gsl_sf_bessel_J0(alpha * r_typical));
+    gsl_matrix_set(out, i, 0, gsl_sf_bessel_J0(alpha * r) / gsl_sf_bessel_J0(alpha * r_typical)); // first column doesnt have sin or cos term
     for (j = 1 ; j <= M ; j++) {
-      column_scale = gsl_sf_bessel_Jn(j, alpha * r_typical);
-      gsl_matrix_set(out, i, j, gsl_sf_bessel_Jn(j, alpha * r) * sin(j * theta) / column_scale);
-      gsl_matrix_set(out, i, j+M, gsl_sf_bessel_Jn(j, alpha * r) * cos(j * theta) / column_scale);
+      scaled_bessel_val = gsl_sf_bessel_Jn(j, alpha * r) / gsl_sf_bessel_Jn(j, alpha * r_typical);
+      gsl_matrix_set(out, i, j, scaled_bessel_val * sin(j * theta));
+      gsl_matrix_set(out, i, j+M, scaled_bessel_val * cos(j * theta));
     }
   }
 
@@ -84,6 +84,7 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
   MALLOC_CHECK(V);
   gsl_matrix *S = gsl_matrix_alloc(n, n);
   MALLOC_CHECK(S);
+  gsl_matrix_set_zero(S);
   gsl_matrix *U_times_S_plus_trans = gsl_matrix_alloc(m, n);
   MALLOC_CHECK(U_times_S_plus_trans);
   gsl_vector *singular_values = gsl_vector_alloc(n);
@@ -94,11 +95,12 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
 
   rc = gsl_linalg_SV_decomp(A, V, singular_values, workspace); // NOTE: this does a thin SVD
   // Now A = U
-  /*
-  dump_matrix(A, "U.dat");
-  dump_matrix(V, "V.dat");
-  dump_vector(singular_values, "S.dat");
-  */
+  
+  #ifdef DEBUG
+  dump_matrix(A, "../data/U.dat");
+  dump_matrix(V, "../data/V.dat");
+  dump_vector(singular_values, "../data/S.dat");
+  #endif
 
   if (rc) {
     // ERROR
@@ -121,19 +123,25 @@ int pseudoinverse(gsl_matrix *A, gsl_matrix *A_plus) {
     gsl_matrix_set(S, i, i, 1 / temp);
   }
   // now S = S+*
+  #ifdef DEBUG
+  dump_matrix(S, "../data/S_plus.dat");
+  #endif
 
   // compute US+*
   rc = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, A, S, 0.0, U_times_S_plus_trans);
   // now A = US+*
+  #ifdef DEBUG
+  dump_matrix(A, "../data/U_times_S_plus.dat");
+  #endif
 
   if (rc) {
     // ERROR
     return rc;
   }
 
-  // compute VS+U
+  // compute VS+U*
   rc = gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, V, U_times_S_plus_trans, 0.0, A_plus);
-  // now A_plus = VS+U
+  // now A_plus = V(US+*)* = VS+U* = A+
   if (rc) {
     // ERROR
     return rc;
@@ -236,17 +244,28 @@ gsl_matrix *create_interp_matrix(double alpha, int M, int upsample) {
  */
 gsl_matrix *interp_matrix(double alpha, point *points_in, int npoints_in, point *points_out, int npoints_out, int M, double r_typical) {
   gsl_matrix *A = bessel_matrix(alpha, points_in, npoints_in, M, r_typical);
-  // dump_matrix(A, "A.dat");
   gsl_matrix *B = bessel_matrix(alpha, points_out, npoints_out, M, r_typical);
-  // dump_matrix(B, "B.dat");
   gsl_matrix *A_plus = gsl_matrix_alloc(2*M+1, npoints_in);
   MALLOC_CHECK(A_plus);
   gsl_matrix *interp = gsl_matrix_alloc(npoints_out, npoints_in);
   MALLOC_CHECK(interp);
+
+  #ifdef DEBUG
+  dump_matrix(B, "../data/B.dat");
+  dump_matrix(A, "../data/A.dat");
+  #endif
+
   pseudoinverse(A, A_plus);
-  // dump_matrix(A_plus, "A_plus.dat");
+
+  #ifdef DEBUG
+  dump_matrix(A_plus, "../data/A_plus.dat");
+  #endif
   
   gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, B, A_plus, 0.0, interp);
+
+  #ifdef DEBUG
+  dump_matrix(interp, "../data/interp.dat");
+  #endif
 
   gsl_matrix_free(A);
   gsl_matrix_free(A_plus);

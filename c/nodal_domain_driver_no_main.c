@@ -271,7 +271,6 @@ int count_main(int argc, char **argv) {
     do {
       bzero(&stats, sizeof(stats));
       grid = readSta(file, &ne, &ny, &nx, &k, i); // read eigenfunctions one at a time so we don't have to keep them all in memory at once
-      printf("ny: %d, nx: %d\n", ny, nx);
 
       if (ne == 0) {
         break;
@@ -284,7 +283,7 @@ int count_main(int argc, char **argv) {
     
       counted = createScaledMaskFromBilliard(&bil, xl, xh, yl, yh, dx, upsample_ratio, k/k_0, ((ny-1)*upsample_ratio)+1, ((nx-1)*upsample_ratio)+1); 
 
-      count = runTest(grid, counted, ny, nx, k, dx, besselOrder, upsample_ratio, &stats);
+      count = runTest(grid, counted, ny, nx, k, dx/(k/k_0), besselOrder, upsample_ratio, &stats);
       if (bil.type == QU_STADIUM) {
         wtm = wingTipMass(grid, ny, nx);
       }

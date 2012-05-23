@@ -382,14 +382,16 @@ int findDomainNoInterp(double **grid, int **counted, int i, int j, int nd, int n
  
 bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha, int M, int upsample_ratio, interp_stats *stats) {
   gsl_matrix *interp = create_interp_matrix(alpha, M, upsample_ratio);
+  #ifdef DEBUG
+  printf("alpha = %.16f\n", alpha);
+  #endif
   bit_array_t *upsampled = new_bit_array((ny-1)*upsample_ratio+1, (nx-1)*upsample_ratio+1);
   MALLOC_CHECK(upsampled);
   int r,c,x,y;
-  interp_workspace *w = new_interp_workspace(upsample_ratio);
-
+  interp_workspace *w = new_interp_workspace(upsample_ratio, stats);
   for (r = 0 ; r < ny - 3 ; r++) {
     for (c = 0 ; c < nx - 3 ; c++) {
-      interpolate(grid, upsampled, r, c, ny, nx, upsample_ratio, interp, stats, w);
+      interpolate(grid, upsampled, r, c, ny, nx, upsample_ratio, interp, w);
     }
   }
   free_interp_workspace(w);
@@ -417,10 +419,10 @@ bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha
         stores upsampled function value signs in upsampled
 */
 #define IDX(x, y) ((x)*n+(y))
-void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, int nx, int upsample, gsl_matrix *interp, interp_stats *stats, interp_workspace *w) {
+void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, int nx, int upsample_ratio, gsl_matrix *interp, interp_workspace *w) {
   int k;
   int x, y, l;
-  int n = upsample + 1;
+  int n = upsample_ratio + 1;
   int rc;
   int currentSign;
   int refl_i[STENCIL_WIDTH], refl_j[STENCIL_WIDTH], refl_i_sign[STENCIL_WIDTH], refl_j_sign[STENCIL_WIDTH];
@@ -431,16 +433,8 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
     exit(INTERP_ERR);
   }
 
-  stats->interp_count++;
+  w->stats->interp_count++;
 
-  for (k = 0 ; k < w->input->size ; k++) {
-    if (IS_MASKED(gsl_vector_get(w->input, k))) {
-      ERROR("trouble spot near boundary: (x,y) = (%d,%d)", j, i);
-      stats->boundary_trouble_count++;
-      break;
-    }
-  }
-  
   fill_interp_input(grid, i, j, w, ny, nx, refl_i, refl_j, refl_i_sign, refl_j_sign);
   
   // interp_output = interp * w->input
@@ -451,12 +445,12 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
   }
   
   // write signs into upsampled
-  for (y = 0 ; y <= upsample ; y++) {
-    for (x = 0 ; x <= upsample ; x++) {
+  for (y = 0 ; y < n ; y++) {
+    for (x = 0 ; x < n ; x++) {
       if (gsl_vector_get(w->output, IDX(x,y)) > 0) {
-        bit_array_set(upsampled, j*upsample + x, i*upsample + y);
+        bit_array_set(upsampled, j*upsample_ratio + x, i*upsample_ratio + y);
       } else {
-        bit_array_reset(upsampled, j*upsample + x, i*upsample + y);
+        bit_array_reset(upsampled, j*upsample_ratio + x, i*upsample_ratio + y);
       }
     }
   }
@@ -474,8 +468,9 @@ precondition: each int * argument is an array of length STENCIL_WIDTH
 //         also move interp_stats to workspace
 void fill_interp_input(double **grid, int i, int j, interp_workspace *w, int ny, int nx, int *refl_i, int *refl_j, int *refl_i_sign, int *refl_j_sign) {
   int l;
-  if (i < 2 || i >= ny - 3 || j < 2 || j >= nx - 3) {
-    // TODO: update edge interp count here
+
+  if (i < 2 || j < 2) { // reflection case
+    w->stats->edge_trouble_count++;
     for (l = 0 ; l < STENCIL_WIDTH ; l++) {
       refl_i_sign[l] = 1;
       refl_i[l] = i - 2 + l;
@@ -564,13 +559,14 @@ void fill_interp_input(double **grid, int i, int j, interp_workspace *w, int ny,
 }
     
 // TODO: move to util
-interp_workspace *new_interp_workspace(int upsample_ratio) {
+interp_workspace *new_interp_workspace(int upsample_ratio, interp_stats *stats) {
   interp_workspace *w = (interp_workspace *)malloc(sizeof(interp_workspace));
   MALLOC_CHECK(w);
   w->input = gsl_vector_alloc(NUM_STENCIL_POINTS);
   MALLOC_CHECK(w->input);
   w->output = gsl_vector_alloc((upsample_ratio+1)*(upsample_ratio+1));
   MALLOC_CHECK(w->output);
+  w->stats = stats;
   return w;
 }
 
