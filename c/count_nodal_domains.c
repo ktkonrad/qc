@@ -388,18 +388,9 @@ bit_array_t *upsample(double **grid, int **counted, int ny, int nx, double alpha
   int r,c,x,y;
   interp_workspace *w = new_interp_workspace(upsample_ratio);
 
-  for (r = 0 ; r < ny - 1 ; r++) {
-    for (c = 0 ; c < nx - 1 ; c++) {
-      if (SIGN(grid[r][c]) == SIGN(grid[r][c+1]) && SIGN(grid[r][c+1]) == SIGN(grid[r+1][c]) && SIGN(grid[r+1][c]) == SIGN(grid[r+1][c+1])) {
-        bit_array_update_fn = grid[r][c] > 0 ? &bit_array_set : &bit_array_reset;
-        for (y = r*upsample_ratio ; y <= (r+1)*upsample_ratio ; y++) {
-          for (x = c*upsample_ratio ; x <= (c+1)*upsample_ratio ; x++) {
-            (*bit_array_update_fn)(upsampled,x,y);
-          }
-        }
-      } else {
-        interpolate(grid, upsampled, r, c, ny, nx, upsample_ratio, interp, stats, w);
-      }
+  for (r = 0 ; r < ny - 3 ; r++) {
+    for (c = 0 ; c < nx - 3 ; c++) {
+      interpolate(grid, upsampled, r, c, ny, nx, upsample_ratio, interp, stats, w);
     }
   }
   free_interp_workspace(w);
@@ -485,28 +476,21 @@ precondition: each int * argument is an array of length STENCIL_WIDTH
 void fill_interp_input(double **grid, int i, int j, interp_workspace *w, int ny, int nx, int *refl_i, int *refl_j, int *refl_i_sign, int *refl_j_sign) {
   int l;
   if (i < 2 || i >= ny - 3 || j < 2 || j >= nx - 3) {
+    // TODO: update edge interp count here
     for (l = 0 ; l < STENCIL_WIDTH ; l++) {
       refl_i_sign[l] = 1;
       refl_i[l] = i - 2 + l;
-      // across
+      // across x-axis
       if (refl_i[l] < 0) {
         refl_i_sign[l] *= -1;
         refl_i[l] *= -1;
       }
-      //
-      else if (refl_i[l] > ny - 1) {
-        refl_i_sign[l] = -1;
-        refl_i[l] = 2*ny - refl_i[l] - 1;
-      }
       refl_j_sign[l] = 1;
       refl_j[l] = j - 2 + l;
+      // across y-axis
       if (refl_j[l] < 0) {
         refl_j_sign[l] = -1;
         refl_j[l] *= -1;
-      }
-      else if (refl_j[l] > nx - 1) {
-        refl_j_sign[l] *= -1;
-        refl_j[l] = 2*nx - refl_j[l] - 1;
       }
     }
     gsl_vector_set(w->input, 0 , refl_i_sign[0]*refl_j_sign[2]*grid[refl_i[0]][refl_j[2]]);
