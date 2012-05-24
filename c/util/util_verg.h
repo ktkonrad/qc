@@ -2,8 +2,9 @@
 #define _UTIL_VERG_H_
 
 #include "../../vergini/billiard.h" // for Billiard
+#include "bit_array.h"
 
-int **createScaledMaskFromBilliard(Billiard *b, double xl, double xh, double yl, double yh, double dx, double upsample_ratio, double scale, int ny, int nx);
-int **createMaskFromFile(char *file, int *ny, int *nx);
+bit_array_t *createScaledMaskFromBilliard(Billiard *b, double xl, double xh, double yl, double yh, double dx, double upsample_ratio, double scale, int ny, int nx);
+bit_array_t *createMaskFromFile(char *file, int *ny, int *nx);
 
 #endif

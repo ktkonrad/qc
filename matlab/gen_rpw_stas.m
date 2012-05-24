@@ -28,7 +28,6 @@ alpha = k.*dx;
 
 %% run 100 times
 N = 100;
-N = 68;
 interp_counts= zeros(numel(ppw), N);
 no_interp_counts= zeros(numel(ppw), N);
 interp_errors = zeros(numel(ppw), N);

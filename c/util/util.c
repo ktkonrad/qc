@@ -69,7 +69,7 @@ input:
        ny   - y dimension of array
        nx   - x dimension of array
 output:
-       returns - uninitialized 2d array
+       returns - zeroed 2d array
 */
 char **cmatrix(int ny, int nx) {
   char **mask;

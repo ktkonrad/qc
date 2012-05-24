@@ -178,7 +178,7 @@ void processArgs(int argc, char **argv) {
 output:
         return value: number of nodal domains
 */
-int runTest(double **grid, int **counted, int ny, int nx, double k, double dx, int besselOrder, int upsample_ratio, interp_stats *stats) {
+int runTest(double **grid, bit_array_t *counted, int ny, int nx, double k, double dx, int besselOrder, int upsample_ratio, interp_stats *stats) {
   char sizefilename[50];
   FILE *sizefile = NULL;
   if (sizeFlag) {
@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
   int ny, nx, counted_y, counted_x;
   int i, j;
   double **grid;
-  int **counted;
+  bit_array_t *counted;
   interp_stats stats;
 
   clock_t start = clock();
@@ -228,19 +228,14 @@ int main(int argc, char **argv) {
       }
     }
     else {
-      counted = imatrix(ny, nx);
+      counted = new_bit_array(ny, nx); // initialized to all zeros
       MALLOC_CHECK(counted);
-      for (i = 0 ; i < ny ; i ++) { 
-        for (j = 0 ; j < nx ; j++) {
-          counted[i][j] = UNCOUNTED;
-        }
-      }
     }
     bzero(&stats, sizeof(stats));
     count = runTest(grid, counted, ny, nx, k_0, dx, besselOrder, upsample_ratio, &stats);
 
     free_dmatrix(grid);
-    free_imatrix(counted);
+    free_bit_array(counted);
     free(file);
 
     if (maskFlag) {
@@ -291,7 +286,7 @@ int main(int argc, char **argv) {
       }
 
       free_dmatrix(grid);
-      free_imatrix(counted);
+      free_bit_array(counted);
 
       printf("%f, %d, %d, %d, %d, %d, %f\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count, wtm);
 
