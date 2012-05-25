@@ -1,8 +1,7 @@
 addpath('../vergini');
 
 %% specify ppw
-ppw = [2:10 12:2:18 20:6:44 50:10:90 100:20:160];
-%ppw = [2 200 260];
+ppw = [4 10 20 40 60 100 150 200 300];
 n0 = 100;
 n = n0 .* ppw ./ ppw(1);
 L = 2*pi./ppw .* n; % width of window
@@ -11,7 +10,7 @@ k = 2*pi*n./(L.*ppw); % should be all ones
 alpha = k.*dx;
 
 %% run 100 times
-N = 100;
+N = 5;
 no_interp_counts= zeros(numel(ppw), N);
 no_interp_errors = zeros(numel(ppw), N);
 for j=1:N
