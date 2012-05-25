@@ -224,7 +224,8 @@ outputs:
 int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, int ny, int nx) {
   stack *s = newStack();
   push(s, j, i);
-  
+  bit_array_set(counted, j, i);
+
   int x, y;
   int currentSign;
   char connections; // keep track of what (x,y) is connected to
@@ -238,6 +239,7 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
     // left
     if (x >= 1 && !bit_array_get(counted, x-1, y)) {
       if (bit_array_get(signs, x-1, y) == currentSign) {
+        bit_array_set(counted, x-1, y);
         push(s, x - 1, y);
       }
     }
@@ -245,6 +247,7 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
     // above
     if (y >= 1 && !bit_array_get(counted, x, y-1)) {
       if (bit_array_get(signs, x, y-1) == currentSign) {
+        bit_array_set(counted, x, y-1);
         push(s, x, y-1);
       }
     }
@@ -252,6 +255,7 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
     // right
     if (x < nx-1 && !bit_array_get(counted, x+1, y)) {
       if (bit_array_get(signs, x+1, y) == currentSign) {
+        bit_array_set(counted, x+1, y);
         push(s, x+1, y);
       }
     }
@@ -259,11 +263,10 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
     // below
     if (y < ny-1 && !bit_array_get(counted, x, y+1)) {
       if (bit_array_get(signs, x, y+1) == currentSign) {
+        bit_array_set(counted, x, y+1);
         push(s, x, y+1);
       }
     }
-
-    bit_array_set(counted, x, y);
   }
   destroyStack(s);
   return size;
@@ -291,7 +294,8 @@ outputs:
 int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd, int ny, int nx) {
   stack *s = newStack();
   push(s, j, i);
-  
+  bit_array_set(counted, j, i);
+
   int x, y;
   int currentSign;
   char connections; // keep track of what (x,y) is connected to
@@ -305,6 +309,7 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
     // left
     if (x >= 1 && !bit_array_get(counted, x-1, y)) {
       if (SIGN(grid[y][x-1]) == currentSign) {
+        bit_array_set(counted, x-1, y);
         push(s, x - 1, y);
       }
     }
@@ -312,6 +317,7 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
     // above
     if (y >= 1 && !bit_array_get(counted, x, y-1)) {
       if (SIGN(grid[y-1][x]) == currentSign) {
+        bit_array_set(counted, x, y-1);
         push(s, x, y-1);
       }
     }
@@ -319,6 +325,7 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
     // right
     if (x < nx-1 && !bit_array_get(counted, x+1, y)) {
       if (SIGN(grid[y][x+1]) == currentSign) {
+        bit_array_set(counted, x+1, y);
         push(s, x+1, y);
       }
     }
@@ -326,11 +333,10 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
     // below
     if (y < ny-1 && !bit_array_get(counted, x, y+1)) {
       if (SIGN(grid[y+1][x]) == currentSign) {
+        bit_array_set(counted, x, y+1);
         push(s, x, y+1);
       }
     }
-
-    bit_array_set(counted, x, y);
   }
   destroyStack(s);
   return size;
