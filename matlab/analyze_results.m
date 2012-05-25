@@ -8,8 +8,8 @@ shape = 'qust'
 name = [shape '_all'];
 stats=dlmread('../results/qust_all_counts.txt');
 %% read single stats file
-shape = 'perc';
-name = [shape '_100_to_2000'];
+shape = 'qust';
+name = [shape '_700_to_900'];
 filename = ['../results/' name '_counts.txt'];
 %filename = '../c/qugrs_1000.1_counts.txt';
 stats = dlmread(filename);
@@ -75,14 +75,19 @@ plot(k_windows, means, 'k-', 'LineWidth', 3);
 plot([min(ks), max(ks)], [mean_predicted, mean_predicted], 'r-', 'LineWidth', 3);
 
 % fit A + B/sqrt(N)
-p = polyfit(1./ks, scaled_counts, 1) % theory is [~.5348 .0624]
-    
-plot(ks, p(1)*1./ks + p(2),'g') % percolation 
+%p = polyfit(1./ks, scaled_counts, 1); % theory is [~.5348 .0624]
+[coeffs,stderrp] = lscov(x2fx(1./ks), scaled_counts); % same as above but also gives std errors (and p is reversed)
+df = numel(ks) - 1; % degrees of freedom
+
+plot(ks, polyval(flipud(coeffs), 1./ks), 'g');
+
+t = (coeffs(1) - mean_predicted) / (stderrp(1) / sqrt(df)); % t statistic of intercept
+p = 1 - 2 * tcdf(-abs(t), df)
 
     
 xlabel('k', 'FontSize', fontsize);
 ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
-legend('data', 'measured mean', 'predicted mean', sprintf('%.4f + %.4f/k', p(2), p(1)));
+legend('data', 'measured mean', 'predicted mean', sprintf('%.4f + %.4f/k', coeffs(1), coeffs(2)));
 set(gca, 'FontSize', fontsize);
 print('-deps2c', ['../documents/thesis/figs/results/' name '_mean.eps']);
 
@@ -145,3 +150,15 @@ set(gca, 'FontSize', fontsize);
 wtms = stats(:,7);
 figure;
 plot(wtms, scaled_counts, '.');
+xlabel('wing tip mass', 'FontSize', fontsize);
+ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
+set(gca, 'FontSize', fontsize);
+print('-deps2c', ['../documents/thesis/figs/results/' name '_wtms.eps']);
+
+%% check distribution
+figure;
+hist(scaled_counts ,1000);
+xlabel('k', 'FontSize', fontsize);
+set(gca, 'YTickLabel', []);
+set(gca, 'FontSize', fontsize);
+print('-deps2c', ['../documents/thesis/figs/results/' name '_count_histogram.eps']);
