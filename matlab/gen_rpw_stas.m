@@ -1,24 +1,7 @@
 addpath('../vergini');
 
-%% specify alpha
-alpha = logspace(-1.5, 0.4, 6);
-k = ones(1, numel(alpha));
-dx = alpha;
-n0 = 10; % number of 1-d sample points for largest dx
-n = n0 ./ dx .* max(dx);
-L = n .* dx; % should be constant
-
-ppw = round(2*pi./L.*n); % must be integral
-
-% recompute after rounding
-n = n0 .* ppw ./ min(ppw);
-L = 2*pi./ppw .* n; % width of window
-dx = L./n;
-k = 2*pi*n./(L.*ppw);  % should all be 1.0
-
 %% specify ppw
-ppw = [2:10 12:2:18 20:6:44 50:10:90 100:20:160];
-%ppw = [2 200 260];
+ppw = [4 10 20 40 60 100 150 200 300];
 n0 = 100;
 n = n0 .* ppw ./ ppw(1);
 L = 2*pi./ppw .* n; % width of window
@@ -27,11 +10,8 @@ k = 2*pi*n./(L.*ppw); % should be all ones
 alpha = k.*dx;
 
 %% run 100 times
-N = 100;
-N = 68;
-interp_counts= zeros(numel(ppw), N);
+N = 5;
 no_interp_counts= zeros(numel(ppw), N);
-interp_errors = zeros(numel(ppw), N);
 no_interp_errors = zeros(numel(ppw), N);
 for j=1:N
 [fs, xs] = rpw2dsample_multi(n0, ppw);
@@ -45,17 +25,14 @@ end
 
 system('../scripts/count_rpws.py ../data');
 
-interp_stats = dlmread('rpw_counts_interp.txt');
 no_interp_stats = dlmread('rpw_counts_no_interp.txt');
-alpha = interp_stats(:,1) .* interp_stats(:,2);
-interp_counts(:,j) = interp_stats(:,3);
+alpha = no_interp_stats(:,1) .* no_interp_stats(:,2);
 no_interp_counts(:,j) = no_interp_stats(:,3);
 
-true_count = interp_counts(numel(ppw));
-interp_errors(:,j) = abs(interp_counts(:,j) - true_count) ./ true_count;
+true_count = no_interp_counts(numel(ppw));
 no_interp_errors(:,j) = abs(no_interp_counts(:,j) - true_count) ./ true_count;
 
-save('rpw_interp2.mat', 'interp_counts', 'no_interp_counts', 'interp_errors', 'no_interp_errors');
+save('rpw_interp2.mat', 'alpha', 'no_interp_counts', 'no_interp_errors');
 end
 
 %% plot errors

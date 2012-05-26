@@ -4,9 +4,9 @@ function [count, scaled_count] = count_rpw(alpha, k)
     L = k; % length of one side of domain
     k = 1;
     dx = alpha/k;
-    ppw = 2*pi/alpha; % sample points per wavelength
+    ppw = 2*pi/dx; % sample points per wavelength
     area = L^2;
-    n = L/alpha;
+    n = L/dx;
     
     count = -1;
 

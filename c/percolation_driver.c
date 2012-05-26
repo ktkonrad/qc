@@ -142,14 +142,8 @@ output:
 */
 int runTest(double **grid, int ny, int nx) {   
   int i, j;
-  int **counted = imatrix(ny, nx);
+  bit_array_t *counted = new_bit_array(ny, nx);
   MALLOC_CHECK(counted);
-  for (i = 0 ; i < ny ; i ++) { 
-    for (j = 0 ; j < nx ; j++) {
-      counted[i][j] = UNCOUNTED;
-    }
-  }
-
 
   clock_t start = clock();
   int nd = countNodalDomainsNoInterp(grid, counted, ny, nx, sizefile);
