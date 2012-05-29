@@ -1,8 +1,9 @@
 addpath('../vergini');
 
 %% specify ppw
-ppw = [4 10 20 40 60 100 150 200 300];
-n0 = 100;
+ppw = [4 10 20 40 60];% 100] 150 200 300];
+ppw = [10 200];
+n0 = 50;
 n = n0 .* ppw ./ ppw(1);
 L = 2*pi./ppw .* n; % width of window
 dx = L./n;
@@ -10,20 +11,21 @@ k = 2*pi*n./(L.*ppw); % should be all ones
 alpha = k.*dx;
 
 %% run 100 times
-N = 5;
+N = 1;
 no_interp_counts= zeros(numel(ppw), N);
 no_interp_errors = zeros(numel(ppw), N);
 for j=1:N
-[fs, xs] = rpw2dsample_multi(n0, ppw);
+[fs, xs] = rpw2dsample_multi(n0, ppw, 7);
 
 for i=1:numel(fs)
-    %figure; imagesc(xs{i}, xs{i}, fs{i}>0);
-    sta = zeros(1,n(i),n(i));
-    sta(1,:,:) = fs{i};
-    save_sta(sta, k(i), sprintf('../data/rpw_%.8f', dx(i)));
+    figure; imagesc(xs{i}, xs{i}, fs{i}>0);
+    %sta = zeros(1,n(i),n(i));
+    %sta(1,:,:) = fs{i};
+    %save_sta(sta, k(i), sprintf('../data/rpw_%.8f', dx(i)));
 end
-
-system('../scripts/count_rpws.py ../data');
+ figure; imagesc(xs{2}(1:20:end,1:20:end), xs{2}(1:20:end,1:20:end), fs{2}(1:20:end,1:20:end)>0);
+%%
+ system('../scripts/count_rpws.py ../data');
 
 no_interp_stats = dlmread('rpw_counts_no_interp.txt');
 alpha = no_interp_stats(:,1) .* no_interp_stats(:,2);
