@@ -1,5 +1,5 @@
 %% read data
-name = 'qust_700_to_900_sizes_0.1_sampled';
+name = 'perc_100_to_2000_sizes';
 sizes = dlmread(['../results/' name '.txt']);
 %% scaling for percolation
 k = 115;
@@ -12,12 +12,15 @@ sizes = sizes*dx^2/s_min; % scale them
 
 %% general
 tau = 187/91;
-N=10000; % number of buckets
+N=5000; % number of buckets
 ds = (max(sizes)-min(sizes))/N;
+%s = logspace(log10(min(sizes)), log10(max(sizes)), N);
 s = linspace(min(sizes), max(sizes), N);
 freqs = hist(sizes,s);
 s = s(freqs > 0);
-freqs = freqs(freqs > 0)/(numel(sizes)*ds);
+fit_range = [10^4.2 10^5.7];
+fit_idx = s > fit_range(1) & s < fit_range(2);
+freqs = freqs(freqs > 0)./median(freqs(fit_idx))*(mean(fit_range)^-tau); % remove empty buckets and rescale
 n = numel(s);
 
 figure;
@@ -33,14 +36,14 @@ f = s.^-tau;
 loglog(s,f, 'LineWidth', 3);
 
 % best fit
-fit_range = [10^1 10^3];
-fit_idx = s > fit_range(1) & s < fit_range(2);
 %p = polyfit(log(s),log(freqs),1);
 %p = lsqlin(log(s(fit_idx))', log(freqs(fit_idx)), [], [], 0, 0); % same as above but force zero intercept
+%b=p(1);
 %[b, b_int] = regress(log(freqs(fit_idx))', log(s(fit_idx))', .01); % same as above but also give confidence interval for slope
 [b, b_err] = lscov(log(s(fit_idx))', log(freqs(fit_idx))')
 fit = s.^b;
 loglog(s, fit, 'r-.', 'LineWidth', 3);
+axis(10.^([-1 8 -15 1]));
 
 fontsize = 20;
 set(gca, 'FontSize', fontsize);

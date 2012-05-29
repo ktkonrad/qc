@@ -17,6 +17,7 @@ set(l, 'FontSize', 20);
 set(gca, 'FontSize', 20);
 xlabel('k');
 ylabel('time (s)');
+print('-deps2c', '../documents/thesis/figs/timing/qust_700_to_900_partial_timing.txt');
 
 %% timing predictions
 figure;
