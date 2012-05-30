@@ -1,12 +1,12 @@
 %% read all qugrs
 shape = 'qugrs'
 name = [shape '_all'];
-stats=[dlmread('../results/qugrs_all_counts.txt')];
+stats=[dlmread('../results/old/qugrs_all_counts.txt')];
 
 %% read all qust
 shape = 'qust'
 name = [shape '_all'];
-stats=dlmread('../results/qust_all_counts.txt');
+stats=dlmread('../results/old/qust_all_counts.txt');
 %% read single stats file
 shape = 'qugrs';
 name = [shape '_1000_to_1100'];
@@ -89,7 +89,7 @@ xlabel('k', 'FontSize', fontsize);
 ylabel('\nu(k)/N(k)', 'FontSize', fontsize);
 legend('data', 'measured mean', 'predicted mean', sprintf('%.4f + %.4f/k', coeffs(1), coeffs(2)));
 set(gca, 'FontSize', fontsize);
-print('-deps2c', ['../documents/thesis/figs/results/' name '_mean.eps']);
+print('-deps2c', ['../documents/thesis/figs/results/' name '_old_mean.eps']);
 
 %% compute variance
 variance_predicted = 18/pi^2 + 4*sqrt(3)/pi - 25/(2*pi);
@@ -99,22 +99,22 @@ scaled_counts = sqrt(4*pi./(area.*ks.^2)).*counts;
 vars = [];
 k_windows = [];
 
-ws = 100; %window size
-for i=1:ws:length(counts)
-    idx = i:min(i+ws,length(counts));
-    k = ks(min(i+ws/2,length(ks)));
-    k_windows = [k_windows k];
-    vars = [vars var(scaled_counts(idx))];
-end
-
-%k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
-%k_width = 3;
-
-%for k=k_jumps
-%    idx = (ks > k - k_width) & (ks <= k);
-%    k_windows = [k_windows mean(ks(idx))];
+%ws = 100; %window size
+%for i=1:ws:length(counts)
+%    idx = i:min(i+ws,length(counts));
+%    k = ks(min(i+ws/2,length(ks)));
+%    k_windows = [k_windows k];
 %    vars = [vars var(scaled_counts(idx))];
 %end
+
+k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
+k_width = 3;
+
+for k=k_jumps
+    idx = (ks > k - k_width) & (ks <= k);
+    k_windows = [k_windows mean(ks(idx))];
+    vars = [vars var(scaled_counts(idx))];
+end
 
 figure;
 plot(k_windows, vars, 'k-', 'LineWidth', 3);

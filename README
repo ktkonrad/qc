@@ -1,1 +1,8 @@
 Code for counting nodal domains in quantum chaotic billiards
+
+USAGE:
+  ./vc -n qust -l qust:2 -s vepwoo:1.2:40:1.5 -x 5 -k 1200 -V 0.05 -a 0.7 -M 9 -p 30 -u
+
+TODO:
+  tighter integration between verg and count
+    pass eigenfunctions one at a time rather than dumping all to a file

@@ -30,11 +30,11 @@ output:
 bit_array_t *createScaledMaskFromBilliard(Billiard *b, double xl, double xh, double yl, double yh, double dx, double upsample_ratio, double scale, int ny, int nx) {
   int nx_should_be, ny_should_be;
   if (xh - xl == 0.0) {
-    ny_should_be = ceil((b->yh - b->yl) / dx) * upsample_ratio + 1;
-    nx_should_be = ceil((b->xh - b->xl) / dx) * upsample_ratio + 1;
+    ny_should_be = ceil((b->yh - b->yl + 0.9) / dx) * upsample_ratio + 1;
+    nx_should_be = ceil((b->xh - b->xl + 0.9) / dx) * upsample_ratio + 1;
   } else {
-    ny_should_be = ceil((yh - yl) / dx) * upsample_ratio + 1;
-    nx_should_be = ceil((xh - xl) / dx) * upsample_ratio + 1;
+    ny_should_be = (int)((yh - yl) / dx + 0.9) * upsample_ratio + 1;
+    nx_should_be = (int)((xh - xl) / dx + 0.9) * upsample_ratio + 1;
   }
   if ((float)fabs(nx-nx_should_be)/nx_should_be > DIMENSION_ERROR_MARGIN || (float)fabs(ny-ny_should_be)/ny_should_be > DIMENSION_ERROR_MARGIN) {
     ERROR("Mask dimensions do not match expected dimesnions. Given %d x %d, expected %d x %d", ny, nx, ny_should_be, nx_should_be);
@@ -48,6 +48,9 @@ bit_array_t *createScaledMaskFromBilliard(Billiard *b, double xl, double xh, dou
   int i, j;
   for (i = 0 ; i < ny ; i++) {
     for (j = 0 ; j < nx ; j++) {
+      if (i == 0 || j == 0) {
+        bit_array_set(counted, j, i); // mask out first row and column
+      }
       if (!inside_billiard(j * (dx / upsample_ratio) / scale, i * (dx / upsample_ratio) / scale, b)) {
         bit_array_set(counted, j, i); // bit array is zeroed when allocated
       }

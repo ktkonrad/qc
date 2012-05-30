@@ -184,7 +184,7 @@ Making each square two pixels by two pixels uses a grid of size $(2m)^{2} = \fra
 A random superposition of plane waves,
 \begin{equation}
   \label{eq:rpw}
-  u(\rr ; k) = \Re \left[ \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \exp{\left\{\mathrm{i} k \hat{n}_{n} \cdot \rr \right\}} \right]
+  u_{rand}(\rr ; k) = \Re \left[ \lim_{N \rightarrow \infty} \frac{1}{\sqrt{N}} \sum_{n=1}^{N} \omega_{n} \exp{\left\{\mathrm{i} k \hat{n}_{n} \cdot \rr \right\}} \right]
 \end{equation}
 where $\omega_{n} \sim \mathcal{N}(0,1)$ are complex and independent and identicially distributed and $\hat{n}_{n} = (\cos \frac {2 \pi n}{N}, \sin \frac {2 \pi n}{N})$ are evenly spaced vectors around the unit circle, is considered an accurate model for a quantum chaotic eigenfunction \cite{heller}. This random superposition of plane waves (hereafter ``random plane wave'') is built from plane waves with constant wavenumber $k$ with random phase and amplitude, oriented in all directions.
 
@@ -394,7 +394,19 @@ where $H = U^{*} \Sigma V$ is a singular value decompostion of $H$ and
 where $\epsilon = \gamma \epsilon_{double} \Sigma_{11}$ where $\epsilon_{double} = 1.11e{-16}$ is the difference between one and the smallest IEEE double precision floating point number greater than one. Singular values less than $\epsilon$ are considered to be zero within working precision.
 
 \subsection{Implementation}
-To interpolate, we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = P {\bf v}$ where $P$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the central four points of the stencil.
+A region is interpolated if and only if, when counting nodal domains, we encounter a point whose sign matches that of a point diagonally adjacent to it, but differs from the signs of the two points adjacent to both it and its diagonal neighbor (fig. \ref{fig:trouble_spot}). In such a case we fill a vector ${\bf v}$ with the eigenfunction values at the stencil points surrounding the four points comprising the ambiguity. We then compute ${\bf w} = P {\bf v}$ where $P$ is the interpolation matrix described above. This vector ${\bf w}$ contains estimated eigenfunction values with a spacing of $\frac{h}{\rho}$ between the four points comprising the ambigious region. We can use these values to determine the connectivity of the nodal domains by traversing pixel-by-pixel from the top-left pixel, in the same manner as above, until we either reach the bottom-right pixel or finish exploring the nodal domain. In the former case the nodal domain containing the top-left pixel connects to the nodal domain containing the bottom-right pixel and in the latter case the nodal domain containing the top-right pixel connects to the nodal domain containing the bottom-left pixel.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.2\textwidth]{figs/interpolation/trouble_spot1.eps}
+    \hspace{1 cm} 
+    \includegraphics[width=0.2\textwidth]{figs/interpolation/trouble_spot2.eps}
+    \caption{Configurations that will result in interpolation}
+    \label{fig:trouble_spot}
+  \end{center}
+\end{figure}
+
+To check the validity of only interpolating at these configurations, we counted nodal domains of 1e4 eigenfunctions that were interpolated everywhere to $\alpha = .023$ and found that nodal domains counts agreed within $1\%$.
 
 \section{Analysis}
 
@@ -537,35 +549,17 @@ This hybrid method was chosen because it requires fewer comparisons that depth-f
   \begin{algorithmic}
     \Require $grid$ is $ny$ by $nx$ matrix containing eigenfunction values on billiard
     \Require $\alpha = k h$, $M$ is highest order Bessel function to interpolate with, $\rho$ is ratio to interpolate by
-    \Require $counted$ is $\rho ny$ by $\rho nx$ and $counted[i][j] = UNCOUNTED$ if the point at $i,j$ is in $\Omega$, else $counted[i][j] = COUNTED$
-    \item[] % blank line
-    \Function{CountNodalDomainsInterp}{$grid, counted, \alpha, M, \rho$}
-        \State $upsampled \gets Upsample(grid, \alpha, M, \rho)$
+    \Require $counted$ is $ny$ by $nx$ and $counted[i][j] = UNCOUNTED$ if the point at $i,j$ is in $\Omega$, else $counted[i][j] = COUNTED$
+
+    \item[]
+    \Function{CountNodalDomains}{$grid, counted, \alpha, M, \rho$}
+        \State $interp \gets CreateInterpMatrix(\alpha, M, \rho)$
         \State $i,j,domains \gets 0$
         \While{$i, j \gets FindNextUnseen(counted, i, j)$}
             \State $domains \gets domains + 1$
-            \State $FindDomain(upsampled, counted, i, j, interp)$
+            \State $FindDomain(grid, counted, i, j, domain\_num, interp)$
         \EndWhile \\
         \Return $domains$
-    \EndFunction
-    
-    \item[]
-    \Function{Upsample}{$grid, \alpha, M, \rho$}
-        \State $interp \gets CreateInterpMatrix(\alpha, M, \rho)$
-        \State $upsampled$ is a $\rho ny$ by $\rho nx$ bit array
-        \For{$i \in y \ldots ny$}
-            \For{$j \in 1\ldots nx$}
-                \State $Interpolate(grid, upsampled, interp, i, j)$
-            \EndFor
-        \EndFor
-        \State \Return $upsampled$
-    \EndFunction
-
-    \item[]
-    \Function{Interpolate}{$grid, upsampled, interp, i, j$}
-        \State $interp_{}input \gets $ values of grid on stencil centered at $i,j$
-        \State $interp_{}output \gets interp * interp_{}input$
-        \State fill $upsampled$ with signs frm $interp_{}output$
     \EndFunction
 
     \item[]
@@ -593,21 +587,35 @@ This hybrid method was chosen because it requires fewer comparisons that depth-f
   \begin{algorithmic}
     \algrestore{count}
 
-    \Function{FindDomain}{$upsampled, counted, i, j, interp$}
+    \Function{FindDomain}{$grid, counted, i, j, interp$}
         \State $s.push(j,i)$
         \State $counted[i][j] = COUNTED$
         \Comment $s$ is a stack
-        \State $sign \gets sign(upsampled[i][j])$
         \While{$x,y \gets s.pop()$}
-            \If{$sign(upsampled(x-1,y)) = sign$ and $counted[x-1][y] = UNCOUNTED$} \Comment check point to the $left$
-
-                \State $s.push(x-1,y)$
-                \State $counted[y][x] = COUNTED$
+            \State $sign \gets sign(grid[y][x])$
+            \If{$InGrid(x-1,y)$}
+                \If{$sign(grid(x-1,y)) = sign$}
+                    \State $left \gets TRUE$
+                    \If{$counted[x-1][y] = UNCOUNTED$}
+                        \State $counted[y][x-1] = COUNTED$
+                        \State $s.push(x-1,y)$
+                    \EndIf
+                \EndIf
             \EndIf
             \State $\ldots$ \Comment Same for $above$, $right$, and $below$
+            \If{$InGrid(x-1,y-1)$ and $above$ and $left$}
+                \If{$sign(grid(x-1,y-1)) = sign$}
+                  \If{not $IsInterpolated(counted, x-1,y-1)$}
+                      \State $Interpolate(grid, counted, x-1, y-1, interp)$
+                  \EndIf
+                  \If{$ConnectedAboveLeft(counted,x,y)$}
+                      $s.push(x-1,y-1)$
+                  \EndIf
+                \EndIf
+            \EndIf
+            \State $\ldots$ \Comment Same for $below$ and $left$, $below$ and $right$, and $above$ and $right$
         \EndWhile
     \EndFunction
-
   \end{algorithmic}
 \end{algorithm}
 

@@ -11,7 +11,7 @@ MATHLIBS = -I/usr/include/atlas -L/usr/lib64/atlas -L/usr/lib64/lapack -L/usr/li
 all: count perc vc
 
 # make with debug flags
-debug: CC += -DDEBUG -g -pg
+debug: CC += -DDEBUG -g
 debug: all
 
 # make with optimization flags

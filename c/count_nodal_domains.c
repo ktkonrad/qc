@@ -19,60 +19,11 @@ Kyle Konrad
 
 #define SIGN(x) (((x)>0)-((x)<0))
 
-// orthogonal connection directions
-#define LEFT 1
-#define RIGHT 2
-#define ABOVE 4
-#define BELOW 8
-
-// orthonognal connection getting macros
-#define GET_LEFT(c) (c & LEFT)
-#define GET_RIGHT(c) (c & RIGHT)
-#define GET_ABOVE(c) (c & ABOVE)
-#define GET_BELOW(c) (c & BELOW)
-
-// orthonognal connection setting macros
-#define SET_LEFT(c) c |= LEFT
-#define SET_RIGHT(c) c |= RIGHT
-#define SET_ABOVE(c) c |= ABOVE
-#define SET_BELOW(c) c |= BELOW
-
-// orthonognal connection resetting macros
-#define RESET_LEFT(c) c &= ~LEFT
-#define RESET_RIGHT(c) c &= ~RIGHT
-#define RESET_ABOVE(c) c &= ~ABOVE
-#define RESET_BELOW(c) c &= ~BELOW
-
-// diagonal connection directions
-#define BR_CONNECTED (INT_MAX - 1) // connected to below right
-#define AR_CONNECTED (INT_MAX - 2) // connected to above right
-#define AL_CONNECTED (INT_MAX - 3) // connected to above left
-#define BL_CONNECTED (INT_MAX - 4) // connected to below left
-#define BR_DISCONNECTED (INT_MAX - 5) // disconnected from below right
-#define AR_DISCONNECTED (INT_MAX - 6) // disconnected from above right
-#define AL_DISCONNECTED (INT_MAX - 7) // disconnected from above left
-#define BL_DISCONNECTED (INT_MAX - 8) // disconnected from below left
-
-// diagonal connection getting macros
-#define GET_BR(c) (c == BR_CONNECTED)
-#define GET_AR(c) (c == AR_CONNECTED)
-#define GET_AL(c) (c == AL_CONNECTED)
-#define GET_BL(c) (c == BL_CONNECTED)
-
-// diagonal connection setting macros
-#define SET_BR(c) (c = BR_CONNECTED)
-#define SET_AR(c) (c = AR_CONNECTED)
-#define SET_AL(c) (c = AL_CONNECTED)
-#define SET_BL(c) (c = BL_CONNECTED)
-
-// diagonal connection resetting macros
-#define RESET_BR(c) (c = BR_DISCONNECTED)
-#define RESET_AR(c) (c = AR_DISCONNECTED)
-#define RESET_AL(c) (c = AL_DISCONNECTED)
-#define RESET_BL(c) (c = BL_DISCONNECTED)
+#ifdef DEBUG
+int **domain_numbers;
+#endif
 
 extern int verb;
-
 
 /*
 count the number of nodal domains in grid
@@ -94,7 +45,7 @@ int countNodalDomainsInterp(double **grid, bit_array_t *counted, int ny, int nx,
   int nodal_domain_count;
   bit_array_t *upsampled_grid;
   
-  upsampled_grid = upsample(grid, counted, ny, nx, alpha, M, upsample_ratio, stats);
+  upsampled_grid = upsample(grid, ny, nx, alpha, M, upsample_ratio, stats);
   nodal_domain_count = countNodalDomains(upsampled_grid, counted, sizefile);
   free_bit_array(upsampled_grid);
   return nodal_domain_count;
@@ -118,7 +69,8 @@ int countNodalDomains(bit_array_t *signs, bit_array_t *counted, FILE *sizefile) 
   ny = signs->ny;
 
   #ifdef DEBUG
-    bit_array2file(signs, "../data/signs.dat");
+  bit_array2file(signs, "../data/signs.dat");
+  domain_numbers = imatrix(ny, nx);
   #endif
   
   int nd = 0; // count of nodal domains
@@ -133,6 +85,10 @@ int countNodalDomains(bit_array_t *signs, bit_array_t *counted, FILE *sizefile) 
       fprintf(sizefile, "%d ", size);
     }
   }
+
+  #ifdef DEBUG
+  intArray2file(domain_numbers, ny, nx, "../data/counted.dat");
+  #endif
 
   return nd;
 }
@@ -152,7 +108,7 @@ output: return value - count of nodal domains
 int countNodalDomainsNoInterp(double **grid, bit_array_t *counted, int ny, int nx, FILE *sizefile) {
   int i, j;
   int rc;
-  
+
   int nd = 0; // count of nodal domains
   int size; // area of last nodal domain (in pixels)
 
@@ -228,12 +184,15 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
 
   int x, y;
   int currentSign;
-  char connections; // keep track of what (x,y) is connected to
   int size = 0;
 
   while (pop(s, &x, &y)) {
     size++;
     currentSign = bit_array_get(signs, j, i);
+    
+    #ifdef DEBUG
+    domain_numbers[y][x] = nd;
+    #endif
 
     // orthongal directions
     // left
@@ -298,7 +257,6 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
 
   int x, y;
   int currentSign;
-  char connections; // keep track of what (x,y) is connected to
   int size = 0;
 
   while (pop(s, &x, &y)) {
@@ -360,11 +318,8 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
         returns an ((ny-1)*upsample)+1 x ((nx-1)*upsample)+1 bit array of signs on upsampled grid
 */
  
-bit_array_t *upsample(double **grid, bit_array_t *counted, int ny, int nx, double alpha, int M, int upsample_ratio, interp_stats *stats) {
+bit_array_t *upsample(double **grid, int ny, int nx, double alpha, int M, int upsample_ratio, interp_stats *stats) {
   gsl_matrix *interp = create_interp_matrix(alpha, M, upsample_ratio);
-  #ifdef DEBUG
-  printf("alpha = %.16f\n", alpha);
-  #endif
   bit_array_t *upsampled = new_bit_array((ny-1)*upsample_ratio+1, (nx-1)*upsample_ratio+1);
   MALLOC_CHECK(upsampled);
   int r,c,x,y;
@@ -434,6 +389,16 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
       }
     }
   }
+
+  // debug output
+  /*
+  char interp_input_file[100];
+  char interp_output_file[100];
+  sprintf(interp_input_file, "interp_input_%d_%d.dat", j, i);
+  sprintf(interp_output_file, "interp_output_%d_%d.dat", j, i);
+  dump_vector(w->input, interp_input_file);
+  dump_vector(w->output, interp_output_file);
+  */
 }
 
 /*
