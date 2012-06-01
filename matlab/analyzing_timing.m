@@ -1,5 +1,5 @@
 %% read data
-t = dlmread('../results/qust_700_to_900_timing.txt');
+t = dlmread('../results/old/qust_700_to_900_timing.txt');
 ks = t(:,1);
 solve_t = t(:,2);
 verg_t = t(:,3);

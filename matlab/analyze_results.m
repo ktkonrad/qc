@@ -8,9 +8,9 @@ shape = 'qust'
 name = [shape '_all'];
 stats=dlmread('../results/old/qust_all_counts.txt');
 %% read single stats file
-shape = 'qugrs';
-name = [shape '_1000_to_1100'];
-filename = ['../results/' name '_counts.txt'];
+shape = 'qust';
+name = [shape '_700_to_900'];
+filename = ['../results/old/' name '_counts.txt'];
 %filename = '../c/qugrs_1000.1_counts.txt';
 stats = dlmread(filename);
 %%
@@ -35,7 +35,7 @@ elseif strcmp(shape, 'qust')
     area = 1 + pi / 4;
 
 % percolation grid
-elseif strcmp(shape, 'perc')
+elseif strcmp(shape, 'perc') || strcmp(shape, 'rpw')
     area = 1;
 
 else error(['invalid shape: ' shape]);
@@ -99,22 +99,22 @@ scaled_counts = sqrt(4*pi./(area.*ks.^2)).*counts;
 vars = [];
 k_windows = [];
 
-%ws = 100; %window size
-%for i=1:ws:length(counts)
-%    idx = i:min(i+ws,length(counts));
-%    k = ks(min(i+ws/2,length(ks)));
-%    k_windows = [k_windows k];
-%    vars = [vars var(scaled_counts(idx))];
-%end
-
-k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
-k_width = 3;
-
-for k=k_jumps
-    idx = (ks > k - k_width) & (ks <= k);
-    k_windows = [k_windows mean(ks(idx))];
+ws = 100; %window size
+for i=1:ws:length(counts)
+    idx = i:min(i+ws,length(counts));
+    k = ks(min(i+ws/2,length(ks)));
+    k_windows = [k_windows k];
     vars = [vars var(scaled_counts(idx))];
 end
+
+%k_jumps = [ks((diff(ks) > 5)) ; ks(numel(ks))]';
+%k_width = 3;
+
+%for k=k_jumps
+%    idx = (ks > k - k_width) & (ks <= k);
+%    k_windows = [k_windows mean(ks(idx))];
+%    vars = [vars var(scaled_counts(idx))];
+%end
 
 figure;
 plot(k_windows, vars, 'k-', 'LineWidth', 3);
@@ -132,13 +132,14 @@ interp_counts = stats(:,4);
 % interpolations per domain
 figure; plot(interp_counts./counts);
 
-
+%%
 % interpolations per pixel
 dxs = alpha ./ ks;
 pixels = area ./ dxs.^2;
 figure; plot(ks, interp_counts./pixels, '.');
 hold on;
-m = mean(interp_counts./pixels);
+m = mean(interp_counts./pixels)
+%%
 plot([min(ks), max(ks)], [m, m], 'r-', 'LineWidth', 3);
 xlabel('k', 'FontSize', fontsize);
 ylabel('interpolations per pixel', 'FontSize', fontsize);

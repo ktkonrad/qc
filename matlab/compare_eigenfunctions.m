@@ -16,6 +16,6 @@ rectangle('Position', rect, 'EdgeColor', 'y', 'LineWidth', 3);
 print('-deps2c', '../documents/thesis/figs/interpolation/eigenfunction_error_low.eps');
 
 figure; imagesc(f_high>0);
-axis off; axis equal; axis((zoom-[1 1 1 1]).*ratio);
-rectangle('Position', (rect-[1 1 0 0]).*ratio, 'EdgeColor', 'y', 'LineWidth', 3);
+axis off; axis equal; axis((zoom-[2 2 2 2]).*ratio);
+rectangle('Position', (rect-[2.5 1.5 0 0]).*ratio, 'EdgeColor', 'y', 'LineWidth', 3);
 print('-deps2c', '../documents/thesis/figs/interpolation/eigenfunction_error_high.eps');
