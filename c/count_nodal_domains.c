@@ -1,8 +1,8 @@
 /*
-functions to count nodal domains
+  functions to count nodal domains
 
-Kyle Konrad
-3/29/2011
+  Kyle Konrad
+  3/29/2011
 
 */
 
@@ -26,40 +26,41 @@ int **domain_numbers;
 extern int verb;
 
 /*
-count the number of nodal domains in grid
-precondition: grid must be ny x nx
+  count the number of nodal domains in grid
+  precondition: grid must be ny x nx
 
-inputs:
-        grid     - function values sampled at grid points
+  inputs:
+  grid     - function values sampled at grid points
 	counted  - array to store nodal domain numbers in. mask should be applied to this already
-        nx       - number of samples in x-direction for grid
-        ny       - number of samples in y-direction for grid
-        k        - wavenumber of eigenfunction being interpolated
-        dx       - sampled resoultion of eigenfunction
-        M        - highest order bessel function to do
-        upsample - upsampling ratio for interpolation
-        sizefile - file to write sizes of domains to
-output: return value - count of nodal domains
+  nx       - number of samples in x-direction for grid
+  ny       - number of samples in y-direction for grid
+  k        - wavenumber of eigenfunction being interpolated
+  dx       - sampled resoultion of eigenfunction
+  M        - highest order bessel function to do
+  upsample - upsampling ratio for interpolation
+  sizefile - file to write sizes of domains to
+  output: return value - count of nodal domains
 */
 int countNodalDomainsInterp(double **grid, bit_array_t *counted, int ny, int nx, double alpha, int M, int upsample_ratio, interp_stats *stats, FILE *sizefile) {
   int nodal_domain_count;
   bit_array_t *upsampled_grid;
   
   upsampled_grid = upsample(grid, ny, nx, alpha, M, upsample_ratio, stats);
+  // TODO(KK): It seems like we need to "upsample" the count array also...
   nodal_domain_count = countNodalDomains(upsampled_grid, counted, sizefile);
   free_bit_array(upsampled_grid);
   return nodal_domain_count;
 }
 
 /*
-count the number of nodal domains in grid
-precondition: grid must be ny x nx
+  count the number of nodal domains in grid
+  precondition: grid must be ny x nx
 
-inputs:
-        grid   - function values sampled at grid points
+  inputs:
+  grid   - function values sampled at grid points
 	counted  - array to store nodal domain numbers in. mask should be applied to this already
-        sizefile - file to write size of nodal domains to
-output: return value - count of nodal domains
+  sizefile - file to write size of nodal domains to
+  output: return value - count of nodal domains
 */
 int countNodalDomains(bit_array_t *signs, bit_array_t *counted, FILE *sizefile) {
   int i, j;
@@ -68,10 +69,10 @@ int countNodalDomains(bit_array_t *signs, bit_array_t *counted, FILE *sizefile) 
   nx = signs->nx;
   ny = signs->ny;
 
-  #ifdef DEBUG
+#ifdef DEBUG
   bit_array2file(signs, "../data/signs.dat");
   domain_numbers = imatrix(ny, nx);
-  #endif
+#endif
   
   int nd = 0; // count of nodal domains
   int size; // area of last nodal domain (in pixels)
@@ -86,24 +87,24 @@ int countNodalDomains(bit_array_t *signs, bit_array_t *counted, FILE *sizefile) 
     }
   }
 
-  #ifdef DEBUG
+#ifdef DEBUG
   intArray2file(domain_numbers, ny, nx, "../data/counted.dat");
-  #endif
+#endif
 
   return nd;
 }
 
 /*
-count the number of nodal domains in grid
-precondition: grid must be ny x nx
+  count the number of nodal domains in grid
+  precondition: grid must be ny x nx
 
-inputs:
-        grid    - function values sampled at grid points
-        counted - array to store nodal domain counts in. mask should already by applied to this
-        nx      - number of samples in x-direction for grid
-        ny      - number of samples in y-direction for grid
-        sizefile - file to write size of nodal domains to
-output: return value - count of nodal domains
+  inputs:
+  grid    - function values sampled at grid points
+  counted - array to store nodal domain counts in. mask should already by applied to this
+  nx      - number of samples in x-direction for grid
+  ny      - number of samples in y-direction for grid
+  sizefile - file to write size of nodal domains to
+  output: return value - count of nodal domains
 */
 int countNodalDomainsNoInterp(double **grid, bit_array_t *counted, int ny, int nx, FILE *sizefile) {
   int i, j;
@@ -126,19 +127,19 @@ int countNodalDomainsNoInterp(double **grid, bit_array_t *counted, int ny, int n
 }
 
 /*
-find next unseen value of grid
-precondition: *i and *j nonnull
+  find next unseen value of grid
+  precondition: *i and *j nonnull
 
-inputs:
-        **counted - 2d array indiciating which points have been counted
-        *i        - row to start searching from 
-        *j        - column to start searching from
+  inputs:
+  **counted - 2d array indiciating which points have been counted
+  *i        - row to start searching from 
+  *j        - column to start searching from
 	ny        - rows in counted
-        nx        - columns in counted
+  nx        - columns in counted
 
-outputs: *i - row of next zero found
-         *j - column of next zero found
-	 return value - boolean indicating whether something was found
+  outputs: *i - row of next zero found
+  *j - column of next zero found
+  return value - boolean indicating whether something was found
 */
 int findNextUnseen(bit_array_t *counted, int *i, int *j, int ny, int nx) {
   int r, c;
@@ -146,11 +147,11 @@ int findNextUnseen(bit_array_t *counted, int *i, int *j, int ny, int nx) {
   for (r = *i ; r < ny ; r++) {
     for (c = 0 ; c < nx ; c++) {
       if (r == *i && c <= *j)
-	continue;
+        continue;
       if (!bit_array_get(counted, c, r)) {
-	*i = r;
-	*j = c;
-	return 1;
+        *i = r;
+        *j = c;
+        return 1;
       }
     }
   }
@@ -159,23 +160,23 @@ int findNextUnseen(bit_array_t *counted, int *i, int *j, int ny, int nx) {
 }
 
 /*
-mark nodal domain containing grid[i][j] as counted
-non-recursive version
+  mark nodal domain containing grid[i][j] as counted
+  non-recursive version
 
-inputs:
-        grid    - 2d array of function values
+  inputs:
+  grid    - 2d array of function values
 	counted - 2d array indicating whether a point has been counted
 	i       - row of initial point in grid
-        j       - column of initial point in grid
+  j       - column of initial point in grid
 	nd      - number of current nodal domain
 	ny      - rows in grid
 	nx      - columns in grid
 
-precondition: grid and counted are ny x nx
+  precondition: grid and counted are ny x nx
 
-outputs:
-         return value: area of domain (in pixels)
-         updates stats
+  outputs:
+  return value: area of domain (in pixels)
+  updates stats
 */
 int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, int ny, int nx) {
   stack *s = newStack();
@@ -190,9 +191,9 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
     size++;
     currentSign = bit_array_get(signs, j, i);
     
-    #ifdef DEBUG
+#ifdef DEBUG
     domain_numbers[y][x] = nd;
-    #endif
+#endif
 
     // orthongal directions
     // left
@@ -232,23 +233,23 @@ int findDomain(bit_array_t *signs, bit_array_t *counted, int i, int j, int nd, i
 }
 
 /*
-mark nodal domain containing grid[i][j] as counted
-non-recursive version
+  mark nodal domain containing grid[i][j] as counted
+  non-recursive version
 
-inputs:
-        grid    - 2d array of function values
-        counted - 2d array indicating whether a point has been counted
-        i       - row of initial point in grid
-        j       - column of initial point in grid
-        nd      - number of current nodal domain
-        ny      - rows in grid
-        nx      - columns in grid
+  inputs:
+  grid    - 2d array of function values
+  counted - 2d array indicating whether a point has been counted
+  i       - row of initial point in grid
+  j       - column of initial point in grid
+  nd      - number of current nodal domain
+  ny      - rows in grid
+  nx      - columns in grid
 
-precondition: grid and counted are ny x nx
+  precondition: grid and counted are ny x nx
 
-outputs:
-         return value: area of domain (in pixels)
-         updates stats
+  outputs:
+  return value: area of domain (in pixels)
+  updates stats
 */
 int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd, int ny, int nx) {
   stack *s = newStack();
@@ -306,16 +307,16 @@ int findDomainNoInterp(double **grid, bit_array_t *counted, int i, int j, int nd
   precondition: grid, counted, and mask are ny x nx
 
   inputs:
-        grid     - 2d array of function values
-        counted  - 2d array of to apply mask to
+  grid     - 2d array of function values
+  counted  - 2d array of to apply mask to
 	ny       - rows in grid
 	nx       - columns in grid
-        alpha    - k*dx
+  alpha    - k*dx
 	upsample - upsampling rate
-        M        - highest order bessel function to upsample with
+  M        - highest order bessel function to upsample with
 	
   outputs:
-        returns an ((ny-1)*upsample)+1 x ((nx-1)*upsample)+1 bit array of signs on upsampled grid
+  returns an ((ny-1)*upsample)+1 x ((nx-1)*upsample)+1 bit array of signs on upsampled grid
 */
  
 bit_array_t *upsample(double **grid, int ny, int nx, double alpha, int M, int upsample_ratio, interp_stats *stats) {
@@ -341,17 +342,17 @@ bit_array_t *upsample(double **grid, int ny, int nx, double alpha, int M, int up
   precondition: grid and counted are ny x nx
 
   inputs:
-        grid      - 2d array of function values
+  grid      - 2d array of function values
 	upsampled - 2d array of upsampled function values (to be filled with results)
 	i         - row of initial point in grid
-        j         - column of initial point in grid
+  j         - column of initial point in grid
 	ny        - rows in grid
 	nx        - columns in grid
 	upsample  - upsampling rate
 	interp    - precalculated 24 x (upsapmle+1)^2 matrix to do interpolation
 	
   outputs:
-        stores upsampled function value signs in upsampled
+  stores upsampled function value signs in upsampled
 */
 #define IDX(x, y) ((x)*n+(y))
 void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, int nx, int upsample_ratio, gsl_matrix *interp, interp_workspace *w) {
@@ -392,22 +393,22 @@ void interpolate(double **grid, bit_array_t *upsampled, int i, int j, int ny, in
 
   // debug output
   /*
-  char interp_input_file[100];
-  char interp_output_file[100];
-  sprintf(interp_input_file, "interp_input_%d_%d.dat", j, i);
-  sprintf(interp_output_file, "interp_output_%d_%d.dat", j, i);
-  dump_vector(w->input, interp_input_file);
-  dump_vector(w->output, interp_output_file);
+    char interp_input_file[100];
+    char interp_output_file[100];
+    sprintf(interp_input_file, "interp_input_%d_%d.dat", j, i);
+    sprintf(interp_output_file, "interp_output_%d_%d.dat", j, i);
+    dump_vector(w->input, interp_input_file);
+    dump_vector(w->output, interp_output_file);
   */
 }
 
 /*
-fill w->interp_input with grid values around (x,y)
-reflect eigenfunction across edge of data
-interpolate across domain boundary
+  fill w->interp_input with grid values around (x,y)
+  reflect eigenfunction across edge of data
+  interpolate across domain boundary
   because there is a continuation of the eigenfunction for ~1 wavelength outside the boundary
 
-precondition: each int * argument is an array of length STENCIL_WIDTH
+  precondition: each int * argument is an array of length STENCIL_WIDTH
 */
 // TODO: move all these params into interp_workspace struct
 //         also move interp_stats to workspace

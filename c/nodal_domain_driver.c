@@ -1,8 +1,8 @@
 /*
-Driver for count_nodal_domains.c
+  Driver for count_nodal_domains.c
 
-Kyle Konrad
-3/31/2011
+  Kyle Konrad
+  3/31/2011
 */
 
 
@@ -80,9 +80,9 @@ void processArgs(int argc, char **argv) {
       break;
     case 'l':
       if (parse_billiard(optarg, &bil) == -1) {
-	fprintf(stderr, "Error: failed to parse billiard args\n");
-	usage();
-	exit(CMD_LINE_ARG_ERR);
+        fprintf(stderr, "Error: failed to parse billiard args\n");
+        usage();
+        exit(CMD_LINE_ARG_ERR);
       }
       mode = 2;
       break;
@@ -131,10 +131,10 @@ void processArgs(int argc, char **argv) {
       case 'k':
       case 'M':
       case 'u':
-	fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-	break;
+        fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+        break;
       default:
-	fprintf(stderr, "Unknown option -%c.\n", optopt);
+        fprintf(stderr, "Unknown option -%c.\n", optopt);
       }
     default:
       abort();
@@ -175,8 +175,8 @@ void processArgs(int argc, char **argv) {
 
 
 /*
-output:
-        return value: number of nodal domains
+  output:
+  return value: number of nodal domains
 */
 int runTest(double **grid, bit_array_t *counted, int ny, int nx, double k, double dx, int besselOrder, int upsample_ratio, interp_stats *stats) {
   char sizefilename[50];
@@ -223,8 +223,8 @@ int main(int argc, char **argv) {
       counted = createMaskFromFile(maskFile, &counted_y, &counted_x);
      
       if (counted_x != nx || counted_y != ny) {
-	ERROR("mask dimensions do not match grid dimensions");
-	exit(DIMENSION_ERR);
+        ERROR("mask dimensions do not match grid dimensions");
+        exit(DIMENSION_ERR);
       }
     }
     else {
@@ -271,8 +271,8 @@ int main(int argc, char **argv) {
       }
 
       if (grid == NULL) {
-	ERROR("failed to read grid");
-	exit(IO_ERR);
+        ERROR("failed to read grid");
+        exit(IO_ERR);
       }
     
       counted = createScaledMaskFromBilliard(&bil, xl, xh, yl, yh, dx, upsample_ratio, k/k_0, ((ny-1)*upsample_ratio)+1, ((nx-1)*upsample_ratio)+1); 
@@ -291,11 +291,11 @@ int main(int argc, char **argv) {
       printf("%f, %d, %d, %d, %d, %d, %f\n", k, count, stats.small_domain_count, stats.interp_count, stats.boundary_trouble_count, stats.edge_trouble_count, wtm);
 
       if (oneFlag)
-	break;
+        break;
 
     } while (++i < ne);
 
-      free(file);
+    free(file);
   }
 
   if (showTime)
